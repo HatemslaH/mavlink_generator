@@ -14,7 +14,11 @@ fn main() {
 
 fn run() -> mavlink_generator::Result<()> {
     let definitions_dir = Path::new("mavlink/message_definitions/v1.0");
-    let languages = [TargetLanguage::Dart, TargetLanguage::C];
+    let languages = [
+        TargetLanguage::Dart,
+        TargetLanguage::C,
+        TargetLanguage::Python,
+    ];
 
     let xml_paths: Vec<_> = std::fs::read_dir(definitions_dir)?
         .filter_map(|entry| entry.ok())

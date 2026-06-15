@@ -196,22 +196,82 @@ fn generates_c_example_files() {
 }
 
 #[test]
-fn unimplemented_example_languages_return_error() {
-    let output_dir = std::env::temp_dir().join("mavlink_generator_examples_stub_test");
-    let dialect_stems = vec!["rt_rc".to_string()];
+fn generates_rt_rc_python_file() {
+    let output = std::env::temp_dir().join("rt_rc_generated.py");
+    mavlink_generator::generate_code(
+        &output,
+        "mavlink/message_definitions/v1.0/rt_rc.xml",
+        TargetLanguage::Python,
+    )
+    .expect("generation should succeed");
 
-    let python_err = generate_example_files(&output_dir, TargetLanguage::Python, &dialect_stems)
-        .expect_err("python examples should not be implemented yet");
-    assert!(python_err.to_string().contains("Python"));
+    let content = std::fs::read_to_string(&output).expect("generated file should exist");
+    assert!(content.contains("class MavlinkDialectRt_rc(MavlinkDialect)"));
+    assert!(content.contains("CRC_EXTRA: ClassVar[int] = 247"));
+    assert!(content.contains("class RtRcControlId(IntEnum)"));
+
+    let _ = std::fs::remove_file(&output);
 }
 
 #[test]
-fn unimplemented_languages_return_error() {
-    let output = std::env::temp_dir().join("rt_rc_generated.py");
-    let xml = "mavlink/message_definitions/v1.0/rt_rc.xml";
+fn generates_python_runtime_files() {
+    let output_dir = std::env::temp_dir().join("mavlink_generator_python_runtime_test");
+    let dialect_stems = vec!["rt_rc".to_string()];
 
-    let python_err =
-        mavlink_generator::generate_code(&output, xml, mavlink_generator::TargetLanguage::Python)
-            .expect_err("python generation should not be implemented yet");
-    assert!(python_err.to_string().contains("Python"));
+    generate_runtime_files(&output_dir, TargetLanguage::Python, &dialect_stems)
+        .expect("runtime generation should succeed");
+
+    let entry_point = output_dir.join("mavlink.py");
+    let content = std::fs::read_to_string(&entry_point).expect("mavlink.py should exist");
+    assert!(content.contains("from dialects.rt_rc import *"));
+    assert!(content.contains("from mavlink_parser import MavlinkParser"));
+
+    assert!(output_dir.join("crc.py").is_file());
+    assert!(output_dir.join("mavlink_parser.py").is_file());
+    assert!(output_dir.join("dialects/__init__.py").is_file());
+
+    let _ = std::fs::remove_dir_all(&output_dir);
+}
+
+#[test]
+fn generates_python_example_files() {
+    let output_dir = std::env::temp_dir().join("mavlink_generator_python_examples_test");
+    let dialect_stems = vec!["rt_rc".to_string()];
+
+    generate_example_files(&output_dir, TargetLanguage::Python, &dialect_stems)
+        .expect("example generation should succeed");
+
+    let examples_dir = output_dir.join("examples");
+    assert!(examples_dir.join("common.py").is_file());
+    assert!(examples_dir.join("README.md").is_file());
+
+    let heartbeat = std::fs::read_to_string(examples_dir.join("rt_rc_heartbeat.py"))
+        .expect("heartbeat example should exist");
+    assert!(heartbeat.contains("MavlinkDialectRt_rc"));
+    assert!(heartbeat.contains("round_trip_message(dialect, heartbeat)"));
+
+    let mission = std::fs::read_to_string(examples_dir.join("rt_rc_mission_upload.py"))
+        .expect("mission example should exist");
+    assert!(mission.contains("MissionCount"));
+    assert!(mission.contains("MissionRequest"));
+    assert!(mission.contains("MissionAck"));
+
+    let telemetry = std::fs::read_to_string(examples_dir.join("rt_rc_request_telemetry.py"))
+        .expect("telemetry example should exist");
+    assert!(telemetry.contains("MAV_CMD_SET_MESSAGE_INTERVAL"));
+    assert!(telemetry.contains("MAV_CMD_REQUEST_MESSAGE"));
+    assert!(telemetry.contains("Attitude.MSG_ID"));
+
+    let params = std::fs::read_to_string(examples_dir.join("rt_rc_request_parameters.py"))
+        .expect("parameters example should exist");
+    assert!(params.contains("ParamRequestList"));
+    assert!(params.contains("ParamRequestRead"));
+    assert!(params.contains("ParamValue"));
+
+    assert_eq!(
+        examples_output_dir(TargetLanguage::Python),
+        std::path::PathBuf::from("generated/py/examples")
+    );
+
+    let _ = std::fs::remove_dir_all(&output_dir);
 }

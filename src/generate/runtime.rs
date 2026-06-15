@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::error::{GeneratorError, Result};
+use crate::error::Result;
 use crate::generate::TargetLanguage;
 
 /// A generated support/runtime file (not dialect-specific).
@@ -43,6 +43,10 @@ pub fn generate_runtime_files(
     fs::create_dir_all(output_dir)?;
     fs::create_dir_all(output_dir.join(DIALECTS_DIR))?;
 
+    if language == TargetLanguage::Python {
+        fs::write(output_dir.join(DIALECTS_DIR).join("__init__.py"), "")?;
+    }
+
     for file in generator.static_files() {
         write_runtime_file(output_dir, &file)?;
     }
@@ -57,10 +61,7 @@ fn runtime_generator(language: TargetLanguage) -> Result<Box<dyn LanguageRuntime
     match language {
         TargetLanguage::Dart => Ok(Box::new(crate::generate::dart::DartRuntimeGenerator)),
         TargetLanguage::C => Ok(Box::new(crate::generate::c::CRuntimeGenerator)),
-        TargetLanguage::Python => Err(GeneratorError::Format(format!(
-            "Runtime file generation for {} is not implemented yet",
-            language.display_name()
-        ))),
+        TargetLanguage::Python => Ok(Box::new(crate::generate::python::PythonRuntimeGenerator)),
     }
 }
 

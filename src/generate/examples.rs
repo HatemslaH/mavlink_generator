@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::error::{GeneratorError, Result};
+use crate::error::Result;
 use crate::generate::TargetLanguage;
 
 /// A generated example file for a target language.
@@ -48,10 +48,7 @@ fn example_generator(language: TargetLanguage) -> Result<Box<dyn LanguageExample
     match language {
         TargetLanguage::Dart => Ok(Box::new(crate::generate::dart::DartExampleGenerator)),
         TargetLanguage::C => Ok(Box::new(crate::generate::c::CExampleGenerator)),
-        TargetLanguage::Python => Err(GeneratorError::Format(format!(
-            "Example generation for {} is not implemented yet",
-            language.display_name()
-        ))),
+        TargetLanguage::Python => Ok(Box::new(crate::generate::python::PythonExampleGenerator)),
     }
 }
 

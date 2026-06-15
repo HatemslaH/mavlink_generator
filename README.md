@@ -27,8 +27,37 @@ generated/
       rt_rc_mission_upload.dart
       rt_rc_request_telemetry.dart
       rt_rc_request_parameters.dart
-  py/                  # reserved
-  c/                   # reserved
+  py/
+    dialects/
+      rt_rc.py
+    crc.py
+    mavlink.py         # entry point (imports dialects + runtime)
+    ...
+    examples/
+      README.md
+      common.py
+      rt_rc_heartbeat.py
+      rt_rc_mission_upload.py
+      rt_rc_request_telemetry.py
+      rt_rc_request_parameters.py
+  c/
+    dialects/
+      rt_rc.h
+    crc.h
+    mavlink.h          # entry point (includes dialects + runtime)
+    ...
+    examples/
+      README.md
+      common.h
+      rt_rc_heartbeat.c
+      rt_rc_mission_upload.c
+      rt_rc_request_telemetry.c
+      rt_rc_request_parameters.c
+  ts/                  # planned (TypeScript)
+  cs/                  # planned (C#)
+  rs/                  # planned (Rust)
+  cpp/                 # planned (C++)
+  js/                  # planned (JavaScript)
 ```
 
 Input definitions live in `mavlink/message_definitions/`. Static runtime templates live in `templates/<language>/`.
@@ -37,6 +66,12 @@ Input definitions live in `mavlink/message_definitions/`. Static runtime templat
 
 - Rust 1.85+ (edition 2024)
 - MAVLink XML dialect files (included as a git submodule or vendored copy under `mavlink/`)
+
+To run generated examples:
+
+- **Dart** — Dart SDK
+- **Python** — Python 3.10+ (generated dialects use `match`)
+- **C** — C compiler with C11 support (e.g. gcc, clang)
 
 ## Usage
 
@@ -49,7 +84,30 @@ cargo build --release
 cargo run
 ```
 
-By default the CLI generates Dart output for configured dialects into `generated/dart/`.
+By default the CLI generates **Dart**, **C**, and **Python** output for configured dialects (`*rt_rc.xml`) into `generated/<language>/`.
+
+### Run examples
+
+Each language ships four virtual examples per dialect (heartbeat, mission upload, telemetry request, parameter request). See `generated/<language>/examples/README.md` for details.
+
+**Dart** (from `generated/dart`):
+
+```bash
+dart run examples/rt_rc_heartbeat.dart
+```
+
+**Python** (from `generated/py`):
+
+```bash
+python examples/rt_rc_heartbeat.py
+```
+
+**C** (from `generated/c`):
+
+```bash
+gcc -std=c11 -I. examples/rt_rc_heartbeat.c -o rt_rc_heartbeat
+./rt_rc_heartbeat
+```
 
 ### Library
 
@@ -73,15 +131,21 @@ Lower-level API:
 use mavlink_generator::{TargetLanguage, generate_code};
 
 generate_code("out/custom.dart", "path/to/dialect.xml", TargetLanguage::Dart)?;
+// TargetLanguage::Python, TargetLanguage::C
 ```
 
 ## Supported languages
 
-| Language | Dialect generation | Runtime generation | Examples |
-|----------|-------------------|-------------------|----------|
-| Dart     | yes               | yes               | yes      |
-| Python   | planned           | planned           | planned  |
-| C        | planned           | planned           | planned  |
+| Language   | Dialect generation | Runtime generation | Examples |
+|------------|-------------------|-------------------|----------|
+| Dart       | yes               | yes               | yes      |
+| Python     | yes               | yes               | yes      |
+| C          | yes               | yes               | yes      |
+| TypeScript | planned           | planned           | planned  |
+| C#         | planned           | planned           | planned  |
+| Rust       | planned           | planned           | planned  |
+| C++        | planned           | planned           | planned  |
+| JavaScript | planned           | planned           | planned  |
 
 ## Project layout
 
@@ -89,9 +153,10 @@ generate_code("out/custom.dart", "path/to/dialect.xml", TargetLanguage::Dart)?;
 src/
   xml/                 # MAVLink XML parser
   generate/
-    dart/              # Dart dialect + runtime generator
-    python/            # Python dialect generator (stub)
-    c/                 # C dialect generator (stub)
+    dart/              # Dart dialect + runtime + examples generator
+    python/            # Python dialect + runtime + examples generator
+    c/                 # C dialect + runtime + examples generator
+    # planned: ts/, cs/, rs/, cpp/, js/
     runtime.rs         # shared output paths and runtime trait
     examples.rs        # shared output paths and examples trait
   main.rs              # CLI entry point
@@ -99,6 +164,11 @@ templates/
   dart/                # static runtime templates
   py/
   c/
+  ts/                  # planned
+  cs/                  # planned
+  rs/                  # planned
+  cpp/                 # planned
+  js/                  # planned
 generated/             # output (created by the generator)
 mavlink/               # MAVLink definitions (upstream)
 tests/
