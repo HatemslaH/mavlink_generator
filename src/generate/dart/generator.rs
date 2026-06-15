@@ -1,30 +1,14 @@
 use std::collections::HashSet;
-use std::fs;
 use std::path::Path;
 
-use crate::dart_writer::DartWriter;
-use crate::dialect_entry::DialectEntry;
-use crate::dialect_field::DialectField;
-use crate::dialect_message::DialectMessage;
-use crate::document::DialectDocument;
 use crate::error::Result;
-use crate::mavlink_type::BasicType;
-use crate::util::{camel_case, dialect_name_from_path, unique_enum_entry_dart_name};
+use crate::generate::dart::util::{dialect_name_from_path, unique_enum_entry_dart_name};
+use crate::generate::dart::writer::DartWriter;
+use crate::xml::{
+    BasicType, DialectDocument, DialectEntry, DialectField, DialectMessage, camel_case,
+};
 
-pub fn generate_code(dst_path: impl AsRef<Path>, src_dialect_path: impl AsRef<Path>) -> Result<()> {
-    let dst_path = dst_path.as_ref();
-    let src_dialect_path = src_dialect_path.as_ref();
-    let doc = DialectDocument::parse(src_dialect_path)?;
-    let content = render_dialect(&doc, src_dialect_path)?;
-
-    if let Some(parent) = dst_path.parent() {
-        fs::create_dir_all(parent)?;
-    }
-    fs::write(dst_path, content)?;
-    Ok(())
-}
-
-fn render_dialect(doc: &DialectDocument, src_dialect_path: &Path) -> Result<String> {
+pub fn render(doc: &DialectDocument, src_dialect_path: &Path) -> Result<String> {
     let mut writer = DartWriter::new();
     writer.line("import 'dart:typed_data';");
     writer.line("import '../mavlink.dart';");
@@ -52,11 +36,7 @@ fn render_dialect(doc: &DialectDocument, src_dialect_path: &Path) -> Result<Stri
     }
 
     writer.blank();
-    render_dialect_class(
-        &mut writer,
-        doc,
-        &dialect_name_from_path(src_dialect_path),
-    )?;
+    render_dialect_class(&mut writer, doc, &dialect_name_from_path(src_dialect_path))?;
 
     Ok(writer.into_string())
 }
@@ -94,28 +74,32 @@ fn render_enum_entries(writer: &mut DartWriter, entries: &[DialectEntry]) {
 }
 
 fn render_enum_from_value(writer: &mut DartWriter, enum_name: &str, is_bitmask: bool) {
-    writer.block(&format!("static {enum_name} fromValue(int value) {{"), "}", |w| {
-        if is_bitmask {
-            w.line("// Exact match first");
-            w.block(&format!("for (var e in {enum_name}.values) {{"), "}", |w| {
-                w.line("if (e.value == value) return e;");
-            });
-            w.line("// For bitmasks, find the highest priority set bit");
-            w.line("// Sort by value descending to check highest bits first");
-            write_bitmask_sorted(w, enum_name);
-            w.block("for (var e in sorted) {", "}", |w| {
-                w.line("if ((value & e.value) != 0) return e;");
-            });
-            w.line("// No bits set, try to find value 0 or return first value");
-            write_first_where_fallback(w, enum_name);
-        } else {
-            w.block(&format!("for (var e in {enum_name}.values) {{"), "}", |w| {
-                w.line("if (e.value == value) return e;");
-            });
-            w.line("// Value not found, return first enum value");
-            w.line(&format!("return {enum_name}.values.first;"));
-        }
-    });
+    writer.block(
+        &format!("static {enum_name} fromValue(int value) {{"),
+        "}",
+        |w| {
+            if is_bitmask {
+                w.line("// Exact match first");
+                w.block(&format!("for (var e in {enum_name}.values) {{"), "}", |w| {
+                    w.line("if (e.value == value) return e;");
+                });
+                w.line("// For bitmasks, find the highest priority set bit");
+                w.line("// Sort by value descending to check highest bits first");
+                write_bitmask_sorted(w, enum_name);
+                w.block("for (var e in sorted) {", "}", |w| {
+                    w.line("if ((value & e.value) != 0) return e;");
+                });
+                w.line("// No bits set, try to find value 0 or return first value");
+                write_first_where_fallback(w, enum_name);
+            } else {
+                w.block(&format!("for (var e in {enum_name}.values) {{"), "}", |w| {
+                    w.line("if (e.value == value) return e;");
+                });
+                w.line("// Value not found, return first enum value");
+                w.line(&format!("return {enum_name}.values.first;"));
+            }
+        },
+    );
 }
 
 fn write_bitmask_sorted(writer: &mut DartWriter, enum_name: &str) {
@@ -304,10 +288,7 @@ fn render_copy_with(writer: &mut DartWriter, msg: &DialectMessage) {
         write_named_assignment(
             writer,
             &field.name_for_dart,
-            &format!(
-                "{} ?? this.{}",
-                field.name_for_dart, field.name_for_dart
-            ),
+            &format!("{} ?? this.{}", field.name_for_dart, field.name_for_dart),
         );
     }
     writer.dedent();
@@ -550,26 +531,33 @@ fn render_dialect_class(
         &format!("class MavlinkDialect{dialect_name} implements MavlinkDialect {{"),
         "}",
         |w| {
-            w.line(&format!("static const int mavlinkVersion = {};", doc.version));
+            w.line(&format!(
+                "static const int mavlinkVersion = {};",
+                doc.version
+            ));
             w.blank();
             w.line("@override");
             w.line("int get version => mavlinkVersion;");
             w.blank();
             w.line("@override");
-            w.block("MavlinkMessage? parse(int messageID, ByteData data) {", "}", |w| {
-                w.block("switch (messageID) {", "}", |w| {
-                    for msg in doc.messages.messages() {
-                        w.line(&format!("case {}:", msg.id));
+            w.block(
+                "MavlinkMessage? parse(int messageID, ByteData data) {",
+                "}",
+                |w| {
+                    w.block("switch (messageID) {", "}", |w| {
+                        for msg in doc.messages.messages() {
+                            w.line(&format!("case {}:", msg.id));
+                            w.indent();
+                            w.line(&format!("return {}.parse(data);", msg.name_for_dart));
+                            w.dedent();
+                        }
+                        w.line("default:");
                         w.indent();
-                        w.line(&format!("return {}.parse(data);", msg.name_for_dart));
+                        w.line("return null;");
                         w.dedent();
-                    }
-                    w.line("default:");
-                    w.indent();
-                    w.line("return null;");
-                    w.dedent();
-                });
-            });
+                    });
+                },
+            );
             w.blank();
             w.line("@override");
             w.block("int crcExtra(int messageID) {", "}", |w| {

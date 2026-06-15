@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use mavlink_generator::generate_code;
+use mavlink_generator::{TargetLanguage, generate_code};
 
 fn main() {
     if let Err(error) = run() {
@@ -48,7 +48,7 @@ fn run() -> mavlink_generator::Result<()> {
             })?;
 
         let dart_path = destination_dir.join(format!("{file_stem}.dart").to_lowercase());
-        generate_code(&dart_path, &xml_path)?;
+        generate_code(&dart_path, &xml_path, TargetLanguage::Dart)?;
         println!("  -> {}", dart_path.display());
     }
 

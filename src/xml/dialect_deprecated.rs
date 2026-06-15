@@ -1,7 +1,7 @@
 use roxmltree::Node;
 
+use super::xml_util::{attr, element_text};
 use crate::error::{GeneratorError, Result};
-use crate::xml_util::{attr, element_text};
 
 #[derive(Debug, Clone)]
 pub struct DialectDeprecated {

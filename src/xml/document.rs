@@ -3,12 +3,12 @@ use std::path::Path;
 
 use roxmltree::Node;
 
-use crate::dialect_deprecated::DialectDeprecated;
-use crate::dialect_enum::DialectEnums;
-use crate::dialect_field::DialectField;
-use crate::dialect_message::{DialectMessage, DialectMessages};
+use super::dialect_deprecated::DialectDeprecated;
+use super::dialect_enum::DialectEnums;
+use super::dialect_field::DialectField;
+use super::dialect_message::{DialectMessage, DialectMessages};
+use super::xml_util::{child_element, child_text, descendants_named};
 use crate::error::{GeneratorError, Result};
-use crate::xml_util::{child_element, child_text, descendants_named};
 
 #[derive(Debug, Clone)]
 pub struct DialectDocument {

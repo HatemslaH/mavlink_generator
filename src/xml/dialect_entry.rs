@@ -1,12 +1,12 @@
 use roxmltree::Node;
 
-use crate::dialect_deprecated::DialectDeprecated;
-use crate::dialect_param::DialectParam;
-use crate::error::{GeneratorError, Result};
-use crate::util::lower_camel_case;
-use crate::xml_util::{
+use super::dialect_deprecated::DialectDeprecated;
+use super::dialect_param::DialectParam;
+use super::util::lower_camel_case;
+use super::xml_util::{
     attr, cast_as_bool, child_element, child_text, descendants_named, element_text,
 };
+use crate::error::{GeneratorError, Result};
 
 #[derive(Debug, Clone)]
 pub struct DialectEntry {

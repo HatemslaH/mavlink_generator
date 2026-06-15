@@ -1,4 +1,4 @@
-use mavlink_generator::DialectDocument;
+use mavlink_generator::{DialectDocument, generate_dart_code};
 
 #[test]
 fn parses_rt_rc_dialect() {
@@ -23,11 +23,27 @@ fn parses_rt_rc_dialect() {
 #[test]
 fn generates_rt_rc_dart_file() {
     let output = std::env::temp_dir().join("rt_rc_generated.dart");
-    mavlink_generator::generate_code(&output, "mavlink/message_definitions/v1.0/rt_rc.xml")
+    generate_dart_code(&output, "mavlink/message_definitions/v1.0/rt_rc.xml")
         .expect("generation should succeed");
 
     let content = std::fs::read_to_string(&output).expect("generated file should exist");
     assert!(content.contains("class MavlinkDialectRt_rc implements MavlinkDialect"));
     assert!(content.contains("static const int crcExtra = 247;"));
     assert!(content.contains("enum RtRcControlId"));
+}
+
+#[test]
+fn unimplemented_languages_return_error() {
+    let output = std::env::temp_dir().join("rt_rc_generated.py");
+    let xml = "mavlink/message_definitions/v1.0/rt_rc.xml";
+
+    let python_err =
+        mavlink_generator::generate_code(&output, xml, mavlink_generator::TargetLanguage::Python)
+            .expect_err("python generation should not be implemented yet");
+    assert!(python_err.to_string().contains("Python"));
+
+    let c_err =
+        mavlink_generator::generate_code(&output, xml, mavlink_generator::TargetLanguage::C)
+            .expect_err("c generation should not be implemented yet");
+    assert!(c_err.to_string().contains("C code generation"));
 }

@@ -1,9 +1,9 @@
 use roxmltree::Node;
 
+use super::mavlink_type::ParsedMavlinkType;
+use super::util::lower_camel_case;
+use super::xml_util::{attr, element_text};
 use crate::error::{GeneratorError, Result};
-use crate::mavlink_type::ParsedMavlinkType;
-use crate::util::lower_camel_case;
-use crate::xml_util::{attr, element_text};
 
 #[derive(Debug, Clone)]
 pub struct DialectField {

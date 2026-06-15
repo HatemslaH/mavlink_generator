@@ -1,8 +1,8 @@
-use crate::crc::CrcX25;
-use crate::dialect_deprecated::DialectDeprecated;
-use crate::dialect_field::DialectField;
+use super::crc::CrcX25;
+use super::dialect_deprecated::DialectDeprecated;
+use super::dialect_field::DialectField;
+use super::util::camel_case;
 use crate::error::Result;
-use crate::util::camel_case;
 
 #[derive(Debug, Clone)]
 pub struct DialectMessage {

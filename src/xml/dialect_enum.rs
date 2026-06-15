@@ -1,10 +1,10 @@
 use roxmltree::Node;
 
-use crate::dialect_deprecated::DialectDeprecated;
-use crate::dialect_entry::DialectEntry;
+use super::dialect_deprecated::DialectDeprecated;
+use super::dialect_entry::DialectEntry;
+use super::util::camel_case;
+use super::xml_util::{attr, child_element, child_text, descendants_named};
 use crate::error::{GeneratorError, Result};
-use crate::util::camel_case;
-use crate::xml_util::{attr, child_element, child_text, descendants_named};
 
 #[derive(Debug, Clone)]
 pub struct DialectEnum {
