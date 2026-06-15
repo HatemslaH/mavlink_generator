@@ -1,12 +1,18 @@
 pub mod c;
 pub mod dart;
 pub mod python;
+pub mod runtime;
 
 use std::fs;
 use std::path::Path;
 
 use crate::error::Result;
 use crate::xml::DialectDocument;
+
+pub use runtime::{
+    DIALECTS_DIR, GENERATED_ROOT, RuntimeFile, dialect_output_path, dialects_output_dir,
+    generate_runtime_files, language_output_dir,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TargetLanguage {
@@ -21,6 +27,22 @@ impl TargetLanguage {
             Self::Dart => "dart",
             Self::Python => "py",
             Self::C => "h",
+        }
+    }
+
+    pub fn output_dir_name(self) -> &'static str {
+        match self {
+            Self::Dart => "dart",
+            Self::Python => "py",
+            Self::C => "c",
+        }
+    }
+
+    pub fn display_name(self) -> &'static str {
+        match self {
+            Self::Dart => "Dart",
+            Self::Python => "Python",
+            Self::C => "C",
         }
     }
 }
@@ -45,6 +67,15 @@ pub fn generate_code(
     }
     fs::write(dst_path, content)?;
     Ok(())
+}
+
+pub fn generate_dialect(
+    src_dialect_path: impl AsRef<Path>,
+    language: TargetLanguage,
+    dialect_stem: &str,
+) -> Result<()> {
+    let dst_path = dialect_output_path(language, dialect_stem);
+    generate_code(&dst_path, src_dialect_path, language)
 }
 
 fn render_dialect(

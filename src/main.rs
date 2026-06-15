@@ -1,6 +1,9 @@
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use mavlink_generator::{TargetLanguage, generate_code};
+use mavlink_generator::{
+    TargetLanguage, dialects_output_dir, generate_dialect, generate_runtime_files,
+    language_output_dir,
+};
 
 fn main() {
     if let Err(error) = run() {
@@ -11,11 +14,13 @@ fn main() {
 
 fn run() -> mavlink_generator::Result<()> {
     let definitions_dir = Path::new("mavlink/message_definitions/v1.0");
-    let destination_dir = Path::new("lib/mavlink/dialects");
+    let language = TargetLanguage::Dart;
+    let output_dir = language_output_dir(language);
+    let dialects_dir = dialects_output_dir(language);
 
-    std::fs::create_dir_all(destination_dir)?;
+    std::fs::create_dir_all(&dialects_dir)?;
 
-    let xml_paths: Vec<PathBuf> = std::fs::read_dir(definitions_dir)?
+    let xml_paths: Vec<_> = std::fs::read_dir(definitions_dir)?
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
         .filter(|path| {
@@ -34,6 +39,8 @@ fn run() -> mavlink_generator::Result<()> {
         )));
     }
 
+    let mut dialect_stems = Vec::with_capacity(xml_paths.len());
+
     for xml_path in xml_paths {
         println!("{}", xml_path.display());
 
@@ -45,12 +52,21 @@ fn run() -> mavlink_generator::Result<()> {
                     "Invalid dialect file name: {}",
                     xml_path.display()
                 ))
-            })?;
+            })?
+            .to_lowercase();
 
-        let dart_path = destination_dir.join(format!("{file_stem}.dart").to_lowercase());
-        generate_code(&dart_path, &xml_path, TargetLanguage::Dart)?;
-        println!("  -> {}", dart_path.display());
+        generate_dialect(&xml_path, language, &file_stem)?;
+        println!(
+            "  -> {}",
+            dialects_dir
+                .join(format!("{file_stem}.{}", language.file_extension()))
+                .display()
+        );
+        dialect_stems.push(file_stem);
     }
+
+    generate_runtime_files(&output_dir, language, &dialect_stems)?;
+    println!("Generated runtime files in {}", output_dir.display());
 
     Ok(())
 }
