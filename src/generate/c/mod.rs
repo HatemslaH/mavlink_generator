@@ -1,10 +1,8 @@
-use std::path::Path;
+mod examples;
+mod generator;
+mod runtime;
+mod util;
 
-use crate::error::{GeneratorError, Result};
-use crate::xml::DialectDocument;
-
-pub fn render(_doc: &DialectDocument, _src_dialect_path: &Path) -> Result<String> {
-    Err(GeneratorError::Format(
-        "C code generation is not implemented yet".into(),
-    ))
-}
+pub use examples::CExampleGenerator;
+pub use generator::render;
+pub use runtime::CRuntimeGenerator;

@@ -14,11 +14,7 @@ fn main() {
 
 fn run() -> mavlink_generator::Result<()> {
     let definitions_dir = Path::new("mavlink/message_definitions/v1.0");
-    let language = TargetLanguage::Dart;
-    let output_dir = language_output_dir(language);
-    let dialects_dir = dialects_output_dir(language);
-
-    std::fs::create_dir_all(&dialects_dir)?;
+    let languages = [TargetLanguage::Dart, TargetLanguage::C];
 
     let xml_paths: Vec<_> = std::fs::read_dir(definitions_dir)?
         .filter_map(|entry| entry.ok())
@@ -39,40 +35,51 @@ fn run() -> mavlink_generator::Result<()> {
         )));
     }
 
-    let mut dialect_stems = Vec::with_capacity(xml_paths.len());
+    for language in languages {
+        let output_dir = language_output_dir(language);
+        let dialects_dir = dialects_output_dir(language);
+        std::fs::create_dir_all(&dialects_dir)?;
 
-    for xml_path in xml_paths {
-        println!("{}", xml_path.display());
+        let mut dialect_stems = Vec::with_capacity(xml_paths.len());
 
-        let file_stem = xml_path
-            .file_stem()
-            .and_then(|stem| stem.to_str())
-            .ok_or_else(|| {
-                mavlink_generator::GeneratorError::Format(format!(
-                    "Invalid dialect file name: {}",
-                    xml_path.display()
-                ))
-            })?
-            .to_lowercase();
+        for xml_path in &xml_paths {
+            println!("[{}] {}", language.display_name(), xml_path.display());
 
-        generate_dialect(&xml_path, language, &file_stem)?;
+            let file_stem = xml_path
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .ok_or_else(|| {
+                    mavlink_generator::GeneratorError::Format(format!(
+                        "Invalid dialect file name: {}",
+                        xml_path.display()
+                    ))
+                })?
+                .to_lowercase();
+
+            generate_dialect(xml_path, language, &file_stem)?;
+            println!(
+                "  -> {}",
+                dialects_dir
+                    .join(format!("{file_stem}.{}", language.file_extension()))
+                    .display()
+            );
+            dialect_stems.push(file_stem);
+        }
+
+        generate_runtime_files(&output_dir, language, &dialect_stems)?;
         println!(
-            "  -> {}",
-            dialects_dir
-                .join(format!("{file_stem}.{}", language.file_extension()))
-                .display()
+            "Generated {} runtime files in {}",
+            language.display_name(),
+            output_dir.display()
         );
-        dialect_stems.push(file_stem);
+
+        generate_example_files(&output_dir, language, &dialect_stems)?;
+        println!(
+            "Generated {} examples in {}",
+            language.display_name(),
+            mavlink_generator::examples_output_dir(language).display()
+        );
     }
-
-    generate_runtime_files(&output_dir, language, &dialect_stems)?;
-    println!("Generated runtime files in {}", output_dir.display());
-
-    generate_example_files(&output_dir, language, &dialect_stems)?;
-    println!(
-        "Generated examples in {}",
-        mavlink_generator::examples_output_dir(language).display()
-    );
 
     Ok(())
 }

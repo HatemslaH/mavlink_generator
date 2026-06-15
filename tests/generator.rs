@@ -116,6 +116,86 @@ fn generates_dart_example_files() {
 }
 
 #[test]
+fn generates_rt_rc_c_file() {
+    let output = std::env::temp_dir().join("rt_rc_generated.h");
+    mavlink_generator::generate_code(
+        &output,
+        "mavlink/message_definitions/v1.0/rt_rc.xml",
+        TargetLanguage::C,
+    )
+    .expect("generation should succeed");
+
+    let content = std::fs::read_to_string(&output).expect("generated file should exist");
+    assert!(content.contains("typedef struct mavlink_dialect_rt_rc_t"));
+    assert!(content.contains("#define heartbeat_CRC_EXTRA"));
+    assert!(content.contains("typedef enum"));
+
+    let _ = std::fs::remove_file(&output);
+}
+
+#[test]
+fn generates_c_runtime_files() {
+    let output_dir = std::env::temp_dir().join("mavlink_generator_c_runtime_test");
+    let dialect_stems = vec!["rt_rc".to_string()];
+
+    generate_runtime_files(&output_dir, TargetLanguage::C, &dialect_stems)
+        .expect("runtime generation should succeed");
+
+    let entry_point = output_dir.join("mavlink.h");
+    let content = std::fs::read_to_string(&entry_point).expect("mavlink.h should exist");
+    assert!(content.contains("#include \"dialects/rt_rc.h\""));
+    assert!(content.contains("#include \"mavlink_frame.h\""));
+
+    assert!(output_dir.join("crc.h").is_file());
+    assert!(output_dir.join("mavlink_parser.h").is_file());
+
+    let _ = std::fs::remove_dir_all(&output_dir);
+}
+
+#[test]
+fn generates_c_example_files() {
+    let output_dir = std::env::temp_dir().join("mavlink_generator_c_examples_test");
+    let dialect_stems = vec!["rt_rc".to_string()];
+
+    generate_example_files(&output_dir, TargetLanguage::C, &dialect_stems)
+        .expect("example generation should succeed");
+
+    let examples_dir = output_dir.join("examples");
+    assert!(examples_dir.join("common.h").is_file());
+    assert!(examples_dir.join("README.md").is_file());
+
+    let heartbeat = std::fs::read_to_string(examples_dir.join("rt_rc_heartbeat.c"))
+        .expect("heartbeat example should exist");
+    assert!(heartbeat.contains("mavlink_dialect_rt_rc_init"));
+    assert!(heartbeat.contains("dialect.base.parse"));
+
+    let mission = std::fs::read_to_string(examples_dir.join("rt_rc_mission_upload.c"))
+        .expect("mission example should exist");
+    assert!(mission.contains("mission_count_t"));
+    assert!(mission.contains("mission_request_t"));
+    assert!(mission.contains("mission_ack_t"));
+
+    let telemetry = std::fs::read_to_string(examples_dir.join("rt_rc_request_telemetry.c"))
+        .expect("telemetry example should exist");
+    assert!(telemetry.contains("MAV_CMD_SET_MESSAGE_INTERVAL"));
+    assert!(telemetry.contains("MAV_CMD_REQUEST_MESSAGE"));
+    assert!(telemetry.contains("attitude_MSG_ID"));
+
+    let params = std::fs::read_to_string(examples_dir.join("rt_rc_request_parameters.c"))
+        .expect("parameters example should exist");
+    assert!(params.contains("param_request_list_t"));
+    assert!(params.contains("param_request_read_t"));
+    assert!(params.contains("param_value_t"));
+
+    assert_eq!(
+        examples_output_dir(TargetLanguage::C),
+        std::path::PathBuf::from("generated/c/examples")
+    );
+
+    let _ = std::fs::remove_dir_all(&output_dir);
+}
+
+#[test]
 fn unimplemented_example_languages_return_error() {
     let output_dir = std::env::temp_dir().join("mavlink_generator_examples_stub_test");
     let dialect_stems = vec!["rt_rc".to_string()];
@@ -123,10 +203,6 @@ fn unimplemented_example_languages_return_error() {
     let python_err = generate_example_files(&output_dir, TargetLanguage::Python, &dialect_stems)
         .expect_err("python examples should not be implemented yet");
     assert!(python_err.to_string().contains("Python"));
-
-    let c_err = generate_example_files(&output_dir, TargetLanguage::C, &dialect_stems)
-        .expect_err("c examples should not be implemented yet");
-    assert!(c_err.to_string().contains("Example generation"));
 }
 
 #[test]
@@ -138,9 +214,4 @@ fn unimplemented_languages_return_error() {
         mavlink_generator::generate_code(&output, xml, mavlink_generator::TargetLanguage::Python)
             .expect_err("python generation should not be implemented yet");
     assert!(python_err.to_string().contains("Python"));
-
-    let c_err =
-        mavlink_generator::generate_code(&output, xml, mavlink_generator::TargetLanguage::C)
-            .expect_err("c generation should not be implemented yet");
-    assert!(c_err.to_string().contains("C code generation"));
 }

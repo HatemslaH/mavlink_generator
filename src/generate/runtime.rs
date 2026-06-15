@@ -56,7 +56,8 @@ pub fn generate_runtime_files(
 fn runtime_generator(language: TargetLanguage) -> Result<Box<dyn LanguageRuntimeGenerator>> {
     match language {
         TargetLanguage::Dart => Ok(Box::new(crate::generate::dart::DartRuntimeGenerator)),
-        TargetLanguage::Python | TargetLanguage::C => Err(GeneratorError::Format(format!(
+        TargetLanguage::C => Ok(Box::new(crate::generate::c::CRuntimeGenerator)),
+        TargetLanguage::Python => Err(GeneratorError::Format(format!(
             "Runtime file generation for {} is not implemented yet",
             language.display_name()
         ))),

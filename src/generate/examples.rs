@@ -47,7 +47,8 @@ pub fn generate_example_files(
 fn example_generator(language: TargetLanguage) -> Result<Box<dyn LanguageExampleGenerator>> {
     match language {
         TargetLanguage::Dart => Ok(Box::new(crate::generate::dart::DartExampleGenerator)),
-        TargetLanguage::Python | TargetLanguage::C => Err(GeneratorError::Format(format!(
+        TargetLanguage::C => Ok(Box::new(crate::generate::c::CExampleGenerator)),
+        TargetLanguage::Python => Err(GeneratorError::Format(format!(
             "Example generation for {} is not implemented yet",
             language.display_name()
         ))),
