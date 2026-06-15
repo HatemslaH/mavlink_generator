@@ -1,0 +1,89 @@
+name: Sync GitHub metadata
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/sync-github-metadata.yml
+      - docs/release-notes/**
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update release notes and repository About
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs");
+            const path = require("path");
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const notesDir = "docs/release-notes";
+            const noteFiles = fs
+              .readdirSync(notesDir)
+              .filter((name) => name.endsWith(".md"));
+
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner,
+              repo,
+              per_page: 100,
+            });
+
+            for (const file of noteFiles) {
+              const tag = path.basename(file, ".md");
+              const body = fs.readFileSync(path.join(notesDir, file), "utf8");
+              const release = releases.find((item) => item.tag_name === tag);
+
+              if (!release) {
+                core.info(`No GitHub release for tag ${tag}, skipping.`);
+                continue;
+              }
+
+              if (release.body === body) {
+                core.info(`Release ${tag} body already up to date.`);
+                continue;
+              }
+
+              await github.rest.repos.updateRelease({
+                owner,
+                repo,
+                release_id: release.id,
+                body,
+              });
+              core.info(`Updated release body for ${tag}.`);
+            }
+
+            const description =
+              "MAVLink dialect code generator — desktop app and CLI (Rust, C, C++, Python, TypeScript, and more)";
+            const homepage =
+              "https://github.com/HatemslaH/mavlink_generator/releases/latest";
+
+            const { data: repository } = await github.rest.repos.get({
+              owner,
+              repo,
+            });
+
+            if (
+              repository.description === description &&
+              repository.homepage === homepage
+            ) {
+              core.info("Repository About already up to date.");
+            } else {
+              await github.rest.repos.update({
+                owner,
+                repo,
+                description,
+                homepage,
+              });
+              core.info("Updated repository description and homepage.");
+            }
