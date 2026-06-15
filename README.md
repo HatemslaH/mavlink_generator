@@ -1,6 +1,11 @@
 # mavlink_generator
 
+[![GitHub release](https://img.shields.io/github/v/release/HatemslaH/mavlink_generator?label=download)](https://github.com/HatemslaH/mavlink_generator/releases/latest)
+[![License: MIT](https://img.shields.io/github/license/HatemslaH/mavlink_generator)](LICENSE)
+
 Code generator for [MAVLink](https://mavlink.io/) dialects. Reads MAVLink XML definitions and produces language-specific message types, enums, and runtime helpers.
+
+**[Download latest release](https://github.com/HatemslaH/mavlink_generator/releases/latest)** — desktop installers and CLI binaries for Windows, macOS, and Linux. No Rust or Node required for the pre-built app.
 
 ## Overview
 
@@ -336,16 +341,28 @@ cargo test
 
 ## Desktop UI
 
-The repository includes a Tauri v2 + React desktop app in `ui/` that wraps the same generator driver used by the CLI.
+Desktop app (Tauri + React) — pick XML, output folder, languages, then **Validate** or **Generate**. Same engine as the CLI.
 
-### Prerequisites
+**Install:** [GitHub Releases](https://github.com/HatemslaH/mavlink_generator/releases/latest) → on Windows use `MAVLink.Generator_*_x64_en-US.msi`.
+
+### Screenshot
+
+> **Your screenshot goes here:** save as [`docs/screenshots/desktop-ui.png`](docs/screenshots/desktop-ui.png) (PNG or WebP, ~900px wide). The line below will work once the file is in the repo.
+
+![MAVLink Generator desktop UI](docs/screenshots/desktop-ui.png)
+
+### Develop from source
+
+The repository includes the app sources under `ui/`.
+
+#### Prerequisites
 
 - Node.js 20+
 - [pnpm](https://pnpm.io/) 9+ (`corepack enable` if needed)
 - Rust toolchain
 - Tauri system dependencies ([WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) on Windows)
 
-### Run
+### Run (development)
 
 ```bash
 cd ui
@@ -353,7 +370,7 @@ pnpm install
 pnpm tauri dev
 ```
 
-### Build installer
+### Build installer (local)
 
 ```bash
 cd ui
@@ -367,14 +384,17 @@ Note: Tauri builds use a separate `ui/src-tauri/target/` directory in addition t
 
 ## Releases
 
-Pre-built **CLI binaries** and **desktop installers** are published on [GitHub Releases](https://github.com/HatemslaH/mavlink_generator/releases).
+Pre-built artifacts are published on **[GitHub Releases](https://github.com/HatemslaH/mavlink_generator/releases/latest)**.
 
-| Asset | Use |
-|-------|-----|
-| `mavlink-generator-*.exe` / no extension | Command-line tool |
-| `*.msi`, `*.exe` (NSIS) | Windows desktop app |
-| `*.dmg` | macOS desktop app (Apple Silicon) |
-| `*.deb`, `*.AppImage` | Linux desktop app |
+### What to download
+
+| Platform | Desktop (recommended) | CLI |
+|----------|----------------------|-----|
+| **Windows** | `MAVLink.Generator_*_x64_en-US.msi` | `mavlink-generator-x86_64-pc-windows-msvc.exe` |
+| **macOS** (Apple Silicon) | `MAVLink.Generator_*_aarch64.dmg` | `mavlink-generator-aarch64-apple-darwin` |
+| **Linux** | `MAVLink.Generator_*_amd64.deb` or `.AppImage` | `mavlink-generator-x86_64-unknown-linux-gnu` |
+
+Release notes for each version live in [`docs/release-notes/`](docs/release-notes/) (e.g. [v0.1.0](docs/release-notes/v0.1.0.md)).
 
 ### Publish a new release (maintainers)
 
