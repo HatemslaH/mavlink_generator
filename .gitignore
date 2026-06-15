@@ -1,5 +1,10 @@
 /target
 
+# Desktop UI
+ui/node_modules/
+ui/dist/
+ui/src-tauri/target/
+
 # Build artifacts inside generated output
 generated/**/target/
 generated/**/bin/

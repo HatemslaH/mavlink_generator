@@ -280,6 +280,7 @@ generate_code("out/custom.dart", "path/to/dialect.xml", TargetLanguage::Dart)?;
 
 ```
 src/
+  driver.rs            # shared CLI/UI orchestration
   xml/                 # MAVLink XML parser
   generate/
     dart/              # Dart dialect + runtime + examples generator
@@ -303,6 +304,7 @@ templates/
   rust/
   js/
 generated/             # output (created by the generator)
+ui/                    # Tauri + React desktop app
 mavlink/               # MAVLink definitions (upstream)
 tests/
 ```
@@ -331,6 +333,37 @@ cargo fmt
 cargo check
 cargo test
 ```
+
+## Desktop UI
+
+The repository includes a Tauri v2 + React desktop app in `ui/` that wraps the same generator driver used by the CLI.
+
+### Prerequisites
+
+- Node.js 20+
+- [pnpm](https://pnpm.io/) 9+ (`corepack enable` if needed)
+- Rust toolchain
+- Tauri system dependencies ([WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) on Windows)
+
+### Run
+
+```bash
+cd ui
+pnpm install
+pnpm tauri dev
+```
+
+### Build installer
+
+```bash
+cd ui
+pnpm install
+pnpm tauri build
+```
+
+The UI calls `mavlink_generator::driver` through Tauri commands (`validate`, `generate`, file pickers, progress events). Generation runs on a blocking thread; the frontend listens for `generate-progress` events and disables actions while work is in progress.
+
+Note: Tauri builds use a separate `ui/src-tauri/target/` directory in addition to the root `target/`.
 
 ## License
 
