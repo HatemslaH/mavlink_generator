@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: write
-  administration: write
 
 jobs:
   sync:
@@ -46,12 +45,12 @@ jobs:
               const release = releases.find((item) => item.tag_name === tag);
 
               if (!release) {
-                core.info(`No GitHub release for tag ${tag}, skipping.`);
+                console.log(`No GitHub release for tag ${tag}, skipping.`);
                 continue;
               }
 
               if (release.body === body) {
-                core.info(`Release ${tag} body already up to date.`);
+                console.log(`Release ${tag} body already up to date.`);
                 continue;
               }
 
@@ -61,7 +60,7 @@ jobs:
                 release_id: release.id,
                 body,
               });
-              core.info(`Updated release body for ${tag}.`);
+              console.log(`Updated release body for ${tag}.`);
             }
 
             const description =
@@ -78,7 +77,7 @@ jobs:
               repository.description === description &&
               repository.homepage === homepage
             ) {
-              core.info("Repository About already up to date.");
+              console.log("Repository About already up to date.");
             } else {
               await github.rest.repos.update({
                 owner,
@@ -86,5 +85,5 @@ jobs:
                 description,
                 homepage,
               });
-              core.info("Updated repository description and homepage.");
+              console.log("Updated repository description and homepage.");
             }
