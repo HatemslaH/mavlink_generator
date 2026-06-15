@@ -2,7 +2,14 @@
 name = "mavlink_generator"
 version = "0.1.0"
 edition = "2024"
+description = "Code generator for MAVLink dialects"
+readme = "README.md"
+
+[[bin]]
+name = "mavlink-generator"
+path = "src/main.rs"
 
 [dependencies]
+clap = { version = "4.6.1", features = ["derive"] }
 regex = "1.12.4"
 roxmltree = "0.21.1"

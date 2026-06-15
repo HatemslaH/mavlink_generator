@@ -128,14 +128,59 @@ To run generated examples:
 
 ### CLI
 
-Build and run the generator:
+Build the generator:
 
 ```bash
 cargo build --release
-cargo run
 ```
 
-By default the CLI generates output for all supported languages and configured dialects (`*rt_rc.xml`) into `generated/<language>/`.
+Run with defaults (all languages, `rt_rc` dialect, output in `generated/`):
+
+```bash
+cargo run
+# or after build:
+cargo run --release --bin mavlink-generator
+```
+
+Common options:
+
+```bash
+# One dialect, selected languages
+cargo run -- --input mavlink/message_definitions/v1.0/rt_rc.xml --lang rust --lang python
+
+# Scan a definitions directory for every dialect XML
+cargo run -- generate --definitions-dir mavlink/message_definitions/v1.0 --all-dialects --lang dart
+
+# Dialect + runtime only (skip examples)
+cargo run -- --input mavlink/message_definitions/v1.0/rt_rc.xml --lang rust --no-examples
+
+# Validate XML without generating code
+cargo run -- validate mavlink/message_definitions/v1.0/rt_rc.xml
+
+# List supported target languages
+cargo run -- list-languages
+```
+
+Flags:
+
+| Flag | Description |
+|------|-------------|
+| `--input`, `-i` | XML file or directory (repeatable) |
+| `--output`, `-o` | Output root (default: `generated/`) |
+| `--lang`, `-l` | Target language (repeatable; default: all) |
+| `--dialect` | Stem filter when scanning a directory (default: `rt_rc`) |
+| `--all-dialects` | Include every `*.xml` in a scanned directory |
+| `--definitions-dir` | Directory used when `--input` is omitted |
+| `--no-runtime` | Skip runtime helper generation |
+| `--no-examples` | Skip example generation |
+| `--quiet`, `-q` | Suppress progress output |
+
+Install locally:
+
+```bash
+cargo install --path .
+mavlink-generator --help
+```
 
 ### Run examples
 

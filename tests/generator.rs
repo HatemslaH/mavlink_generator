@@ -597,7 +597,11 @@ fn generates_csharp_example_files() {
     assert!(params.contains("ParamValue"));
 
     assert!(examples_dir.join("rt_rc_heartbeat.csproj").is_file());
-    assert!(examples_dir.join("rt_rc_request_telemetry.csproj").is_file());
+    assert!(
+        examples_dir
+            .join("rt_rc_request_telemetry.csproj")
+            .is_file()
+    );
 
     assert_eq!(
         examples_output_dir(TargetLanguage::CSharp),
