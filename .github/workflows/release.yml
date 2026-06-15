@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -72,7 +73,18 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist/cli
-          cp "target/${{ matrix.rust_target }}/release/mavlink-generator"* dist/cli/${{ matrix.cli_artifact }}
+          BIN_DIR="target/${{ matrix.rust_target }}/release"
+          DEST="dist/cli/${{ matrix.cli_artifact }}"
+          if [ -f "$BIN_DIR/mavlink-generator.exe" ]; then
+            cp "$BIN_DIR/mavlink-generator.exe" "$DEST"
+          elif [ -f "$BIN_DIR/mavlink-generator" ]; then
+            cp "$BIN_DIR/mavlink-generator" "$DEST"
+            chmod +x "$DEST"
+          else
+            echo "CLI binary not found in $BIN_DIR"
+            ls -la "$BIN_DIR"
+            exit 1
+          fi
 
       - name: Build desktop app
         working-directory: ui
