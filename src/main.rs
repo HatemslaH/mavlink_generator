@@ -1,8 +1,8 @@
 use std::path::Path;
 
 use mavlink_generator::{
-    TargetLanguage, dialects_output_dir, generate_dialect, generate_runtime_files,
-    language_output_dir,
+    TargetLanguage, dialects_output_dir, generate_dialect, generate_example_files,
+    generate_runtime_files, language_output_dir,
 };
 
 fn main() {
@@ -67,6 +67,12 @@ fn run() -> mavlink_generator::Result<()> {
 
     generate_runtime_files(&output_dir, language, &dialect_stems)?;
     println!("Generated runtime files in {}", output_dir.display());
+
+    generate_example_files(&output_dir, language, &dialect_stems)?;
+    println!(
+        "Generated examples in {}",
+        mavlink_generator::examples_output_dir(language).display()
+    );
 
     Ok(())
 }

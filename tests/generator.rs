@@ -1,5 +1,6 @@
 use mavlink_generator::{
-    DialectDocument, TargetLanguage, dialect_output_path, generate_runtime_files,
+    DialectDocument, TargetLanguage, dialect_output_path, examples_output_dir,
+    generate_example_files, generate_runtime_files,
 };
 
 #[test]
@@ -69,6 +70,63 @@ fn generates_dart_runtime_files() {
     assert!(output_dir.join("mavlink_parser.dart").is_file());
 
     let _ = std::fs::remove_dir_all(&output_dir);
+}
+
+#[test]
+fn generates_dart_example_files() {
+    let output_dir = std::env::temp_dir().join("mavlink_generator_dart_examples_test");
+    let dialect_stems = vec!["rt_rc".to_string()];
+
+    generate_example_files(&output_dir, TargetLanguage::Dart, &dialect_stems)
+        .expect("example generation should succeed");
+
+    let examples_dir = output_dir.join("examples");
+    assert!(examples_dir.join("common.dart").is_file());
+    assert!(examples_dir.join("README.md").is_file());
+
+    let heartbeat = std::fs::read_to_string(examples_dir.join("rt_rc_heartbeat.dart"))
+        .expect("heartbeat example should exist");
+    assert!(heartbeat.contains("MavlinkDialectRt_rc"));
+    assert!(heartbeat.contains("roundTripMessage(dialect, heartbeat)"));
+
+    let mission = std::fs::read_to_string(examples_dir.join("rt_rc_mission_upload.dart"))
+        .expect("mission example should exist");
+    assert!(mission.contains("MissionCount"));
+    assert!(mission.contains("MissionRequest"));
+    assert!(mission.contains("MissionAck"));
+
+    let telemetry = std::fs::read_to_string(examples_dir.join("rt_rc_request_telemetry.dart"))
+        .expect("telemetry example should exist");
+    assert!(telemetry.contains("mavCmdSetMessageInterval"));
+    assert!(telemetry.contains("mavCmdRequestMessage"));
+    assert!(telemetry.contains("Attitude.msgId"));
+
+    let params = std::fs::read_to_string(examples_dir.join("rt_rc_request_parameters.dart"))
+        .expect("parameters example should exist");
+    assert!(params.contains("ParamRequestList"));
+    assert!(params.contains("ParamRequestRead"));
+    assert!(params.contains("ParamValue"));
+
+    assert_eq!(
+        examples_output_dir(TargetLanguage::Dart),
+        std::path::PathBuf::from("generated/dart/examples")
+    );
+
+    let _ = std::fs::remove_dir_all(&output_dir);
+}
+
+#[test]
+fn unimplemented_example_languages_return_error() {
+    let output_dir = std::env::temp_dir().join("mavlink_generator_examples_stub_test");
+    let dialect_stems = vec!["rt_rc".to_string()];
+
+    let python_err = generate_example_files(&output_dir, TargetLanguage::Python, &dialect_stems)
+        .expect_err("python examples should not be implemented yet");
+    assert!(python_err.to_string().contains("Python"));
+
+    let c_err = generate_example_files(&output_dir, TargetLanguage::C, &dialect_stems)
+        .expect_err("c examples should not be implemented yet");
+    assert!(c_err.to_string().contains("Example generation"));
 }
 
 #[test]

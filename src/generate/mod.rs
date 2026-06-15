@@ -1,5 +1,6 @@
 pub mod c;
 pub mod dart;
+pub mod examples;
 pub mod python;
 pub mod runtime;
 
@@ -9,6 +10,7 @@ use std::path::Path;
 use crate::error::Result;
 use crate::xml::DialectDocument;
 
+pub use examples::{EXAMPLES_DIR, ExampleFile, examples_output_dir, generate_example_files};
 pub use runtime::{
     DIALECTS_DIR, GENERATED_ROOT, RuntimeFile, dialect_output_path, dialects_output_dir,
     generate_runtime_files, language_output_dir,
