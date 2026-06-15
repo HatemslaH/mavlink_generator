@@ -1,8 +1,13 @@
 pub mod c;
+pub mod cpp;
+pub mod csharp;
 pub mod dart;
 pub mod examples;
+pub mod javascript;
 pub mod python;
 pub mod runtime;
+pub mod rust;
+pub mod typescript;
 
 use std::fs;
 use std::path::Path;
@@ -21,6 +26,11 @@ pub enum TargetLanguage {
     Dart,
     Python,
     C,
+    Cpp,
+    JavaScript,
+    TypeScript,
+    CSharp,
+    Rust,
 }
 
 impl TargetLanguage {
@@ -29,6 +39,11 @@ impl TargetLanguage {
             Self::Dart => "dart",
             Self::Python => "py",
             Self::C => "h",
+            Self::Cpp => "hpp",
+            Self::JavaScript => "js",
+            Self::TypeScript => "ts",
+            Self::CSharp => "cs",
+            Self::Rust => "rs",
         }
     }
 
@@ -37,6 +52,11 @@ impl TargetLanguage {
             Self::Dart => "dart",
             Self::Python => "py",
             Self::C => "c",
+            Self::Cpp => "cpp",
+            Self::JavaScript => "js",
+            Self::TypeScript => "ts",
+            Self::CSharp => "csharp",
+            Self::Rust => "rust",
         }
     }
 
@@ -45,6 +65,11 @@ impl TargetLanguage {
             Self::Dart => "Dart",
             Self::Python => "Python",
             Self::C => "C",
+            Self::Cpp => "C++",
+            Self::JavaScript => "JavaScript",
+            Self::TypeScript => "TypeScript",
+            Self::CSharp => "C#",
+            Self::Rust => "Rust",
         }
     }
 }
@@ -89,6 +114,11 @@ fn render_dialect(
         TargetLanguage::Dart => dart::render(doc, src_dialect_path),
         TargetLanguage::Python => python::render(doc, src_dialect_path),
         TargetLanguage::C => c::render(doc, src_dialect_path),
+        TargetLanguage::Cpp => cpp::render(doc, src_dialect_path),
+        TargetLanguage::JavaScript => javascript::render(doc, src_dialect_path),
+        TargetLanguage::TypeScript => typescript::render(doc, src_dialect_path),
+        TargetLanguage::CSharp => csharp::render(doc, src_dialect_path),
+        TargetLanguage::Rust => rust::render(doc, src_dialect_path),
     }
 }
 

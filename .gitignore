@@ -1,1 +1,8 @@
 /target
+
+# Build artifacts inside generated output
+generated/**/target/
+generated/**/bin/
+generated/**/obj/
+generated/**/*.exe
+generated/rust/Cargo.lock

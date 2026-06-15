@@ -48,7 +48,16 @@ fn example_generator(language: TargetLanguage) -> Result<Box<dyn LanguageExample
     match language {
         TargetLanguage::Dart => Ok(Box::new(crate::generate::dart::DartExampleGenerator)),
         TargetLanguage::C => Ok(Box::new(crate::generate::c::CExampleGenerator)),
+        TargetLanguage::Cpp => Ok(Box::new(crate::generate::cpp::CppExampleGenerator)),
         TargetLanguage::Python => Ok(Box::new(crate::generate::python::PythonExampleGenerator)),
+        TargetLanguage::JavaScript => Ok(Box::new(
+            crate::generate::javascript::JavaScriptExampleGenerator,
+        )),
+        TargetLanguage::TypeScript => Ok(Box::new(
+            crate::generate::typescript::TypeScriptExampleGenerator,
+        )),
+        TargetLanguage::CSharp => Ok(Box::new(crate::generate::csharp::CSharpExampleGenerator)),
+        TargetLanguage::Rust => Ok(Box::new(crate::generate::rust::RustExampleGenerator)),
     }
 }
 

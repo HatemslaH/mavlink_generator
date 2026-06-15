@@ -54,6 +54,36 @@ pub fn generate_runtime_files(
     let entry_point = generator.entry_point(dialect_stems);
     write_runtime_file(output_dir, &entry_point)?;
 
+    if language == TargetLanguage::Rust {
+        let dialects_mod = crate::generate::rust::render_dialects_mod(dialect_stems);
+        write_runtime_file(
+            output_dir,
+            &RuntimeFile {
+                relative_path: PathBuf::from("dialects/mod.rs"),
+                content: dialects_mod,
+            },
+        )?;
+        let cargo_toml = crate::generate::rust::render_cargo_toml(dialect_stems);
+        write_runtime_file(
+            output_dir,
+            &RuntimeFile {
+                relative_path: PathBuf::from("Cargo.toml"),
+                content: cargo_toml,
+            },
+        )?;
+    }
+
+    if language == TargetLanguage::CSharp {
+        let csproj = crate::generate::csharp::render_mavlink_csproj();
+        write_runtime_file(
+            output_dir,
+            &RuntimeFile {
+                relative_path: PathBuf::from("Mavlink.csproj"),
+                content: csproj,
+            },
+        )?;
+    }
+
     Ok(())
 }
 
@@ -61,7 +91,16 @@ fn runtime_generator(language: TargetLanguage) -> Result<Box<dyn LanguageRuntime
     match language {
         TargetLanguage::Dart => Ok(Box::new(crate::generate::dart::DartRuntimeGenerator)),
         TargetLanguage::C => Ok(Box::new(crate::generate::c::CRuntimeGenerator)),
+        TargetLanguage::Cpp => Ok(Box::new(crate::generate::cpp::CppRuntimeGenerator)),
         TargetLanguage::Python => Ok(Box::new(crate::generate::python::PythonRuntimeGenerator)),
+        TargetLanguage::JavaScript => Ok(Box::new(
+            crate::generate::javascript::JavaScriptRuntimeGenerator,
+        )),
+        TargetLanguage::TypeScript => Ok(Box::new(
+            crate::generate::typescript::TypeScriptRuntimeGenerator,
+        )),
+        TargetLanguage::CSharp => Ok(Box::new(crate::generate::csharp::CSharpRuntimeGenerator)),
+        TargetLanguage::Rust => Ok(Box::new(crate::generate::rust::RustRuntimeGenerator)),
     }
 }
 

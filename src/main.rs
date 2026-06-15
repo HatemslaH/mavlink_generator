@@ -17,7 +17,12 @@ fn run() -> mavlink_generator::Result<()> {
     let languages = [
         TargetLanguage::Dart,
         TargetLanguage::C,
+        TargetLanguage::Cpp,
         TargetLanguage::Python,
+        TargetLanguage::JavaScript,
+        TargetLanguage::TypeScript,
+        TargetLanguage::CSharp,
+        TargetLanguage::Rust,
     ];
 
     let xml_paths: Vec<_> = std::fs::read_dir(definitions_dir)?

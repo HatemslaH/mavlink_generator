@@ -198,31 +198,35 @@ fn render_parse_factory(
     class_name: &str,
 ) -> Result<()> {
     writer.line("@classmethod");
-    writer.try_block(&format!("def parse(cls, data_: bytes) -> {class_name}:"), "", |w| {
-        w.block("if len(data_) < cls.MAVLINK_ENCODED_LENGTH:", "", |w| {
-            w.line("data_ = data_ + bytes(cls.MAVLINK_ENCODED_LENGTH - len(data_))");
-        });
+    writer.try_block(
+        &format!("def parse(cls, data_: bytes) -> {class_name}:"),
+        "",
+        |w| {
+            w.block("if len(data_) < cls.MAVLINK_ENCODED_LENGTH:", "", |w| {
+                w.line("data_ = data_ + bytes(cls.MAVLINK_ENCODED_LENGTH - len(data_))");
+            });
 
-        let mut byte_offset = 0;
-        for field in &msg.ordered_fields {
-            byte_offset += render_parse_field(w, field, byte_offset)?;
-        }
+            let mut byte_offset = 0;
+            for field in &msg.ordered_fields {
+                byte_offset += render_parse_field(w, field, byte_offset)?;
+            }
 
-        w.blank();
-        w.line("return cls(");
-        w.indent();
-        for (index, field) in msg.ordered_fields.iter().enumerate() {
-            let comma = if index + 1 == msg.ordered_fields.len() {
-                ""
-            } else {
-                ","
-            };
-            w.line(&format!("{field}={field}{comma}", field = field.name));
-        }
-        w.dedent();
-        w.line(")");
-        Ok(())
-    })
+            w.blank();
+            w.line("return cls(");
+            w.indent();
+            for (index, field) in msg.ordered_fields.iter().enumerate() {
+                let comma = if index + 1 == msg.ordered_fields.len() {
+                    ""
+                } else {
+                    ","
+                };
+                w.line(&format!("{field}={field}{comma}", field = field.name));
+            }
+            w.dedent();
+            w.line(")");
+            Ok(())
+        },
+    )
 }
 
 fn render_parse_field(
