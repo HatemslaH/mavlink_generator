@@ -1,5 +1,8 @@
 /target
 
+# Personal notes (not committed)
+/private/
+
 # Desktop UI
 ui/node_modules/
 ui/dist/
