@@ -1,0 +1,209 @@
+<?xml version="1.0"?>
+<!-- rt_rc v3.0.0 -->
+<mavlink>
+  <include>common.xml</include>
+  <include>ardupilotmega.xml</include>
+  <dialect>202</dialect>
+  <enums>
+    <enum name="MAV_CMD">
+      <!-- CMD range 14500 - ... -->
+      <entry value="14500" name="MAV_CMD_REQUEST_RT_USER_INPUT">
+        <description>Get the first functional button to be pressed</description>
+        <param index="1">Empty.</param>
+        <param index="2">Empty.</param>
+        <param index="3">Empty.</param>
+        <param index="4">Empty.</param>
+        <param index="5">Empty.</param>
+        <param index="6">Empty.</param>
+        <param index="7">Empty.</param>
+      </entry>
+      <entry value="14501" name="MAV_CMD_SET_RT_MODE_HID">
+        <description>Switch the RC control to HID mode</description>
+        <param index="1">Empty.</param>
+        <param index="2">Empty.</param>
+        <param index="3">Empty.</param>
+        <param index="4">Empty.</param>
+        <param index="5">Empty.</param>
+        <param index="6">Empty.</param>
+        <param index="7">Empty.</param>
+      </entry>
+    </enum>
+    <enum name="RT_RC_CONTROL_ID">
+      <description></description>
+      <entry value="0" name="RT_RC_CONTROL_ID_NOT_ASSIGNED">
+        <description>Not assigned</description>
+      </entry>
+      <entry value="1" name="RT_RC_CONTROL_ID_RIGHT_X">
+        <description>Right main potentiometer, X axis (left-right)</description>
+      </entry>
+      <entry value="2" name="RT_RC_CONTROL_ID_RIGHT_Y">
+        <description>Right main potentiometer, Y axis (up-down)</description>
+      </entry>
+      <entry value="3" name="RT_RC_CONTROL_ID_LEFT_X">
+        <description>Left main potentiometer, X axis (left-right)</description>
+      </entry>
+      <entry value="4" name="RT_RC_CONTROL_ID_LEFT_Y">
+        <description>Left main potentiometer, Y axis</description>
+      </entry>
+      <entry value="5" name="RT_RC_CONTROL_ID_AUX_X">
+        <description>Auxiliary potentiometer, X axis (left-right)</description>
+      </entry>
+      <entry value="6" name="RT_RC_CONTROL_ID_AUX_Y">
+        <description>Auxiliary potentiometer, Y axis (up-down)</description>
+      </entry>
+      <entry value="7" name="RT_RC_CONTROL_ID_AUX_PRESS">
+        <description>Auxiliary potentiometer button</description>
+      </entry>
+      <entry value="8" name="RT_RC_CONTROL_ID_3POS_ROCKER_LEFT">
+        <description>Left three-position switch</description>
+      </entry>
+      <entry value="9" name="RT_RC_CONTROL_ID_3POS_ROCKER_RIGHT">
+        <description>Right three-position switch</description>
+      </entry>
+      <entry value="10" name="RT_RC_CONTROL_ID_BUTTON_FIX_LEFT">
+        <description>Left fixed button</description>
+      </entry>
+      <entry value="11" name="RT_RC_CONTROL_ID_BUTTON_FIX_RIGHT">
+        <description>Right fixed button</description>
+      </entry>
+      <entry value="12" name="RT_RC_CONTROL_ID_BUTTON_TRIGGER">
+        <description>Trigger button</description>
+      </entry>
+      <entry value="13" name="RT_RC_CONTROL_ID_BUTTON_PAUSE">
+        <description>Button with the PAUSE icon (I)</description>
+      </entry>
+      <entry value="14" name="RT_RC_CONTROL_ID_BUTTON_PLAY">
+        <description>Button with the PLAY icon (II)</description>
+      </entry>
+      <entry value="15" name="RT_RC_CONTROL_ID_BUTTON_STOP">
+        <description>Button with the STOP icon (III)</description>
+      </entry>
+      <entry value="16" name="RT_RC_CONTROL_ID_BUTTON_I">
+        <description>I button</description>
+      </entry>
+      <entry value="17" name="RT_RC_CONTROL_ID_BUTTON_II">
+        <description>II button</description>
+      </entry>
+      <entry value="18" name="RT_RC_CONTROL_ID_BUTTON_III">
+        <description>III button</description>
+      </entry>
+      <entry value="19" name="RT_RC_CONTROL_ID_GROUP_L">
+        <description>Left button group as a whole (I, II, III)</description>
+      </entry>
+      <entry value="20" name="RT_RC_CONTROL_ID_GROUP_R">
+        <description>Right button group as a whole (PAUSE, PLAY, STOP)</description>
+      </entry>
+      <entry value="21" name="RT_RC_CONTROL_ID_BUTTON_FN">
+        <description>FN button (to the right of the power button)</description>
+      </entry>
+      <entry value="22" name="RT_RC_CONTROL_ID_ENCODER">
+        <description>Rotating encoder</description>
+      </entry>
+      <entry value="23" name="RT_RC_CONTROL_ID_BUTTON_ENCODER">
+        <description>Encoder button</description>
+      </entry>
+    </enum>
+    <enum name="RT_RC_CONTROL_MODE">
+      <description></description>
+      <entry value="0" name="RT_RC_CONTROL_MODE_NOT_ASSIGNED">
+        <description>Not assigned</description>
+      </entry>
+      <entry value="1" name="RT_RC_CONTROL_MODE_TOGGLE">
+        <description>Mode Toggle</description>
+      </entry>
+      <entry value="2" name="RT_RC_CONTROL_MODE_BUTTON">
+        <description>Mode Button</description>
+      </entry>
+      <entry value="3" name="RT_RC_CONTROL_MODE_GROUP">
+        <description>Mode Group</description>
+      </entry>
+    </enum>
+    <enum name="RT_RC_MODEL_TX">
+      <description></description>
+      <entry value="0" name="RT_RC_MODEL_TX_NOT_ASSIGNED">
+        <description></description>
+      </entry>
+      <entry value="1" name="RT_RC_MODEL_TX_ELRS_INTERNAL">
+        <description></description>
+      </entry>
+      <entry value="2" name="RT_RC_MODEL_TX_ELRS_EXTERNAL">
+        <description></description>
+      </entry>
+      <entry value="3" name="RT_RC_MODEL_TX_MULTI">
+        <description></description>
+      </entry>
+      <entry value="4" name="RT_RC_MODEL_TX_MAVLINK_INTERNAL">
+        <description></description>
+      </entry>
+      <entry value="5" name="RT_RC_MODEL_TX_MAVLINK_EXTERNAL">
+        <description></description>
+      </entry>
+    </enum>
+    <enum name="RT_RC_LED_COLOR">
+      <description></description>
+      <entry value="0" name="RT_RC_LED_COLOR_NONE">
+        <description></description>
+      </entry>
+      <entry value="1" name="RT_RC_LED_COLOR_RED">
+        <description></description>
+      </entry>
+      <entry value="2" name="RT_RC_LED_COLOR_GREEN">
+        <description></description>
+      </entry>
+      <entry value="3" name="RT_RC_LED_COLOR_BLUE">
+        <description></description>
+      </entry>
+      <entry value="4" name="RT_RC_LED_COLOR_YELLOW">
+        <description></description>
+      </entry>
+      <entry value="5" name="RT_RC_LED_COLOR_WHITE">
+        <description></description>
+      </entry>
+    </enum>
+  </enums>
+  <!-- mavlink ID range 45000 - 45100 -->
+  <messages>
+    <message id="45000" name="RT_RC_CHANNELS">
+      <description>Current values of RC channels.</description>
+      <field type="uint16_t" name="ch1" units="us">Channel 1.</field>
+      <field type="uint16_t" name="ch2" units="us">Channel 2.</field>
+      <field type="uint16_t" name="ch3" units="us">Channel 3.</field>
+      <field type="uint16_t" name="ch4" units="us">Channel 4.</field>
+      <field type="uint16_t" name="ch5" units="us">Channel 5.</field>
+      <field type="uint16_t" name="ch6" units="us">Channel 6.</field>
+      <field type="uint16_t" name="ch7" units="us">Channel 7.</field>
+      <field type="uint16_t" name="ch8" units="us">Channel 8.</field>
+      <field type="uint16_t" name="ch9" units="us">Channel 9.</field>
+      <field type="uint16_t" name="ch10" units="us">Channel 10.</field>
+      <field type="uint16_t" name="ch11" units="us">Channel 11.</field>
+      <field type="uint16_t" name="ch12" units="us">Channel 12.</field>
+      <field type="uint16_t" name="ch13" units="us">Channel 13.</field>
+      <field type="uint16_t" name="ch14" units="us">Channel 14.</field>
+      <field type="uint16_t" name="ch15" units="us">Channel 15.</field>
+      <field type="uint16_t" name="ch16" units="us">Channel 16.</field>
+    </message>
+    <message id="45001" name="RT_RC_ANALOG_RAW">
+      <description>Raw analog values.</description>
+      <field type="uint16_t" name="left_x_raw">Raw potentiometer value on the X-axis of the left stick.</field>
+      <field type="uint16_t" name="left_y_raw">Raw potentiometer value on the Y-axis of the left stick.</field>
+      <field type="uint16_t" name="right_x_raw">Raw potentiometer value on the X-axis of the right stick.</field>
+      <field type="uint16_t" name="right_y_raw">Raw potentiometer value on the Y-axis of the right stick.</field>
+      <field type="uint16_t" name="aux_x_raw">Raw potentiometer value on the X-axis of the additional stick.</field>
+      <field type="uint16_t" name="aux_y_raw">Raw potentiometer value on the Y-axis of the additional stick.</field>
+      <field type="uint16_t" name="slider_raw">Raw potentiometer value on the slider.</field>
+    </message>
+    <message id="45002" name="RT_RC_BATTERY_STATUS">
+      <description>Remote control battery status.</description>
+      <field type="uint8_t" name="battery_level" units="%">Battery charge level of the remote control in percent (0-100).</field>
+      <field type="uint8_t" name="battery_charging_status" units="%">Active charging flag: 0 - not charging; 1 - charging.</field>
+      <field type="uint8_t" name="battery_temperature_left" units="%">Temperature of the left battery cell of the remote control.</field>
+      <field type="uint8_t" name="battery_temperature_right" units="%">Temperature of the right battery cell of the remote control.</field>
+    </message>
+    <message id="45003" name="RT_RC_COMMAND_CANCEL">
+      <description>Cancel a long running command.</description>
+      <field type="uint16_t" name="command" enum="MAV_CMD">ID of the cancelled command.</field>
+      <field type="uint8_t" name="target_system">System ID</field>
+      <field type="uint8_t" name="target_component">Component ID</field>
+    </message>
+  </messages>
+</mavlink>
