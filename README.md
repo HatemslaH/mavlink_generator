@@ -365,6 +365,32 @@ The UI calls `mavlink_generator::driver` through Tauri commands (`validate`, `ge
 
 Note: Tauri builds use a separate `ui/src-tauri/target/` directory in addition to the root `target/`.
 
-## License
+## Releases
 
-See repository license file.
+Pre-built **CLI binaries** and **desktop installers** are published on [GitHub Releases](https://github.com/HatemslaH/mavlink_generator/releases).
+
+| Asset | Use |
+|-------|-----|
+| `mavlink-generator-*.exe` / no extension | Command-line tool |
+| `*.msi`, `*.exe` (NSIS) | Windows desktop app |
+| `*.dmg` | macOS desktop app (Apple Silicon) |
+| `*.deb`, `*.AppImage` | Linux desktop app |
+
+### Publish a new release (maintainers)
+
+1. Bump version in `Cargo.toml`, `ui/package.json`, and `ui/src-tauri/tauri.conf.json` if needed.
+2. Commit and push to `main`.
+3. Create and push a tag — this triggers the release workflow:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions builds CLI + Tauri for Windows, Linux, and macOS, then attaches all artifacts to the release.
+
+### License
+
+This project is licensed under the [MIT License](LICENSE).
+
+Generated MAVLink bindings are intended for unrestricted use in your applications, consistent with the [MAVLink generator output license](mavlink/COPYING).

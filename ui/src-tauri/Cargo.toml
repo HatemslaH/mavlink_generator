@@ -2,8 +2,10 @@
 name = "mavlink-generator-ui"
 version = "0.1.0"
 description = "MAVLink Generator desktop UI"
-authors = ["you"]
+authors = ["Hatemsla"]
+license = "MIT"
 edition = "2021"
+repository = "https://github.com/HatemslaH/mavlink_generator"
 
 [lib]
 name = "mavlink_generator_ui_lib"

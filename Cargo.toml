@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 description = "Code generator for MAVLink dialects"
 readme = "README.md"
+license = "MIT"
+authors = ["Hatemsla"]
+repository = "https://github.com/HatemslaH/mavlink_generator"
 
 [[bin]]
 name = "mavlink-generator"
