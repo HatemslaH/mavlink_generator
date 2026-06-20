@@ -26,10 +26,12 @@ Transport-agnostic protocol implementations live in `../lib/protocols/`. Import 
 
 | File | Classes | Description |
 |------|---------|-------------|
-| `{dialect}_protocol_mission.dart` | `MissionProtocol`, `MissionServer` | Upload, download, clear over `VirtualMavlinkBus` |
-| `{dialect}_protocol_parameters.dart` | `ParameterProtocol`, `ParameterServer` | List, read, write parameters |
-| `{dialect}_protocol_command.dart` | `CommandProtocol`, `CommandServer` | COMMAND_LONG with COMMAND_ACK |
-| `{dialect}_protocol_heartbeat.dart` | `HeartbeatMonitor`, `HeartbeatPublisher` | Track connectivity and send heartbeats |
+| `{dialect}_protocol_mission.dart` | `MissionProtocol`, `MissionServer` | Upload/download with `onProgress`, `setCurrentWithCommand` |
+| `{dialect}_protocol_parameters.dart` | `ParameterProtocol`, `ParameterServer` | `fetchAll(onProgress:)`, `writeByName`, parameter cache |
+| `{dialect}_protocol_command.dart` | `CommandProtocol`, `CommandServer` | Intervals, requests, arm/disarm helpers |
+| `{dialect}_protocol_heartbeat.dart` | `HeartbeatMonitor`, `HeartbeatPublisher` | `waitForVehicle`, connectivity tracking |
+| `{dialect}_protocol_vehicle.dart` | `MavlinkGcs`, `MavlinkVehicleClient` | GCS bootstrap + bundled vehicle protocols |
+| `{dialect}_protocol_subscribe.dart` | `MavlinkSession` | `listenMessage<T>`, typed telemetry subscription |
 
 Swap `VirtualMavlinkBus` for your own `MavlinkLink` (USB serial, UDP, TCP, etc.) — protocol code stays the same.
 
@@ -46,6 +48,8 @@ dart run examples/rt_rc_protocol_mission.dart
 dart run examples/rt_rc_protocol_parameters.dart
 dart run examples/rt_rc_protocol_command.dart
 dart run examples/rt_rc_protocol_heartbeat.dart
+dart run examples/rt_rc_protocol_vehicle.dart
+dart run examples/rt_rc_protocol_subscribe.dart
 ```
 
 Replace `rt_rc` with the dialect name you generated.

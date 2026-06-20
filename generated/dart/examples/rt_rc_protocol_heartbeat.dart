@@ -11,7 +11,6 @@ import 'protocols_common.dart';
 Future<void> main() async {
   final dialect = MavlinkDialectRt_rc();
   final link = createVirtualLink(dialect);
-  final droneNode = MavlinkNode(droneSystemId, droneComponentId);
 
   final gcsPublisher = HeartbeatPublisher(
     session: link.gcs,
@@ -28,24 +27,19 @@ Future<void> main() async {
   final gcsMonitor = HeartbeatMonitor(
     session: link.gcs,
     timeout: const Duration(seconds: 2),
-    watch: {droneNode},
-  );
-
-  final connectionEvents = <String>[];
-  final monitorSub = gcsMonitor.onConnected.listen(
-    (node) => connectionEvents.add('connected $node'),
-  );
-  final disconnectSub = gcsMonitor.onDisconnected.listen(
-    (node) => connectionEvents.add('disconnected $node'),
   );
 
   gcsMonitor.start();
   gcsPublisher.start();
   dronePublisher.start();
 
-  await Future<void>.delayed(const Duration(milliseconds: 1200));
-  print('Drone online: ${gcsMonitor.isOnline(droneNode)}');
-  final state = gcsMonitor.stateFor(droneNode);
+  final vehicle = await gcsMonitor.waitForVehicle(
+    excludeSystemIds: {gcsSystemId},
+    timeout: const Duration(seconds: 5),
+  );
+  print('Vehicle discovered: $vehicle');
+  print('Drone online: ${gcsMonitor.isOnline(vehicle)}');
+  final state = gcsMonitor.stateFor(vehicle);
   if (state != null) {
     print(
       'Drone heartbeat: type=${state.heartbeat.type} '
@@ -55,11 +49,8 @@ Future<void> main() async {
 
   dronePublisher.stop();
   await Future<void>.delayed(const Duration(milliseconds: 2500));
-  print('Drone online after stop: ${gcsMonitor.isOnline(droneNode)}');
-  print('Events: ${connectionEvents.join(', ')}');
+  print('Drone online after stop: ${gcsMonitor.isOnline(vehicle)}');
 
-  await monitorSub.cancel();
-  await disconnectSub.cancel();
   await gcsMonitor.stop();
   gcsPublisher.stop();
 

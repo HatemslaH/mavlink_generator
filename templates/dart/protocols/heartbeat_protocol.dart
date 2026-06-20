@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../mavlink.dart';
+import 'mavlink_cancellation.dart';
 import 'mavlink_session.dart';
 
 /// MAVLink node identity (system + component).
@@ -112,6 +113,58 @@ class HeartbeatMonitor {
       if (entry.value) {
         yield entry.key;
       }
+    }
+  }
+
+  /// Wait until the first online vehicle heartbeat is observed.
+  ///
+  /// [excludeSystemIds] skips GCS and other local identities (e.g. `{255}`).
+  /// The monitor must already be [start]ed.
+  Future<MavlinkNode> waitForVehicle({
+    Set<int>? excludeSystemIds,
+    Duration timeout = const Duration(seconds: 60),
+    MavlinkCancellationToken? cancel,
+  }) async {
+    cancel?.throwIfCancelled();
+
+    for (final node in onlineNodes) {
+      if (excludeSystemIds == null || !excludeSystemIds.contains(node.systemId)) {
+        return node;
+      }
+    }
+
+    final completer = Completer<MavlinkNode>();
+    late final StreamSubscription<MavlinkNode> subscription;
+
+    subscription = onConnected.listen((node) {
+      if (excludeSystemIds != null && excludeSystemIds.contains(node.systemId)) {
+        return;
+      }
+      if (!completer.isCompleted) {
+        completer.complete(node);
+      }
+    });
+
+    StreamSubscription<void>? cancelSub;
+    if (cancel != null) {
+      if (cancel.isCancelled) {
+        await subscription.cancel();
+        throw MavlinkCancelledException();
+      }
+      cancelSub = cancel.onCancel.listen((_) {
+        if (!completer.isCompleted) {
+          completer.completeError(MavlinkCancelledException());
+        }
+      });
+    }
+
+    try {
+      return await completer.future.timeout(timeout, onTimeout: () {
+        throw MavlinkTimeoutException('Timed out waiting for vehicle heartbeat', timeout);
+      });
+    } finally {
+      await subscription.cancel();
+      await cancelSub?.cancel();
     }
   }
 

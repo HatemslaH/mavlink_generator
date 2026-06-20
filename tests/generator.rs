@@ -77,18 +77,48 @@ fn generates_dart_runtime_files() {
     assert!(output_dir.join("lib/mavlink.dart").is_file());
     assert!(output_dir.join("lib/mavlink_protocols.dart").is_file());
     assert!(output_dir.join("lib/mavlink_parser.dart").is_file());
-    assert!(output_dir.join("lib/protocols/mission_protocol.dart").is_file());
+    assert!(
+        output_dir
+            .join("lib/protocols/mission_protocol.dart")
+            .is_file()
+    );
     assert!(
         output_dir
             .join("lib/protocols/parameter_protocol.dart")
             .is_file()
     );
-    assert!(output_dir.join("lib/protocols/command_protocol.dart").is_file());
+    assert!(
+        output_dir
+            .join("lib/protocols/command_protocol.dart")
+            .is_file()
+    );
     assert!(
         output_dir
             .join("lib/protocols/heartbeat_protocol.dart")
             .is_file()
     );
+    assert!(
+        output_dir
+            .join("lib/protocols/mavlink_cancellation.dart")
+            .is_file()
+    );
+    assert!(
+        output_dir
+            .join("lib/protocols/mavlink_vehicle_client.dart")
+            .is_file()
+    );
+
+    let session_source =
+        std::fs::read_to_string(output_dir.join("lib/protocols/mavlink_session.dart"))
+            .expect("mavlink_session.dart should exist");
+    assert!(session_source.contains("listenMessage"));
+    assert!(session_source.contains("onMessage"));
+
+    let parameter_source =
+        std::fs::read_to_string(output_dir.join("lib/protocols/parameter_protocol.dart"))
+            .expect("parameter_protocol.dart should exist");
+    assert!(parameter_source.contains("fetchAllStream"));
+    assert!(parameter_source.contains("writeByName"));
 
     let _ = std::fs::remove_dir_all(&output_dir);
 }
@@ -154,6 +184,18 @@ fn generates_dart_example_files() {
             .expect("protocol heartbeat example should exist");
     assert!(protocol_heartbeat.contains("HeartbeatMonitor"));
     assert!(protocol_heartbeat.contains("HeartbeatPublisher"));
+    assert!(protocol_heartbeat.contains("waitForVehicle"));
+
+    let protocol_vehicle =
+        std::fs::read_to_string(examples_dir.join("rt_rc_protocol_vehicle.dart"))
+            .expect("protocol vehicle example should exist");
+    assert!(protocol_vehicle.contains("MavlinkGcs"));
+    assert!(protocol_vehicle.contains("MavlinkVehicleClient"));
+
+    let protocol_subscribe =
+        std::fs::read_to_string(examples_dir.join("rt_rc_protocol_subscribe.dart"))
+            .expect("protocol subscribe example should exist");
+    assert!(protocol_subscribe.contains("listenMessage"));
 
     assert_eq!(
         examples_output_dir(TargetLanguage::Dart),

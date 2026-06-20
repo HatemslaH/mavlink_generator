@@ -36,6 +36,12 @@ Future<void> main() async {
   final requestAck = await commandProtocol.requestMessage(Attitude.msgId);
   print('REQUEST_MESSAGE ack: ${requestAck.result}');
 
+  final armAck = await commandProtocol.arm();
+  print('ARM ack: ${armAck.result}');
+
+  final disarmAck = await commandProtocol.disarm();
+  print('DISARM ack: ${disarmAck.result}');
+
   await commandServer.close();
   await closeVirtualLink(
     bus: link.bus,

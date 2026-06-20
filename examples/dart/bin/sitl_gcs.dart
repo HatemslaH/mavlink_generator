@@ -6,7 +6,6 @@ import 'dart:io';
 import 'package:mavlink/mavlink_protocols.dart';
 import 'package:mavlink_sitl_gcs/gcs_context.dart';
 import 'package:mavlink_sitl_gcs/port_picker.dart';
-import 'package:mavlink_sitl_gcs/protocol_progress.dart';
 import 'package:mavlink_sitl_gcs/sample_mission.dart';
 import 'package:mavlink_sitl_gcs/serial_link.dart';
 
@@ -19,32 +18,30 @@ Future<void> main(List<String> args) async {
 
   final dialect = MavlinkDialectRt_rc();
   final link = SerialMavlinkLink.open(portName, baudRate: baudRate);
-
-  final session = MavlinkSession(
+  final gcs = MavlinkGcs.connect(
     dialect: dialect,
     link: link,
     systemId: gcsSystemId,
     componentId: gcsComponentId,
   );
 
-  final heartbeatPublisher = HeartbeatPublisher(
-    session: session,
-    heartbeat: HeartbeatTemplates.gcs(mavlinkVersion: dialect.version),
-    interval: const Duration(seconds: 1),
-  );
-
-  final heartbeatMonitor = HeartbeatMonitor(
-    session: session,
-    timeout: const Duration(seconds: 3),
-  );
-
-  heartbeatMonitor.start();
-  heartbeatPublisher.start();
-
+  gcs.start();
   stdout.writeln('Publishing GCS heartbeats, waiting for vehicle...');
 
-  final vehicle = await _waitForVehicle(heartbeatMonitor, baudRate: baudRate);
-  final vehicleState = heartbeatMonitor.stateFor(vehicle);
+  MavlinkVehicleClient client;
+  try {
+    client = await gcs.waitForVehicle(
+      excludeSystemIds: {gcsSystemId},
+      timeout: const Duration(seconds: 60),
+    );
+  } on MavlinkTimeoutException {
+    throw StateError(
+      'No vehicle heartbeat within 60 s. Check port, baud (current: $baudRate; try --baud 115200), and SITL.',
+    );
+  }
+
+  final vehicle = client.vehicle;
+  final vehicleState = gcs.heartbeatMonitor.stateFor(vehicle);
   stdout.writeln('Vehicle online: $vehicle');
   if (vehicleState != null) {
     stdout.writeln(
@@ -54,52 +51,39 @@ Future<void> main(List<String> args) async {
     );
   }
 
-  final ctx = GcsContext(
-    session: session,
-    dialect: dialect,
-    vehicle: vehicle,
-    heartbeatMonitor: heartbeatMonitor,
-    heartbeatPublisher: heartbeatPublisher,
-  );
+  final ctx = GcsContext(gcs: gcs, vehicle: vehicle, client: client);
 
   stdout.writeln();
   stdout.writeln('=== Phase 2: parameter sync ===');
-  await fetchAllParametersWithProgress(ctx);
+  await _fetchAllParameters(ctx);
 
   stdout.writeln();
   stdout.writeln('=== Interactive CLI ===');
   await _runCli(ctx);
 
   stdout.writeln('Shutting down...');
-  heartbeatPublisher.stop();
-  await heartbeatMonitor.stop();
-  await session.close();
+  ctx.operationCancel?.cancel();
+  await gcs.close();
 }
 
-Future<MavlinkNode> _waitForVehicle(
-  HeartbeatMonitor monitor, {
-  required int baudRate,
-}) async {
-  final completer = Completer<MavlinkNode>();
+Future<void> _fetchAllParameters(GcsContext ctx) async {
+  final cancel = MavlinkCancellationToken();
+  ctx.operationCancel = cancel;
 
-  final sub = monitor.onConnected.listen((node) {
-    if (node.systemId == gcsSystemId) {
-      return;
-    }
-    if (!completer.isCompleted) {
-      completer.complete(node);
-    }
-  });
-
-  try {
-    return await completer.future.timeout(const Duration(seconds: 60));
-  } on TimeoutException {
-    throw StateError(
-      'No vehicle heartbeat within 60 s. Check port, baud (current: $baudRate; try --baud 115200), and SITL.',
-    );
-  } finally {
-    await sub.cancel();
-  }
+  stdout.writeln('[parameters] waiting for PARAM_VALUE stream...');
+  final entries = await ctx.parameters.fetchAll(
+    cancel: cancel,
+    onProgress: (entry, received, expected) {
+      if (received == 1) {
+        stdout.writeln('[parameters] expecting $expected parameters');
+      }
+      stdout.writeln(
+        '[parameters] $received/$expected '
+        '${entry.id}=${entry.value} (${entry.type.name})',
+      );
+    },
+  );
+  stdout.writeln('[parameters] complete (${entries.length} total, cache=${ctx.parameters.cache.length})');
 }
 
 Future<void> _runCli(GcsContext ctx) async {
@@ -131,9 +115,11 @@ Future<void> _runCli(GcsContext ctx) async {
           return;
         case 'hb':
           _printHeartbeatStatus(ctx);
+        case 'cancel':
+          _cancelOperation(ctx);
         case 'p':
         case 'params':
-          await fetchAllParametersWithProgress(ctx);
+          await _fetchAllParameters(ctx);
         case 'pr':
           await _readParameter(ctx, parts);
         case 'pw':
@@ -150,9 +136,19 @@ Future<void> _runCli(GcsContext ctx) async {
           await _requestMessage(ctx, parts);
         case 'si':
           await _setMessageInterval(ctx, parts);
+        case 'att':
+          await _streamAttitude(ctx, parts);
+        case 'arm':
+          await _arm(ctx, parts);
+        case 'disarm':
+          await _disarm(ctx, parts);
+        case 'rtl':
+          await _returnToLaunch(ctx);
         default:
           stdout.writeln('Unknown command: $command (type help)');
       }
+    } on MavlinkCancelledException {
+      stdout.writeln('Operation cancelled.');
     } on Exception catch (error) {
       stdout.writeln('Error: $error');
     }
@@ -165,16 +161,31 @@ void _printHelp() {
   stdout.writeln('Commands:');
   stdout.writeln('  help              Show this help');
   stdout.writeln('  hb                Heartbeat / link status');
-  stdout.writeln('  params            Request full parameter list');
+  stdout.writeln('  cancel            Cancel in-flight params/mission operation');
+  stdout.writeln('  params            Request full parameter list (with progress)');
   stdout.writeln('  pr <name>         Read one parameter by name');
-  stdout.writeln('  pw <name> <value> Write parameter (uses cached type or REAL32)');
+  stdout.writeln('  pw <name> <value> Write parameter (type from cache or REAL32)');
   stdout.writeln('  mu                Upload hardcoded sample mission');
   stdout.writeln('  md                Download mission from vehicle');
   stdout.writeln('  mc                Clear onboard mission');
-  stdout.writeln('  ms <seq>          Set active mission item (COMMAND + protocol)');
+  stdout.writeln('  ms <seq>          Set active mission item (mission + command)');
   stdout.writeln('  rm <msgId>        Request one message (MAV_CMD_REQUEST_MESSAGE)');
   stdout.writeln('  si <msgId> <us>   Set message interval (microseconds)');
+  stdout.writeln('  att [seconds]     Stream ATTITUDE via onMessage (default 5 s)');
+  stdout.writeln('  arm [force]       MAV_CMD_COMPONENT_ARM_DISARM (add force for safety override)');
+  stdout.writeln('  disarm [force]    Disarm motors');
+  stdout.writeln('  rtl               MAV_CMD_NAV_RETURN_TO_LAUNCH');
   stdout.writeln('  quit              Exit');
+}
+
+void _cancelOperation(GcsContext ctx) {
+  final token = ctx.operationCancel;
+  if (token == null || token.isCancelled) {
+    stdout.writeln('[cancel] no active cancellable operation');
+    return;
+  }
+  token.cancel();
+  stdout.writeln('[cancel] signalled');
 }
 
 void _printHeartbeatStatus(GcsContext ctx) {
@@ -217,19 +228,13 @@ Future<void> _writeParameter(GcsContext ctx, List<String> parts) async {
 
   final name = parts[1];
   final rawValue = parts[2];
-  ParamEntry? cached;
-  for (final entry in ctx.cachedParameters) {
-    if (entry.id == name) {
-      cached = entry;
-      break;
-    }
-  }
-  final type = cached?.type ?? MavParamType.mavParamTypeReal32;
+  final cachedType = ctx.parameters.typeForName(name);
+  final type = cachedType ?? MavParamType.mavParamTypeReal32;
   final value = _parseParamValue(rawValue, type);
 
   stdout.writeln('[parameters] writing $name=$value ($type)...');
-  final entry = await ctx.parameters.write(name: name, value: value, type: type);
-  stdout.writeln('[parameters] ack $name=${entry.value}');
+  final entry = await ctx.parameters.writeByName(name, value);
+  stdout.writeln('[parameters] ack $name=${entry.value} (${entry.type.name})');
 }
 
 num _parseParamValue(String raw, MavParamType type) {
@@ -250,13 +255,36 @@ Future<void> _uploadMission(GcsContext ctx) async {
     targetSystem: ctx.targetSystem,
     targetComponent: ctx.targetComponent,
   );
+  final cancel = MavlinkCancellationToken();
+  ctx.operationCancel = cancel;
+
   stdout.writeln('[mission] uploading ${plan.length} hardcoded items...');
-  final result = await uploadMissionWithProgress(ctx, plan);
+  final result = await ctx.mission.upload(
+    plan,
+    cancel: cancel,
+    onProgress: (sent, total, item) {
+      stdout.writeln(
+        '[mission upload] $sent/$total seq=${item.seq} '
+        '${describeMissionItem(item)}',
+      );
+    },
+  );
   stdout.writeln('[mission] upload finished: ${result.name}');
 }
 
 Future<void> _downloadMission(GcsContext ctx) async {
-  final items = await downloadMissionWithProgress(ctx);
+  final cancel = MavlinkCancellationToken();
+  ctx.operationCancel = cancel;
+
+  final items = await ctx.mission.download(
+    cancel: cancel,
+    onProgress: (received, total, item) {
+      stdout.writeln(
+        '[mission download] $received/$total '
+        '${describeMissionItem(item)}',
+      );
+    },
+  );
   stdout.writeln('[mission] on vehicle:');
   for (final item in items) {
     stdout.writeln('  ${describeMissionItem(item)}');
@@ -276,12 +304,15 @@ Future<void> _setMissionCurrent(GcsContext ctx, List<String> parts) async {
   }
 
   final seq = int.parse(parts[1]);
-  stdout.writeln('[mission] MISSION_SET_CURRENT seq=$seq');
-  await ctx.mission.setCurrent(seq);
-
-  stdout.writeln('[command] MAV_CMD_DO_SET_MISSION_CURRENT seq=$seq');
-  final ack = await ctx.command.setMissionCurrent(seq);
-  stdout.writeln('[command] ack: ${ack.result.name}');
+  stdout.writeln('[mission] set current seq=$seq (mission + command)...');
+  final result = await ctx.mission.setCurrentWithCommand(
+    seq,
+    command: ctx.command,
+  );
+  stdout.writeln(
+    '[mission] seq=${result.sequence} '
+    'command ack=${result.commandAck?.result.name ?? 'n/a'}',
+  );
 }
 
 Future<void> _requestMessage(GcsContext ctx, List<String> parts) async {
@@ -309,13 +340,60 @@ Future<void> _requestMessage(GcsContext ctx, List<String> parts) async {
 
 Future<void> _setMessageInterval(GcsContext ctx, List<String> parts) async {
   if (parts.length < 3) {
-    stdout.writeln('Usage: si <msgId> <interval_us>  (100000 = 10 Hz)');
+    stdout.writeln('Usage: si <msgId> <interval_us>  (100000 = 10 Hz, 0 = stop)');
     return;
   }
 
   final msgId = int.parse(parts[1]);
   final intervalUs = int.parse(parts[2]);
   stdout.writeln('[command] SET_MESSAGE_INTERVAL id=$msgId interval=$intervalUs us');
-  final ack = await ctx.command.setMessageInterval(msgId, intervalUs);
+  final ack = intervalUs == 0
+      ? await ctx.command.stopMessageInterval(msgId)
+      : await ctx.command.setMessageInterval(msgId, intervalUs);
+  stdout.writeln('[command] ack: ${ack.result.name}');
+}
+
+Future<void> _streamAttitude(GcsContext ctx, List<String> parts) async {
+  final seconds = parts.length >= 2 ? int.parse(parts[1]) : 5;
+  stdout.writeln('[telemetry] streaming ATTITUDE for ${seconds}s (subscribe + interval)...');
+
+  await ctx.command.setMessageInterval(Attitude.msgId, 100000);
+
+  var count = 0;
+  final subscription = ctx.session.listenMessage<Attitude>(
+    (attitude, frame) {
+      count++;
+      stdout.writeln(
+        '[attitude] #$count roll=${attitude.roll.toStringAsFixed(3)} '
+        'pitch=${attitude.pitch.toStringAsFixed(3)} '
+        'yaw=${attitude.yaw.toStringAsFixed(3)}',
+      );
+    },
+    fromSystemId: ctx.targetSystem,
+  );
+
+  await Future<void>.delayed(Duration(seconds: seconds));
+  subscription.cancel();
+  await ctx.command.stopMessageInterval(Attitude.msgId);
+  stdout.writeln('[telemetry] received $count ATTITUDE messages');
+}
+
+Future<void> _arm(GcsContext ctx, List<String> parts) async {
+  final force = parts.length >= 2 && parts[1].toLowerCase() == 'force';
+  stdout.writeln('[command] ARM${force ? ' (force)' : ''}...');
+  final ack = await ctx.command.arm(force: force);
+  stdout.writeln('[command] ack: ${ack.result.name}');
+}
+
+Future<void> _disarm(GcsContext ctx, List<String> parts) async {
+  final force = parts.length >= 2 && parts[1].toLowerCase() == 'force';
+  stdout.writeln('[command] DISARM${force ? ' (force)' : ''}...');
+  final ack = await ctx.command.disarm(force: force);
+  stdout.writeln('[command] ack: ${ack.result.name}');
+}
+
+Future<void> _returnToLaunch(GcsContext ctx) async {
+  stdout.writeln('[command] RETURN_TO_LAUNCH...');
+  final ack = await ctx.command.returnToLaunch();
   stdout.writeln('[command] ack: ${ack.result.name}');
 }

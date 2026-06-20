@@ -11,6 +11,7 @@ Future<void> main() async {
   final link = createVirtualLink(dialect);
 
   final missionServer = MissionServer(session: link.drone);
+  final commandServer = CommandServer(session: link.drone);
   final missionProtocol = MissionProtocol(
     session: link.gcs,
     targetSystem: droneSystemId,
@@ -36,17 +37,38 @@ Future<void> main() async {
     ),
   ];
 
-  final uploadResult = await missionProtocol.upload(plan);
+  final uploadResult = await missionProtocol.upload(
+    plan,
+    onProgress: (sent, total, item) {
+      print('Upload progress $sent/$total seq=${item.seq} cmd=${item.command}');
+    },
+  );
   print('Mission upload result: $uploadResult');
   print('Vehicle stored ${missionServer.items.length} items');
 
-  final downloaded = await missionProtocol.download();
+  final downloaded = await missionProtocol.download(
+    onProgress: (received, total, item) {
+      print('Download progress $received/$total seq=${item.seq}');
+    },
+  );
   print('Downloaded ${downloaded.length} mission items');
+
+  final commandProtocol = CommandProtocol(
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  );
+  final setCurrent = await missionProtocol.setCurrentWithCommand(
+    0,
+    command: commandProtocol,
+  );
+  print('Set current seq=${setCurrent.sequence} ack=${setCurrent.commandAck?.result}');
 
   final clearResult = await missionProtocol.clear();
   print('Mission clear result: $clearResult');
 
   await missionServer.close();
+  await commandServer.close();
   await closeVirtualLink(
     bus: link.bus,
     gcs: link.gcs,

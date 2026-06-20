@@ -50,6 +50,14 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         include_str!("../../../templates/dart/protocols/mavlink_session.dart"),
     ),
     (
+        "lib/protocols/mavlink_cancellation.dart",
+        include_str!("../../../templates/dart/protocols/mavlink_cancellation.dart"),
+    ),
+    (
+        "lib/protocols/mavlink_vehicle_client.dart",
+        include_str!("../../../templates/dart/protocols/mavlink_vehicle_client.dart"),
+    ),
+    (
         "lib/protocols/param_codec.dart",
         include_str!("../../../templates/dart/protocols/param_codec.dart"),
     ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../mavlink.dart';
+import 'mavlink_cancellation.dart';
 import 'mavlink_session.dart';
 
 /// GCS-side MAVLink command protocol client.
@@ -21,15 +22,15 @@ class CommandProtocol {
   final Duration defaultTimeout;
 
   /// Send [CommandLong] and wait for [CommandAck].
-  Future<CommandAck> sendLong(CommandLong command, {Duration? timeout}) async {
+  Future<CommandAck> sendLong(CommandLong command, {Duration? timeout, MavlinkCancellationToken? cancel}) async {
     await session.send(command);
-    return waitForAck(command.command, timeout: timeout);
+    return waitForAck(command.command, timeout: timeout, cancel: cancel);
   }
 
   /// Send [CommandInt] and wait for [CommandAck].
-  Future<CommandAck> sendInt(CommandInt command, {Duration? timeout}) async {
+  Future<CommandAck> sendInt(CommandInt command, {Duration? timeout, MavlinkCancellationToken? cancel}) async {
     await session.send(command);
-    return waitForAck(command.command, timeout: timeout);
+    return waitForAck(command.command, timeout: timeout, cancel: cancel);
   }
 
   /// Build and send COMMAND_LONG, waiting for COMMAND_ACK.
@@ -44,6 +45,7 @@ class CommandProtocol {
     float param7 = 0,
     uint8_t confirmation = 0,
     Duration? timeout,
+    MavlinkCancellationToken? cancel,
   }) {
     return sendLong(
       CommandLong(
@@ -60,47 +62,99 @@ class CommandProtocol {
         confirmation: confirmation,
       ),
       timeout: timeout,
+      cancel: cancel,
     );
   }
 
   /// Request a single message using MAV_CMD_REQUEST_MESSAGE.
-  Future<CommandAck> requestMessage(int messageId, {float param2 = 0, Duration? timeout}) {
+  Future<CommandAck> requestMessage(int messageId, {float param2 = 0, Duration? timeout, MavlinkCancellationToken? cancel}) {
     return commandLong(
       command: MavCmd.mavCmdRequestMessage,
       param1: messageId.toDouble(),
       param2: param2,
       timeout: timeout,
+      cancel: cancel,
     );
   }
 
   /// Stream a message at the given interval using MAV_CMD_SET_MESSAGE_INTERVAL.
   ///
   /// [intervalUs] is the period in microseconds (100_000 = 10 Hz).
-  Future<CommandAck> setMessageInterval(int messageId, int intervalUs, {Duration? timeout}) {
+  Future<CommandAck> setMessageInterval(int messageId, int intervalUs, {Duration? timeout, MavlinkCancellationToken? cancel}) {
     return commandLong(
       command: MavCmd.mavCmdSetMessageInterval,
       param1: messageId.toDouble(),
       param2: intervalUs.toDouble(),
       timeout: timeout,
+      cancel: cancel,
     );
   }
 
+  /// Stop streaming a message (interval 0).
+  Future<CommandAck> stopMessageInterval(int messageId, {Duration? timeout, MavlinkCancellationToken? cancel}) {
+    return setMessageInterval(messageId, 0, timeout: timeout, cancel: cancel);
+  }
+
   /// Set the active mission item via MAV_CMD_DO_SET_MISSION_CURRENT.
-  Future<CommandAck> setMissionCurrent(int sequence, {bool resetMission = false, Duration? timeout}) {
+  Future<CommandAck> setMissionCurrent(int sequence, {bool resetMission = false, Duration? timeout, MavlinkCancellationToken? cancel}) {
     return commandLong(
       command: MavCmd.mavCmdDoSetMissionCurrent,
       param1: sequence.toDouble(),
       param2: resetMission ? 1 : 0,
       timeout: timeout,
+      cancel: cancel,
     );
   }
 
-  Future<CommandAck> waitForAck(MavCmd command, {Duration? timeout}) {
+  /// Arm motors via MAV_CMD_COMPONENT_ARM_DISARM (param1 = 1).
+  Future<CommandAck> arm({bool force = false, Duration? timeout, MavlinkCancellationToken? cancel}) {
+    return commandLong(
+      command: MavCmd.mavCmdComponentArmDisarm,
+      param1: 1,
+      param2: force ? 21196 : 0,
+      timeout: timeout,
+      cancel: cancel,
+    );
+  }
+
+  /// Disarm motors via MAV_CMD_COMPONENT_ARM_DISARM (param1 = 0).
+  Future<CommandAck> disarm({bool force = false, Duration? timeout, MavlinkCancellationToken? cancel}) {
+    return commandLong(
+      command: MavCmd.mavCmdComponentArmDisarm,
+      param1: 0,
+      param2: force ? 21196 : 0,
+      timeout: timeout,
+      cancel: cancel,
+    );
+  }
+
+  /// Takeoff to [altitude] metres via MAV_CMD_NAV_TAKEOFF.
+  Future<CommandAck> takeoff({double altitude = 10, Duration? timeout, MavlinkCancellationToken? cancel}) {
+    return commandLong(
+      command: MavCmd.mavCmdNavTakeoff,
+      param7: altitude,
+      timeout: timeout,
+      cancel: cancel,
+    );
+  }
+
+  /// Land in place via MAV_CMD_NAV_LAND.
+  Future<CommandAck> land({Duration? timeout, MavlinkCancellationToken? cancel}) {
+    return commandLong(command: MavCmd.mavCmdNavLand, timeout: timeout, cancel: cancel);
+  }
+
+  /// Return to launch via MAV_CMD_NAV_RETURN_TO_LAUNCH.
+  Future<CommandAck> returnToLaunch({Duration? timeout, MavlinkCancellationToken? cancel}) {
+    return commandLong(command: MavCmd.mavCmdNavReturnToLaunch, timeout: timeout, cancel: cancel);
+  }
+
+  Future<CommandAck> waitForAck(MavCmd command, {Duration? timeout, MavlinkCancellationToken? cancel}) {
     return session
         .waitForMessage(
           predicate: (message) => message is CommandAck && message.command == command,
           fromSystemId: targetSystem,
           timeout: timeout ?? defaultTimeout,
+          cancel: cancel,
         )
         .then((message) => message as CommandAck);
   }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import '../mavlink.dart';
+import 'mavlink_cancellation.dart';
 import 'mavlink_session.dart';
 import 'param_codec.dart';
 
@@ -31,6 +32,9 @@ class ParamEntry {
   }
 }
 
+/// Progress callback for [ParameterProtocol.fetchAll] and [fetchAllStream].
+typedef ParamProgressCallback = void Function(ParamEntry entry, int received, int expected);
+
 /// GCS-side MAVLink parameter protocol client.
 ///
 /// Implements list/read/write flows from
@@ -50,15 +54,45 @@ class ParameterProtocol {
   final Duration idleTimeout;
   final Duration requestTimeout;
 
+  final Map<String, ParamEntry> _cache = {};
+
+  /// Last fetched or written parameters keyed by name (unmodifiable view).
+  Map<String, ParamEntry> get cache => Map.unmodifiable(_cache);
+
+  void clearCache() => _cache.clear();
+
+  void _remember(ParamEntry entry) => _cache[entry.id] = entry;
+
+  MavParamType? typeForName(String name) => _cache[name]?.type;
+
   /// Request and collect the full parameter set from the vehicle.
-  Future<List<ParamEntry>> fetchAll() async {
+  ///
+  /// Optional [onProgress] is called after each [ParamValue] is decoded.
+  /// Pass [cancel] to abort the stream early.
+  Future<List<ParamEntry>> fetchAll({
+    ParamProgressCallback? onProgress,
+    MavlinkCancellationToken? cancel,
+  }) async {
+    final entries = <ParamEntry>[];
+    await for (final entry in fetchAllStream(cancel: cancel)) {
+      entries.add(entry);
+      onProgress?.call(entry, entries.length, entry.count);
+    }
+    return entries;
+  }
+
+  /// Stream parameters as they arrive from the vehicle.
+  Stream<ParamEntry> fetchAllStream({MavlinkCancellationToken? cancel}) async* {
+    cancel?.throwIfCancelled();
+
     await session.send(ParamRequestList(targetSystem: targetSystem, targetComponent: targetComponent));
 
-    final entries = <ParamEntry>[];
     var expectedCount = -1;
     final seenIndices = <int>{};
 
     while (true) {
+      cancel?.throwIfCancelled();
+
       final value = await session.waitForMessage(
         predicate: (message) {
           if (message is! ParamValue) {
@@ -68,6 +102,7 @@ class ParameterProtocol {
         },
         fromSystemId: targetSystem,
         timeout: expectedCount == -1 ? requestTimeout : idleTimeout,
+        cancel: cancel,
       );
 
       final paramValue = value as ParamValue;
@@ -77,14 +112,14 @@ class ParameterProtocol {
         expectedCount = paramValue.paramCount;
       }
 
-      entries.add(ParamEntry.fromParamValue(paramValue));
+      final entry = ParamEntry.fromParamValue(paramValue);
+      _remember(entry);
+      yield entry;
 
-      if (entries.length >= expectedCount) {
+      if (seenIndices.length >= expectedCount) {
         break;
       }
     }
-
-    return entries;
   }
 
   /// Read a single parameter by name (`paramIndex` = -1).
@@ -98,7 +133,7 @@ class ParameterProtocol {
   }
 
   /// Read one parameter by id or index.
-  Future<ParamEntry> read({String? paramId, int paramIndex = -1}) async {
+  Future<ParamEntry> read({String? paramId, int paramIndex = -1, MavlinkCancellationToken? cancel}) async {
     if (paramId == null && paramIndex < 0) {
       throw ArgumentError('Either paramId or a non-negative paramIndex is required');
     }
@@ -112,13 +147,24 @@ class ParameterProtocol {
       ),
     );
 
-    final value = await session.waitForMessageType<ParamValue>(fromSystemId: targetSystem, timeout: requestTimeout);
+    final value = await session.waitForMessageType<ParamValue>(
+      fromSystemId: targetSystem,
+      timeout: requestTimeout,
+      cancel: cancel,
+    );
 
-    return ParamEntry.fromParamValue(value);
+    final entry = ParamEntry.fromParamValue(value);
+    _remember(entry);
+    return entry;
   }
 
   /// Write a parameter and wait for the broadcast [ParamValue] acknowledgment.
-  Future<ParamEntry> write({required String name, required num value, required MavParamType type}) async {
+  Future<ParamEntry> write({
+    required String name,
+    required num value,
+    required MavParamType type,
+    MavlinkCancellationToken? cancel,
+  }) async {
     await session.send(
       ParamSet(
         paramValue: ParamCodec.encodeValue(value, type),
@@ -138,9 +184,20 @@ class ParameterProtocol {
       },
       fromSystemId: targetSystem,
       timeout: requestTimeout,
+      cancel: cancel,
     );
 
-    return ParamEntry.fromParamValue(ack as ParamValue);
+    final entry = ParamEntry.fromParamValue(ack as ParamValue);
+    _remember(entry);
+    return entry;
+  }
+
+  /// Write using [type] when provided, otherwise the cached type for [name].
+  ///
+  /// Falls back to [MavParamType.mavParamTypeReal32] when the type is unknown.
+  Future<ParamEntry> writeByName(String name, num value, {MavParamType? type, MavlinkCancellationToken? cancel}) {
+    final resolvedType = type ?? typeForName(name) ?? MavParamType.mavParamTypeReal32;
+    return write(name: name, value: value, type: resolvedType, cancel: cancel);
   }
 }
 

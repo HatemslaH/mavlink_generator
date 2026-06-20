@@ -37,11 +37,22 @@ dart run bin/sitl_gcs.dart --baud 115200
 
 ## Flow
 
-1. **Heartbeat** — GCS publishes heartbeats and waits until a vehicle is online.
-2. **Parameters** — `PARAM_REQUEST_LIST` / `PARAM_VALUE` with progress output.
-3. **CLI** — interactive commands for parameters, mission, and commands.
+1. **Bootstrap** — `MavlinkGcs.connect` + heartbeats, `waitForVehicle`.
+2. **Parameters** — `ParameterProtocol.fetchAll(onProgress:)` with optional `cancel`.
+3. **CLI** — interactive commands for parameters, mission, commands, and live ATTITUDE stream.
 
 Type `help` in the CLI for the full command list.
+
+### New interactions
+
+| Command | API used |
+|---------|----------|
+| `cancel` | `MavlinkCancellationToken` on long param/mission ops |
+| `att [sec]` | `listenMessage<Attitude>` + `setMessageInterval` |
+| `arm` / `disarm` | `CommandProtocol.arm()` / `disarm()` |
+| `rtl` | `CommandProtocol.returnToLaunch()` |
+| `ms <seq>` | `MissionProtocol.setCurrentWithCommand()` |
+| `pw` | `ParameterProtocol.writeByName()` (type from cache) |
 
 ## Packages
 

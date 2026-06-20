@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import '../mavlink.dart';
+import 'command_protocol.dart';
+import 'mavlink_cancellation.dart';
 import 'mavlink_session.dart';
 
 /// Helpers for building and converting mission plan items.
@@ -111,6 +113,20 @@ class MissionItems {
   }
 }
 
+/// Progress callback during mission upload.
+typedef MissionUploadProgressCallback = void Function(int sent, int total, MissionItemInt item);
+
+/// Progress callback during mission download.
+typedef MissionDownloadProgressCallback = void Function(int received, int total, MissionItemInt item);
+
+/// Result of [MissionProtocol.setCurrentWithCommand].
+class MissionSetCurrentResult {
+  const MissionSetCurrentResult({required this.sequence, this.commandAck});
+
+  final int sequence;
+  final CommandAck? commandAck;
+}
+
 /// GCS-side MAVLink mission protocol client.
 ///
 /// Supports upload, download, clear, and set-current operations per
@@ -134,7 +150,10 @@ class MissionProtocol {
   Future<MavMissionResult> upload(
     List<MissionItemInt> items, {
     MavMissionType missionType = MavMissionType.mavMissionTypeMission,
+    MissionUploadProgressCallback? onProgress,
+    MavlinkCancellationToken? cancel,
   }) async {
+    cancel?.throwIfCancelled();
     final plan = MissionItems.withSequentialSeq(items);
 
     await session.send(
@@ -147,10 +166,13 @@ class MissionProtocol {
     );
 
     for (final item in plan) {
+      cancel?.throwIfCancelled();
+
       final request = await session.waitForMessage(
         predicate: (message) => _isItemRequest(message, item.seq, missionType),
         fromSystemId: targetSystem,
         timeout: itemTimeout,
+        cancel: cancel,
       );
 
       if (request is MissionRequestInt) {
@@ -158,15 +180,27 @@ class MissionProtocol {
       } else if (request is MissionRequest) {
         await session.send(MissionItems.toLegacyItem(item));
       }
+
+      onProgress?.call(item.seq + 1, plan.length, item);
     }
 
-    final ack = await session.waitForMessageType<MissionAck>(fromSystemId: targetSystem, timeout: operationTimeout);
+    final ack = await session.waitForMessageType<MissionAck>(
+      fromSystemId: targetSystem,
+      timeout: operationTimeout,
+      cancel: cancel,
+    );
 
     return ack.type;
   }
 
   /// Download a mission plan from the vehicle.
-  Future<List<MissionItemInt>> download({MavMissionType missionType = MavMissionType.mavMissionTypeMission}) async {
+  Future<List<MissionItemInt>> download({
+    MavMissionType missionType = MavMissionType.mavMissionTypeMission,
+    MissionDownloadProgressCallback? onProgress,
+    MavlinkCancellationToken? cancel,
+  }) async {
+    cancel?.throwIfCancelled();
+
     await session.send(
       MissionRequestList(targetSystem: targetSystem, targetComponent: targetComponent, missionType: missionType),
     );
@@ -174,11 +208,14 @@ class MissionProtocol {
     final countMessage = await session.waitForMessageType<MissionCount>(
       fromSystemId: targetSystem,
       timeout: operationTimeout,
+      cancel: cancel,
     );
 
     final items = <MissionItemInt>[];
 
     for (var seq = 0; seq < countMessage.count; seq++) {
+      cancel?.throwIfCancelled();
+
       await session.send(
         MissionRequestInt(
           seq: seq,
@@ -200,13 +237,18 @@ class MissionProtocol {
         },
         fromSystemId: targetSystem,
         timeout: itemTimeout,
+        cancel: cancel,
       );
 
+      final MissionItemInt item;
       if (itemMessage is MissionItemInt) {
-        items.add(itemMessage);
-      } else if (itemMessage is MissionItem) {
-        items.add(MissionItems.fromLegacyItem(itemMessage));
+        item = itemMessage;
+      } else {
+        item = MissionItems.fromLegacyItem(itemMessage as MissionItem);
       }
+
+      items.add(item);
+      onProgress?.call(items.length, countMessage.count, item);
     }
 
     await session.send(
@@ -222,19 +264,49 @@ class MissionProtocol {
   }
 
   /// Clear all mission items of the given type on the vehicle.
-  Future<MavMissionResult> clear({MavMissionType missionType = MavMissionType.mavMissionTypeMission}) async {
+  Future<MavMissionResult> clear({
+    MavMissionType missionType = MavMissionType.mavMissionTypeMission,
+    MavlinkCancellationToken? cancel,
+  }) async {
     await session.send(
       MissionClearAll(targetSystem: targetSystem, targetComponent: targetComponent, missionType: missionType),
     );
 
-    final ack = await session.waitForMessageType<MissionAck>(fromSystemId: targetSystem, timeout: operationTimeout);
+    final ack = await session.waitForMessageType<MissionAck>(
+      fromSystemId: targetSystem,
+      timeout: operationTimeout,
+      cancel: cancel,
+    );
 
     return ack.type;
   }
 
   /// Set the active mission item sequence number on the vehicle.
-  Future<void> setCurrent(int seq) async {
+  Future<void> setCurrent(int seq, {MavlinkCancellationToken? cancel}) async {
+    cancel?.throwIfCancelled();
     await session.send(MissionSetCurrent(seq: seq, targetSystem: targetSystem, targetComponent: targetComponent));
+  }
+
+  /// Send [MissionSetCurrent] and optionally [CommandProtocol.setMissionCurrent].
+  ///
+  /// Pass [command] when the vehicle expects MAV_CMD_DO_SET_MISSION_CURRENT in
+  /// addition to the mission protocol message (common on ArduPilot).
+  Future<MissionSetCurrentResult> setCurrentWithCommand(
+    int seq, {
+    CommandProtocol? command,
+    bool alsoSendCommand = true,
+    bool resetMission = false,
+    MavlinkCancellationToken? cancel,
+  }) async {
+    cancel?.throwIfCancelled();
+    await setCurrent(seq, cancel: cancel);
+
+    CommandAck? ack;
+    if (alsoSendCommand && command != null) {
+      ack = await command.setMissionCurrent(seq, resetMission: resetMission, cancel: cancel);
+    }
+
+    return MissionSetCurrentResult(sequence: seq, commandAck: ack);
   }
 
   bool _isItemRequest(MavlinkMessage message, int seq, MavMissionType missionType) {

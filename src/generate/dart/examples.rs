@@ -29,6 +29,8 @@ const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("protocol_parameters", render_protocol_parameters_example),
     ("protocol_command", render_protocol_command_example),
     ("protocol_heartbeat", render_protocol_heartbeat_example),
+    ("protocol_vehicle", render_protocol_vehicle_example),
+    ("protocol_subscribe", render_protocol_subscribe_example),
 ];
 
 impl LanguageExampleGenerator for DartExampleGenerator {
@@ -384,6 +386,7 @@ Future<void> main() async {{
   final link = createVirtualLink(dialect);
 
   final missionServer = MissionServer(session: link.drone);
+  final commandServer = CommandServer(session: link.drone);
   final missionProtocol = MissionProtocol(
     session: link.gcs,
     targetSystem: droneSystemId,
@@ -409,17 +412,38 @@ Future<void> main() async {{
     ),
   ];
 
-  final uploadResult = await missionProtocol.upload(plan);
+  final uploadResult = await missionProtocol.upload(
+    plan,
+    onProgress: (sent, total, item) {{
+      print('Upload progress $sent/$total seq=${{item.seq}} cmd=${{item.command}}');
+    }},
+  );
   print('Mission upload result: $uploadResult');
   print('Vehicle stored ${{missionServer.items.length}} items');
 
-  final downloaded = await missionProtocol.download();
+  final downloaded = await missionProtocol.download(
+    onProgress: (received, total, item) {{
+      print('Download progress $received/$total seq=${{item.seq}}');
+    }},
+  );
   print('Downloaded ${{downloaded.length}} mission items');
+
+  final commandProtocol = CommandProtocol(
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  );
+  final setCurrent = await missionProtocol.setCurrentWithCommand(
+    0,
+    command: commandProtocol,
+  );
+  print('Set current seq=${{setCurrent.sequence}} ack=${{setCurrent.commandAck?.result}}');
 
   final clearResult = await missionProtocol.clear();
   print('Mission clear result: $clearResult');
 
   await missionServer.close();
+  await commandServer.close();
   await closeVirtualLink(
     bus: link.bus,
     gcs: link.gcs,
@@ -462,21 +486,18 @@ Future<void> main() async {{
     targetComponent: droneComponentId,
   );
 
-  final allParams = await parameterProtocol.fetchAll();
-  print('Fetched ${{allParams.length}} parameters:');
-  for (final param in allParams) {{
-    print('  ${{param.id}}=${{param.value}} (${{param.type}})');
-  }}
+  final allParams = await parameterProtocol.fetchAll(
+    onProgress: (entry, received, expected) {{
+      print('  [$received/$expected] ${{entry.id}}=${{entry.value}}');
+    }},
+  );
+  print('Fetched ${{allParams.length}} parameters (cache size=${{parameterProtocol.cache.length}})');
 
   final single = await parameterProtocol.readByName('SYSID_THISMAV');
   print('Read SYSID_THISMAV=${{single.value}}');
 
-  final updated = await parameterProtocol.write(
-    name: 'COMPASS_ENABLE',
-    value: 0,
-    type: MavParamType.mavParamTypeInt32,
-  );
-  print('Wrote COMPASS_ENABLE=${{updated.value}}');
+  final updated = await parameterProtocol.writeByName('COMPASS_ENABLE', 0);
+  print('Wrote COMPASS_ENABLE=${{updated.value}} (${{updated.type}})');
 
   await parameterServer.close();
   await closeVirtualLink(
@@ -531,6 +552,12 @@ Future<void> main() async {{
   final requestAck = await commandProtocol.requestMessage(Attitude.msgId);
   print('REQUEST_MESSAGE ack: ${{requestAck.result}}');
 
+  final armAck = await commandProtocol.arm();
+  print('ARM ack: ${{armAck.result}}');
+
+  final disarmAck = await commandProtocol.disarm();
+  print('DISARM ack: ${{disarmAck.result}}');
+
   await commandServer.close();
   await closeVirtualLink(
     bus: link.bus,
@@ -559,7 +586,6 @@ import 'protocols_common.dart';
 Future<void> main() async {{
   final dialect = {dialect_class}();
   final link = createVirtualLink(dialect);
-  final droneNode = MavlinkNode(droneSystemId, droneComponentId);
 
   final gcsPublisher = HeartbeatPublisher(
     session: link.gcs,
@@ -576,24 +602,19 @@ Future<void> main() async {{
   final gcsMonitor = HeartbeatMonitor(
     session: link.gcs,
     timeout: const Duration(seconds: 2),
-    watch: {{droneNode}},
-  );
-
-  final connectionEvents = <String>[];
-  final monitorSub = gcsMonitor.onConnected.listen(
-    (node) => connectionEvents.add('connected $node'),
-  );
-  final disconnectSub = gcsMonitor.onDisconnected.listen(
-    (node) => connectionEvents.add('disconnected $node'),
   );
 
   gcsMonitor.start();
   gcsPublisher.start();
   dronePublisher.start();
 
-  await Future<void>.delayed(const Duration(milliseconds: 1200));
-  print('Drone online: ${{gcsMonitor.isOnline(droneNode)}}');
-  final state = gcsMonitor.stateFor(droneNode);
+  final vehicle = await gcsMonitor.waitForVehicle(
+    excludeSystemIds: {{gcsSystemId}},
+    timeout: const Duration(seconds: 5),
+  );
+  print('Vehicle discovered: $vehicle');
+  print('Drone online: ${{gcsMonitor.isOnline(vehicle)}}');
+  final state = gcsMonitor.stateFor(vehicle);
   if (state != null) {{
     print(
       'Drone heartbeat: type=${{state.heartbeat.type}} '
@@ -603,13 +624,136 @@ Future<void> main() async {{
 
   dronePublisher.stop();
   await Future<void>.delayed(const Duration(milliseconds: 2500));
-  print('Drone online after stop: ${{gcsMonitor.isOnline(droneNode)}}');
-  print('Events: ${{connectionEvents.join(', ')}}');
+  print('Drone online after stop: ${{gcsMonitor.isOnline(vehicle)}}');
 
-  await monitorSub.cancel();
-  await disconnectSub.cancel();
   await gcsMonitor.stop();
   gcsPublisher.stop();
+
+  await closeVirtualLink(
+    bus: link.bus,
+    gcs: link.gcs,
+    drone: link.drone,
+  );
+}}
+"#
+    )
+}
+
+fn render_protocol_vehicle_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"// ignore_for_file: avoid_print
+
+import 'protocols_common.dart';
+
+/// [MavlinkGcs] / [MavlinkVehicleClient] facade example for `{dialect_stem}`.
+///
+/// Demonstrates GCS bootstrap, [HeartbeatMonitor.waitForVehicle], and a single
+/// vehicle client that bundles parameter, mission, and command protocols.
+Future<void> main() async {{
+  final dialect = {dialect_class}();
+  final bus = VirtualMavlinkBus();
+  final gcsLink = bus.createEndpoint();
+  final droneLink = bus.createEndpoint();
+
+  final gcs = MavlinkGcs.connect(
+    dialect: dialect,
+    link: gcsLink,
+    systemId: gcsSystemId,
+    componentId: gcsComponentId,
+  );
+
+  final droneSession = MavlinkSession(
+    dialect: dialect,
+    link: droneLink,
+    systemId: droneSystemId,
+    componentId: droneComponentId,
+  );
+
+  final dronePublisher = HeartbeatPublisher(
+    session: droneSession,
+    heartbeat: HeartbeatTemplates.autopilot(mavlinkVersion: dialect.version),
+    interval: const Duration(milliseconds: 500),
+  );
+
+  final parameterServer = ParameterServer(
+    session: droneSession,
+    initialValues: {{
+      'SYSID_THISMAV': (value: 1, type: MavParamType.mavParamTypeInt32),
+    }},
+  );
+
+  final commandServer = CommandServer(session: droneSession);
+
+  gcs.start();
+  dronePublisher.start();
+
+  final client = await gcs.waitForVehicle(excludeSystemIds: {{gcsSystemId}});
+  print('Connected to vehicle ${{client.vehicle}}');
+
+  final params = await client.parameters.fetchAll();
+  print('Vehicle has ${{params.length}} parameters');
+
+  final ack = await client.command.requestMessage(Heartbeat.msgId);
+  print('REQUEST_MESSAGE ack: ${{ack.result}}');
+
+  await parameterServer.close();
+  await commandServer.close();
+  dronePublisher.stop();
+  await droneSession.close();
+  await gcs.close();
+  await bus.closeAll();
+}}
+"#
+    )
+}
+
+fn render_protocol_subscribe_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"// ignore_for_file: avoid_print
+
+import 'dart:async';
+
+import 'protocols_common.dart';
+
+/// Typed message subscription example for the `{dialect_stem}` dialect.
+///
+/// Uses [MavlinkSession.onMessage] and [MavlinkSession.listenMessage] to receive
+/// telemetry without manual request/wait loops.
+Future<void> main() async {{
+  final dialect = {dialect_class}();
+  final link = createVirtualLink(dialect);
+  final vehicle = MavlinkNode(droneSystemId, droneComponentId);
+
+  final attitudeSamples = <Attitude>[];
+  final subscription = link.gcs.listenMessage<Attitude>(
+    (message, frame) => attitudeSamples.add(message),
+    fromSystemId: vehicle.systemId,
+  );
+
+  await link.drone.send(
+    Attitude(
+      timeBootMs: 1000,
+      roll: 0.1,
+      pitch: -0.05,
+      yaw: 1.57,
+      rollspeed: 0,
+      pitchspeed: 0,
+      yawspeed: 0,
+    ),
+  );
+
+  await Future<void>.delayed(const Duration(milliseconds: 50));
+  subscription.cancel();
+
+  print('Received ${{attitudeSamples.length}} ATTITUDE samples via listenMessage');
+  if (attitudeSamples.isNotEmpty) {{
+    final sample = attitudeSamples.first;
+    print('  roll=${{sample.roll}} pitch=${{sample.pitch}} yaw=${{sample.yaw}}');
+  }}
 
   await closeVirtualLink(
     bus: link.bus,

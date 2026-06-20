@@ -26,21 +26,18 @@ Future<void> main() async {
     targetComponent: droneComponentId,
   );
 
-  final allParams = await parameterProtocol.fetchAll();
-  print('Fetched ${allParams.length} parameters:');
-  for (final param in allParams) {
-    print('  ${param.id}=${param.value} (${param.type})');
-  }
+  final allParams = await parameterProtocol.fetchAll(
+    onProgress: (entry, received, expected) {
+      print('  [$received/$expected] ${entry.id}=${entry.value}');
+    },
+  );
+  print('Fetched ${allParams.length} parameters (cache size=${parameterProtocol.cache.length})');
 
   final single = await parameterProtocol.readByName('SYSID_THISMAV');
   print('Read SYSID_THISMAV=${single.value}');
 
-  final updated = await parameterProtocol.write(
-    name: 'COMPASS_ENABLE',
-    value: 0,
-    type: MavParamType.mavParamTypeInt32,
-  );
-  print('Wrote COMPASS_ENABLE=${updated.value}');
+  final updated = await parameterProtocol.writeByName('COMPASS_ENABLE', 0);
+  print('Wrote COMPASS_ENABLE=${updated.value} (${updated.type})');
 
   await parameterServer.close();
   await closeVirtualLink(
