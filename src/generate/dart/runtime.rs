@@ -30,6 +30,42 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "mavlink_parser.dart",
         include_str!("../../../templates/dart/mavlink_parser.dart"),
     ),
+    (
+        "mavlink_protocols.dart",
+        include_str!("../../../templates/dart/mavlink_protocols.dart"),
+    ),
+    (
+        "protocols/mavlink_link.dart",
+        include_str!("../../../templates/dart/protocols/mavlink_link.dart"),
+    ),
+    (
+        "protocols/mavlink_session.dart",
+        include_str!("../../../templates/dart/protocols/mavlink_session.dart"),
+    ),
+    (
+        "protocols/param_codec.dart",
+        include_str!("../../../templates/dart/protocols/param_codec.dart"),
+    ),
+    (
+        "protocols/mission_protocol.dart",
+        include_str!("../../../templates/dart/protocols/mission_protocol.dart"),
+    ),
+    (
+        "protocols/parameter_protocol.dart",
+        include_str!("../../../templates/dart/protocols/parameter_protocol.dart"),
+    ),
+    (
+        "protocols/command_protocol.dart",
+        include_str!("../../../templates/dart/protocols/command_protocol.dart"),
+    ),
+    (
+        "protocols/heartbeat_protocol.dart",
+        include_str!("../../../templates/dart/protocols/heartbeat_protocol.dart"),
+    ),
+    (
+        "protocols/protocols.dart",
+        include_str!("../../../templates/dart/protocols/protocols.dart"),
+    ),
 ];
 
 impl LanguageRuntimeGenerator for DartRuntimeGenerator {

@@ -74,6 +74,19 @@ fn generates_dart_runtime_files() {
 
     assert!(output_dir.join("crc.dart").is_file());
     assert!(output_dir.join("mavlink_parser.dart").is_file());
+    assert!(output_dir.join("mavlink_protocols.dart").is_file());
+    assert!(output_dir.join("protocols/mission_protocol.dart").is_file());
+    assert!(
+        output_dir
+            .join("protocols/parameter_protocol.dart")
+            .is_file()
+    );
+    assert!(output_dir.join("protocols/command_protocol.dart").is_file());
+    assert!(
+        output_dir
+            .join("protocols/heartbeat_protocol.dart")
+            .is_file()
+    );
 
     let _ = std::fs::remove_dir_all(&output_dir);
 }
@@ -112,6 +125,33 @@ fn generates_dart_example_files() {
     assert!(params.contains("ParamRequestList"));
     assert!(params.contains("ParamRequestRead"));
     assert!(params.contains("ParamValue"));
+
+    assert!(examples_dir.join("protocols_common.dart").is_file());
+
+    let protocol_mission =
+        std::fs::read_to_string(examples_dir.join("rt_rc_protocol_mission.dart"))
+            .expect("protocol mission example should exist");
+    assert!(protocol_mission.contains("MissionProtocol"));
+    assert!(protocol_mission.contains("MissionServer"));
+    assert!(protocol_mission.contains("VirtualMavlinkBus"));
+
+    let protocol_params =
+        std::fs::read_to_string(examples_dir.join("rt_rc_protocol_parameters.dart"))
+            .expect("protocol parameters example should exist");
+    assert!(protocol_params.contains("ParameterProtocol"));
+    assert!(protocol_params.contains("ParameterServer"));
+
+    let protocol_command =
+        std::fs::read_to_string(examples_dir.join("rt_rc_protocol_command.dart"))
+            .expect("protocol command example should exist");
+    assert!(protocol_command.contains("CommandProtocol"));
+    assert!(protocol_command.contains("CommandServer"));
+
+    let protocol_heartbeat =
+        std::fs::read_to_string(examples_dir.join("rt_rc_protocol_heartbeat.dart"))
+            .expect("protocol heartbeat example should exist");
+    assert!(protocol_heartbeat.contains("HeartbeatMonitor"));
+    assert!(protocol_heartbeat.contains("HeartbeatPublisher"));
 
     assert_eq!(
         examples_output_dir(TargetLanguage::Dart),

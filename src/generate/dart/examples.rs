@@ -14,6 +14,10 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "common.dart",
         include_str!("../../../templates/dart/examples/common.dart"),
     ),
+    (
+        "protocols_common.dart",
+        include_str!("../../../templates/dart/examples/protocols_common.dart"),
+    ),
 ];
 
 const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
@@ -21,6 +25,10 @@ const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("mission_upload", render_mission_upload_example),
     ("request_telemetry", render_request_telemetry_example),
     ("request_parameters", render_request_parameters_example),
+    ("protocol_mission", render_protocol_mission_example),
+    ("protocol_parameters", render_protocol_parameters_example),
+    ("protocol_command", render_protocol_command_example),
+    ("protocol_heartbeat", render_protocol_heartbeat_example),
 ];
 
 impl LanguageExampleGenerator for DartExampleGenerator {
@@ -354,6 +362,260 @@ void main() {{
   final singleFrame = frameFromDrone(singleValue, sequence: 51);
   logFrame('Drone ->', singleFrame);
   roundTripMessage(dialect, singleValue);
+}}
+"#
+    )
+}
+
+fn render_protocol_mission_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"// ignore_for_file: avoid_print
+
+import 'protocols_common.dart';
+
+/// Mission protocol example for the `{dialect_stem}` dialect.
+///
+/// Uses [MissionProtocol] on the GCS side and [MissionServer] on the vehicle
+/// side over a transport-agnostic in-memory [VirtualMavlinkBus].
+Future<void> main() async {{
+  final dialect = {dialect_class}();
+  final link = createVirtualLink(dialect);
+
+  final missionServer = MissionServer(session: link.drone);
+  final missionProtocol = MissionProtocol(
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  );
+
+  final plan = <MissionItemInt>[
+    MissionItems.waypoint(
+      seq: 0,
+      latitude: 47.397742,
+      longitude: 8.545594,
+      altitude: 50,
+      targetSystem: droneSystemId,
+      targetComponent: droneComponentId,
+    ),
+    MissionItems.waypoint(
+      seq: 1,
+      latitude: 47.398000,
+      longitude: 8.546000,
+      altitude: 50,
+      targetSystem: droneSystemId,
+      targetComponent: droneComponentId,
+    ),
+  ];
+
+  final uploadResult = await missionProtocol.upload(plan);
+  print('Mission upload result: $uploadResult');
+  print('Vehicle stored ${{missionServer.items.length}} items');
+
+  final downloaded = await missionProtocol.download();
+  print('Downloaded ${{downloaded.length}} mission items');
+
+  final clearResult = await missionProtocol.clear();
+  print('Mission clear result: $clearResult');
+
+  await missionServer.close();
+  await closeVirtualLink(
+    bus: link.bus,
+    gcs: link.gcs,
+    drone: link.drone,
+  );
+}}
+"#
+    )
+}
+
+fn render_protocol_parameters_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"// ignore_for_file: avoid_print
+
+import 'protocols_common.dart';
+
+/// Parameter protocol example for the `{dialect_stem}` dialect.
+///
+/// Uses [ParameterProtocol] on the GCS side and [ParameterServer] on the
+/// vehicle side. The link is transport-agnostic and can be swapped for USB,
+/// UDP, TCP, or any custom [MavlinkLink] implementation.
+Future<void> main() async {{
+  final dialect = {dialect_class}();
+  final link = createVirtualLink(dialect);
+
+  final parameterServer = ParameterServer(
+    session: link.drone,
+    initialValues: {{
+      'SYSID_THISMAV': (value: 1, type: MavParamType.mavParamTypeInt32),
+      'SYSID_MYGCS': (value: 255, type: MavParamType.mavParamTypeInt32),
+      'COMPASS_ENABLE': (value: 1, type: MavParamType.mavParamTypeInt32),
+    }},
+  );
+
+  final parameterProtocol = ParameterProtocol(
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  );
+
+  final allParams = await parameterProtocol.fetchAll();
+  print('Fetched ${{allParams.length}} parameters:');
+  for (final param in allParams) {{
+    print('  ${{param.id}}=${{param.value}} (${{param.type}})');
+  }}
+
+  final single = await parameterProtocol.readByName('SYSID_THISMAV');
+  print('Read SYSID_THISMAV=${{single.value}}');
+
+  final updated = await parameterProtocol.write(
+    name: 'COMPASS_ENABLE',
+    value: 0,
+    type: MavParamType.mavParamTypeInt32,
+  );
+  print('Wrote COMPASS_ENABLE=${{updated.value}}');
+
+  await parameterServer.close();
+  await closeVirtualLink(
+    bus: link.bus,
+    gcs: link.gcs,
+    drone: link.drone,
+  );
+}}
+"#
+    )
+}
+
+fn render_protocol_command_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"// ignore_for_file: avoid_print
+
+import 'protocols_common.dart';
+
+/// Command protocol example for the `{dialect_stem}` dialect.
+///
+/// Uses [CommandProtocol] on the GCS side and [CommandServer] on the vehicle
+/// side. Demonstrates message interval setup and one-shot telemetry requests.
+Future<void> main() async {{
+  final dialect = {dialect_class}();
+  final link = createVirtualLink(dialect);
+
+  final commandServer = CommandServer(
+    session: link.drone,
+    onCommandLong: (command) async {{
+      print(
+        'Vehicle received COMMAND_LONG: ${{command.command}} '
+        'p1=${{command.param1}} p2=${{command.param2}}',
+      );
+      return MavResult.mavResultAccepted;
+    }},
+  );
+
+  final commandProtocol = CommandProtocol(
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  );
+
+  final intervalAck = await commandProtocol.setMessageInterval(
+    Attitude.msgId,
+    100000,
+  );
+  print('SET_MESSAGE_INTERVAL ack: ${{intervalAck.result}}');
+
+  final requestAck = await commandProtocol.requestMessage(Attitude.msgId);
+  print('REQUEST_MESSAGE ack: ${{requestAck.result}}');
+
+  await commandServer.close();
+  await closeVirtualLink(
+    bus: link.bus,
+    gcs: link.gcs,
+    drone: link.drone,
+  );
+}}
+"#
+    )
+}
+
+fn render_protocol_heartbeat_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"// ignore_for_file: avoid_print
+
+import 'dart:async';
+
+import 'protocols_common.dart';
+
+/// Heartbeat protocol example for the `{dialect_stem}` dialect.
+///
+/// Uses [HeartbeatPublisher] to send heartbeats and [HeartbeatMonitor] to track
+/// remote node connectivity over a transport-agnostic link.
+Future<void> main() async {{
+  final dialect = {dialect_class}();
+  final link = createVirtualLink(dialect);
+  final droneNode = MavlinkNode(droneSystemId, droneComponentId);
+
+  final gcsPublisher = HeartbeatPublisher(
+    session: link.gcs,
+    heartbeat: HeartbeatTemplates.gcs(mavlinkVersion: dialect.version),
+    interval: const Duration(milliseconds: 500),
+  );
+
+  final dronePublisher = HeartbeatPublisher(
+    session: link.drone,
+    heartbeat: HeartbeatTemplates.autopilot(mavlinkVersion: dialect.version),
+    interval: const Duration(milliseconds: 500),
+  );
+
+  final gcsMonitor = HeartbeatMonitor(
+    session: link.gcs,
+    timeout: const Duration(seconds: 2),
+    watch: {{droneNode}},
+  );
+
+  final connectionEvents = <String>[];
+  final monitorSub = gcsMonitor.onConnected.listen(
+    (node) => connectionEvents.add('connected $node'),
+  );
+  final disconnectSub = gcsMonitor.onDisconnected.listen(
+    (node) => connectionEvents.add('disconnected $node'),
+  );
+
+  gcsMonitor.start();
+  gcsPublisher.start();
+  dronePublisher.start();
+
+  await Future<void>.delayed(const Duration(milliseconds: 1200));
+  print('Drone online: ${{gcsMonitor.isOnline(droneNode)}}');
+  final state = gcsMonitor.stateFor(droneNode);
+  if (state != null) {{
+    print(
+      'Drone heartbeat: type=${{state.heartbeat.type}} '
+      'status=${{state.heartbeat.systemStatus}}',
+    );
+  }}
+
+  dronePublisher.stop();
+  await Future<void>.delayed(const Duration(milliseconds: 2500));
+  print('Drone online after stop: ${{gcsMonitor.isOnline(droneNode)}}');
+  print('Events: ${{connectionEvents.join(', ')}}');
+
+  await monitorSub.cancel();
+  await disconnectSub.cancel();
+  await gcsMonitor.stop();
+  gcsPublisher.stop();
+
+  await closeVirtualLink(
+    bus: link.bus,
+    gcs: link.gcs,
+    drone: link.drone,
+  );
 }}
 "#
     )
