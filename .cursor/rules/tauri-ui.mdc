@@ -1,0 +1,47 @@
+---
+description: Tauri + React desktop UI conventions
+globs: "ui/**"
+alwaysApply: false
+---
+
+# Desktop UI (Tauri 2 + React 19)
+
+## Stack
+
+- Frontend: React 19, TypeScript, Vite 7 — `ui/src/`
+- Backend: Tauri 2 — `ui/src-tauri/`
+- Package manager: **pnpm** (not npm/yarn)
+- Root crate dependency: `mavlink_generator = { path = "../.." }`
+
+## Adding a Tauri command
+
+1. Implement `#[tauri::command]` in `ui/src-tauri/src/lib.rs`
+2. Register in `invoke_handler![...]`
+3. Add typed wrapper in `ui/src/api/commands.ts`
+4. Use from React components
+
+Prefer reusing `mavlink_generator::driver` types (`GenerateOptions`, etc.) rather than duplicating structs.
+
+## Long-running work
+
+`generate` uses `spawn_blocking` + `generate-progress` events. UI must:
+
+- Set `busy` state during generation
+- Listen via `listenGenerateProgress` from `commands.ts`
+- Disable actions while busy
+
+## Build targets
+
+- Dev: `pnpm tauri dev` from `ui/`
+- Tauri has its own target dir: `ui/src-tauri/target/` (separate from root `target/`)
+
+## UI style
+
+- Functional components with hooks
+- Components in `ui/src/components/`, API in `ui/src/api/`
+- Keep `App.tsx` as orchestrator; extract new UI into focused components
+- Styles in `App.css` (no CSS-in-JS framework)
+
+## Version sync
+
+Bump `ui/package.json` and `ui/src-tauri/tauri.conf.json` together with root `Cargo.toml` on releases.
