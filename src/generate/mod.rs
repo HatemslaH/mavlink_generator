@@ -18,7 +18,7 @@ use crate::xml::DialectDocument;
 pub use examples::{EXAMPLES_DIR, ExampleFile, examples_output_dir, generate_example_files};
 pub use runtime::{
     DIALECTS_DIR, GENERATED_ROOT, RuntimeFile, dialect_output_path, dialects_output_dir,
-    generate_runtime_files, language_output_dir,
+    dialects_relative_dir, generate_runtime_files, language_output_dir,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

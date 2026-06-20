@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    DialectDocument, GeneratorError, Result, TargetLanguage, generate_code, generate_example_files,
-    generate_runtime_files,
+    DialectDocument, GeneratorError, Result, TargetLanguage, dialects_relative_dir, generate_code,
+    generate_example_files, generate_runtime_files,
 };
 
 pub const DEFAULT_DEFINITIONS_DIR: &str = "mavlink/message_definitions/v1.0";
@@ -132,7 +132,7 @@ where
 
     for language in languages {
         let language_dir = options.output.join(language.output_dir_name());
-        let dialects_dir = language_dir.join("dialects");
+        let dialects_dir = language_dir.join(dialects_relative_dir(language));
         std::fs::create_dir_all(&dialects_dir)?;
 
         let mut stems_for_language = Vec::with_capacity(xml_paths.len());

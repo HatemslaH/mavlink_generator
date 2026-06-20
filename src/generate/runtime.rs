@@ -25,7 +25,11 @@ pub fn language_output_dir(language: TargetLanguage) -> PathBuf {
 }
 
 pub fn dialects_output_dir(language: TargetLanguage) -> PathBuf {
-    language_output_dir(language).join(DIALECTS_DIR)
+    let base = language_output_dir(language);
+    match language {
+        TargetLanguage::Dart => base.join("lib").join(DIALECTS_DIR),
+        _ => base.join(DIALECTS_DIR),
+    }
 }
 
 pub fn dialect_output_path(language: TargetLanguage, dialect_stem: &str) -> PathBuf {
@@ -41,7 +45,7 @@ pub fn generate_runtime_files(
     let generator = runtime_generator(language)?;
 
     fs::create_dir_all(output_dir)?;
-    fs::create_dir_all(output_dir.join(DIALECTS_DIR))?;
+    fs::create_dir_all(output_dir.join(dialects_relative_dir(language)))?;
 
     if language == TargetLanguage::Python {
         fs::write(output_dir.join(DIALECTS_DIR).join("__init__.py"), "")?;
@@ -85,6 +89,13 @@ pub fn generate_runtime_files(
     }
 
     Ok(())
+}
+
+pub fn dialects_relative_dir(language: TargetLanguage) -> PathBuf {
+    match language {
+        TargetLanguage::Dart => PathBuf::from("lib").join(DIALECTS_DIR),
+        _ => PathBuf::from(DIALECTS_DIR),
+    }
 }
 
 fn runtime_generator(language: TargetLanguage) -> Result<Box<dyn LanguageRuntimeGenerator>> {

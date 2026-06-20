@@ -1,5 +1,5 @@
-export '../mavlink_protocols.dart';
-import '../mavlink_protocols.dart';
+export '../lib/mavlink_protocols.dart';
+import '../lib/mavlink_protocols.dart';
 
 /// Ground control station identity (MAVLink convention).
 const gcsSystemId = 255;

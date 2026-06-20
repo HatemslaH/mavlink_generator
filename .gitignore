@@ -14,3 +14,7 @@ generated/**/bin/
 generated/**/obj/
 generated/**/*.exe
 generated/rust/Cargo.lock
+
+# Dart examples
+examples/dart/.dart_tool/
+examples/dart/build/

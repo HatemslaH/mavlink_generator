@@ -18,9 +18,11 @@ Shared helpers:
 
 These examples are **virtual**: no real link, only valid MAVLink frames serialized and parsed locally.
 
+For a **real serial / SITL** interactive GCS sample, see the repository folder `examples/dart/` at the project root.
+
 ## Protocol class examples
 
-Transport-agnostic protocol implementations live in `../protocols/`. Import them via `mavlink_protocols.dart`.
+Transport-agnostic protocol implementations live in `../lib/protocols/`. Import them via `mavlink_protocols.dart`.
 
 | File | Classes | Description |
 |------|---------|-------------|

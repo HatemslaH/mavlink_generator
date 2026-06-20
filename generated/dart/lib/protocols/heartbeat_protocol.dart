@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import '../mavlink.dart';
-import '../types.dart';
 import 'mavlink_session.dart';
 
 /// MAVLink node identity (system + component).
@@ -13,9 +12,7 @@ class MavlinkNode {
 
   @override
   bool operator ==(Object other) {
-    return other is MavlinkNode &&
-        other.systemId == systemId &&
-        other.componentId == componentId;
+    return other is MavlinkNode && other.systemId == systemId && other.componentId == componentId;
   }
 
   @override
@@ -27,12 +24,7 @@ class MavlinkNode {
 
 /// Last known heartbeat state for a remote node.
 class TrackedHeartbeat {
-  const TrackedHeartbeat({
-    required this.node,
-    required this.heartbeat,
-    required this.receivedAt,
-    required this.online,
-  });
+  const TrackedHeartbeat({required this.node, required this.heartbeat, required this.receivedAt, required this.online});
 
   final MavlinkNode node;
   final Heartbeat heartbeat;
@@ -46,12 +38,7 @@ class TrackedHeartbeat {
 ///
 /// Transport-agnostic: listens on [MavlinkSession.frames] only.
 class HeartbeatMonitor {
-  HeartbeatMonitor({
-    required this.session,
-    this.timeout = const Duration(seconds: 5),
-    this.watch,
-    this.watchSystemId,
-  });
+  HeartbeatMonitor({required this.session, this.timeout = const Duration(seconds: 5), this.watch, this.watchSystemId});
 
   final MavlinkSession session;
   final Duration timeout;
@@ -88,10 +75,7 @@ class HeartbeatMonitor {
     }
     _running = true;
     _frameSubscription = session.frames.listen(_onFrame);
-    _watchdogTimer = Timer.periodic(
-      Duration(milliseconds: timeout.inMilliseconds ~/ 3),
-      (_) => _checkTimeouts(),
-    );
+    _watchdogTimer = Timer.periodic(Duration(milliseconds: timeout.inMilliseconds ~/ 3), (_) => _checkTimeouts());
   }
 
   /// Stop monitoring and release timers/subscriptions.
@@ -144,12 +128,7 @@ class HeartbeatMonitor {
     final heartbeat = frame.message as Heartbeat;
     final wasOnline = _online[node] ?? false;
     final now = DateTime.now();
-    final tracked = TrackedHeartbeat(
-      node: node,
-      heartbeat: heartbeat,
-      receivedAt: now,
-      online: true,
-    );
+    final tracked = TrackedHeartbeat(node: node, heartbeat: heartbeat, receivedAt: now, online: true);
 
     _states[node] = tracked;
     _online[node] = true;
@@ -175,12 +154,7 @@ class HeartbeatMonitor {
         _online[entry] = false;
         _disconnectedController.add(entry);
         _heartbeatController.add(
-          TrackedHeartbeat(
-            node: entry,
-            heartbeat: state.heartbeat,
-            receivedAt: state.receivedAt,
-            online: false,
-          ),
+          TrackedHeartbeat(node: entry, heartbeat: state.heartbeat, receivedAt: state.receivedAt, online: false),
         );
       }
     }
@@ -199,11 +173,8 @@ class HeartbeatMonitor {
 
 /// Periodically sends HEARTBEAT on a [MavlinkSession].
 class HeartbeatPublisher {
-  HeartbeatPublisher({
-    required this.session,
-    required Heartbeat heartbeat,
-    this.interval = const Duration(seconds: 1),
-  }) : _heartbeat = heartbeat;
+  HeartbeatPublisher({required this.session, required Heartbeat heartbeat, this.interval = const Duration(seconds: 1)})
+    : _heartbeat = heartbeat;
 
   final MavlinkSession session;
   final Duration interval;

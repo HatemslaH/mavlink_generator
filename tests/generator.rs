@@ -42,7 +42,7 @@ fn dialect_output_path_uses_generated_layout() {
     let path = dialect_output_path(TargetLanguage::Dart, "rt_rc");
     assert_eq!(
         path,
-        std::path::PathBuf::from("generated/dart/dialects/rt_rc.dart")
+        std::path::PathBuf::from("generated/dart/lib/dialects/rt_rc.dart")
     );
 
     let py_path = dialect_output_path(TargetLanguage::Python, "common");
@@ -66,25 +66,27 @@ fn generates_dart_runtime_files() {
     generate_runtime_files(&output_dir, TargetLanguage::Dart, &dialect_stems)
         .expect("runtime generation should succeed");
 
-    let entry_point = output_dir.join("mavlink.dart");
+    let entry_point = output_dir.join("lib/mavlink.dart");
     let content = std::fs::read_to_string(&entry_point).expect("mavlink.dart should exist");
     assert!(content.contains("export 'dialects/rt_rc.dart';"));
     assert!(content.contains("export 'dialects/common.dart';"));
     assert!(content.contains("export 'mavlink_parser.dart';"));
 
-    assert!(output_dir.join("crc.dart").is_file());
-    assert!(output_dir.join("mavlink_parser.dart").is_file());
-    assert!(output_dir.join("mavlink_protocols.dart").is_file());
-    assert!(output_dir.join("protocols/mission_protocol.dart").is_file());
+    assert!(output_dir.join("lib/crc.dart").is_file());
+    assert!(output_dir.join("pubspec.yaml").is_file());
+    assert!(output_dir.join("lib/mavlink.dart").is_file());
+    assert!(output_dir.join("lib/mavlink_protocols.dart").is_file());
+    assert!(output_dir.join("lib/mavlink_parser.dart").is_file());
+    assert!(output_dir.join("lib/protocols/mission_protocol.dart").is_file());
     assert!(
         output_dir
-            .join("protocols/parameter_protocol.dart")
+            .join("lib/protocols/parameter_protocol.dart")
             .is_file()
     );
-    assert!(output_dir.join("protocols/command_protocol.dart").is_file());
+    assert!(output_dir.join("lib/protocols/command_protocol.dart").is_file());
     assert!(
         output_dir
-            .join("protocols/heartbeat_protocol.dart")
+            .join("lib/protocols/heartbeat_protocol.dart")
             .is_file()
     );
 
