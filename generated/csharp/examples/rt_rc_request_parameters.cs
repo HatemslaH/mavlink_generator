@@ -23,7 +23,7 @@ var simulatedParams = new (string Id, float Value, ushort Index)[]
 foreach (var param in simulatedParams)
 {
     var value = new ParamValue(
-        ParamValue: param.Value,
+        paramValue: param.Value,
         ParamCount: (ushort)simulatedParams.Length,
         ParamIndex: param.Index,
         ParamId: Common.ParamIdFromString(param.Id),
@@ -35,7 +35,7 @@ foreach (var param in simulatedParams)
     {
         Console.WriteLine(
             $"  PARAM_VALUE [{param.Index + 1}/{simulatedParams.Length}] " +
-            $"{Common.ParamIdToString(parsedValue.ParamId)}={parsedValue.ParamValue}");
+            $"{Common.ParamIdToString(parsedValue.ParamId)}={parsedValue.paramValue}");
     }
 }
 
@@ -54,7 +54,7 @@ if (parsedRead is ParamRequestRead requestRead)
 }
 
 var singleValue = new ParamValue(
-    ParamValue: 1,
+    paramValue: 1,
     ParamCount: (ushort)simulatedParams.Length,
     ParamIndex: 0,
     ParamId: Common.ParamIdFromString(paramName),

@@ -6,6 +6,15 @@ edition = "2021"
 [lib]
 path = "lib.rs"
 
+[dependencies]
+tokio = { version = "1", features = ["rt", "sync", "time", "macros"] }
+tokio-stream = { version = "0.1", features = ["sync"] }
+futures = "0.3"
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
 [[example]]
 name = "rt_rc_heartbeat"
 path = "examples/rt_rc_heartbeat.rs"
@@ -21,4 +30,28 @@ path = "examples/rt_rc_request_telemetry.rs"
 [[example]]
 name = "rt_rc_request_parameters"
 path = "examples/rt_rc_request_parameters.rs"
+
+[[example]]
+name = "rt_rc_protocol_mission"
+path = "examples/rt_rc_protocol_mission.rs"
+
+[[example]]
+name = "rt_rc_protocol_parameters"
+path = "examples/rt_rc_protocol_parameters.rs"
+
+[[example]]
+name = "rt_rc_protocol_command"
+path = "examples/rt_rc_protocol_command.rs"
+
+[[example]]
+name = "rt_rc_protocol_heartbeat"
+path = "examples/rt_rc_protocol_heartbeat.rs"
+
+[[example]]
+name = "rt_rc_protocol_vehicle"
+path = "examples/rt_rc_protocol_vehicle.rs"
+
+[[example]]
+name = "rt_rc_protocol_subscribe"
+path = "examples/rt_rc_protocol_subscribe.rs"
 

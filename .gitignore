@@ -13,8 +13,18 @@ generated/**/target/
 generated/**/bin/
 generated/**/obj/
 generated/**/*.exe
+generated/**/__pycache__/
+generated/**/*.pyc
 generated/rust/Cargo.lock
 
-# Dart examples
+# Language examples — build / dependency artifacts
+examples/**/target/
+examples/**/build/
+examples/**/node_modules/
+examples/**/__pycache__/
+examples/**/*.pyc
+examples/**/*.exe
+examples/**/*.pdb
+examples/csharp/bin/
+examples/csharp/obj/
 examples/dart/.dart_tool/
-examples/dart/build/

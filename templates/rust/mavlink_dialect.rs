@@ -1,6 +1,6 @@
 use crate::mavlink_message::MavlinkMessage;
 
-pub trait MavlinkDialect {
+pub trait MavlinkDialect: Send + Sync {
     fn version(&self) -> u8;
 
     fn parse(&self, message_id: u32, data: &[u8]) -> Option<Box<dyn MavlinkMessage>>;

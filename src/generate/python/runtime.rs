@@ -30,6 +30,50 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "mavlink_parser.py",
         include_str!("../../../templates/py/mavlink_parser.py"),
     ),
+    (
+        "mavlink_protocols.py",
+        include_str!("../../../templates/py/mavlink_protocols.py"),
+    ),
+    (
+        "protocols/__init__.py",
+        include_str!("../../../templates/py/protocols/__init__.py"),
+    ),
+    (
+        "protocols/mavlink_link.py",
+        include_str!("../../../templates/py/protocols/mavlink_link.py"),
+    ),
+    (
+        "protocols/mavlink_session.py",
+        include_str!("../../../templates/py/protocols/mavlink_session.py"),
+    ),
+    (
+        "protocols/mavlink_cancellation.py",
+        include_str!("../../../templates/py/protocols/mavlink_cancellation.py"),
+    ),
+    (
+        "protocols/param_codec.py",
+        include_str!("../../../templates/py/protocols/param_codec.py"),
+    ),
+    (
+        "protocols/heartbeat_protocol.py",
+        include_str!("../../../templates/py/protocols/heartbeat_protocol.py"),
+    ),
+    (
+        "protocols/parameter_protocol.py",
+        include_str!("../../../templates/py/protocols/parameter_protocol.py"),
+    ),
+    (
+        "protocols/mission_protocol.py",
+        include_str!("../../../templates/py/protocols/mission_protocol.py"),
+    ),
+    (
+        "protocols/command_protocol.py",
+        include_str!("../../../templates/py/protocols/command_protocol.py"),
+    ),
+    (
+        "protocols/mavlink_vehicle_client.py",
+        include_str!("../../../templates/py/protocols/mavlink_vehicle_client.py"),
+    ),
 ];
 
 impl LanguageRuntimeGenerator for PythonRuntimeGenerator {

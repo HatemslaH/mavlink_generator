@@ -23,7 +23,7 @@ enum ParserState {
 
 pub struct MavlinkParser {
     dialect: Box<dyn MavlinkDialect>,
-    on_signed_packet_dropped: Option<Box<dyn FnMut(u32)>>,
+    on_signed_packet_dropped: Option<Box<dyn FnMut(u32) + Send>>,
     frames: Vec<MavlinkFrame>,
     state: ParserState,
     version: MavlinkVersion,
@@ -80,7 +80,7 @@ impl MavlinkParser {
         &self.frames
     }
 
-    pub fn set_on_signed_packet_dropped(&mut self, callback: Box<dyn FnMut(u32)>) {
+    pub fn set_on_signed_packet_dropped(&mut self, callback: Box<dyn FnMut(u32) + Send>) {
         self.on_signed_packet_dropped = Some(callback);
     }
 

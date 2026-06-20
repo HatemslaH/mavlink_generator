@@ -1,4 +1,4 @@
-pub trait MavlinkMessage: std::fmt::Debug + std::any::Any {
+pub trait MavlinkMessage: std::fmt::Debug + std::any::Any + Send + Sync {
     fn mavlink_message_id(&self) -> u32;
 
     fn mavlink_crc_extra(&self) -> u8;

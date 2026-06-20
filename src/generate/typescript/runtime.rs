@@ -30,6 +30,50 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "mavlink_parser.ts",
         include_str!("../../../templates/ts/mavlink_parser.ts"),
     ),
+    (
+        "mavlink_protocols.ts",
+        include_str!("../../../templates/ts/mavlink_protocols.ts"),
+    ),
+    (
+        "protocols/mavlink_link.ts",
+        include_str!("../../../templates/ts/protocols/mavlink_link.ts"),
+    ),
+    (
+        "protocols/mavlink_session.ts",
+        include_str!("../../../templates/ts/protocols/mavlink_session.ts"),
+    ),
+    (
+        "protocols/mavlink_cancellation.ts",
+        include_str!("../../../templates/ts/protocols/mavlink_cancellation.ts"),
+    ),
+    (
+        "protocols/mavlink_vehicle_client.ts",
+        include_str!("../../../templates/ts/protocols/mavlink_vehicle_client.ts"),
+    ),
+    (
+        "protocols/param_codec.ts",
+        include_str!("../../../templates/ts/protocols/param_codec.ts"),
+    ),
+    (
+        "protocols/mission_protocol.ts",
+        include_str!("../../../templates/ts/protocols/mission_protocol.ts"),
+    ),
+    (
+        "protocols/parameter_protocol.ts",
+        include_str!("../../../templates/ts/protocols/parameter_protocol.ts"),
+    ),
+    (
+        "protocols/command_protocol.ts",
+        include_str!("../../../templates/ts/protocols/command_protocol.ts"),
+    ),
+    (
+        "protocols/heartbeat_protocol.ts",
+        include_str!("../../../templates/ts/protocols/heartbeat_protocol.ts"),
+    ),
+    (
+        "protocols/protocols.ts",
+        include_str!("../../../templates/ts/protocols/protocols.ts"),
+    ),
 ];
 
 impl LanguageRuntimeGenerator for TypeScriptRuntimeGenerator {

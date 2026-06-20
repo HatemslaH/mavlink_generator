@@ -14,13 +14,30 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "common.hpp",
         include_str!("../../../templates/cpp/examples/common.hpp"),
     ),
+    (
+        "protocols_common.hpp",
+        include_str!("../../../templates/cpp/examples/protocols_common.hpp"),
+    ),
+    (
+        "protocols_common.cpp",
+        include_str!("../../../templates/cpp/examples/protocols_common.cpp"),
+    ),
 ];
 
-const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+const LOW_LEVEL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("heartbeat", render_heartbeat_example),
     ("mission_upload", render_mission_upload_example),
     ("request_telemetry", render_request_telemetry_example),
     ("request_parameters", render_request_parameters_example),
+];
+
+const PROTOCOL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+    ("protocol_mission", render_protocol_mission_example),
+    ("protocol_parameters", render_protocol_parameters_example),
+    ("protocol_command", render_protocol_command_example),
+    ("protocol_heartbeat", render_protocol_heartbeat_example),
+    ("protocol_vehicle", render_protocol_vehicle_example),
+    ("protocol_subscribe", render_protocol_subscribe_example),
 ];
 
 impl LanguageExampleGenerator for CppExampleGenerator {
@@ -39,8 +56,9 @@ impl LanguageExampleGenerator for CppExampleGenerator {
             .iter()
             .flat_map(|stem| {
                 let stem = stem.clone();
-                GENERATED_EXAMPLES
+                LOW_LEVEL_EXAMPLES
                     .iter()
+                    .chain(PROTOCOL_EXAMPLES.iter())
                     .map(move |(suffix, render)| ExampleFile {
                         relative_path: PathBuf::from(format!("{stem}_{suffix}.cpp")),
                         content: render(&stem),
@@ -462,6 +480,415 @@ int main() {{
   mavlink::param_value_parse(payload, single_value);
 
   (void)dialect;
+  return 0;
+}}
+"#
+    )
+}
+
+fn render_protocol_mission_example(dialect_stem: &str) -> String {
+    let dialect_var = dialect_var_name(dialect_stem);
+    let dialect_type = dialect_type_name(dialect_stem);
+
+    format!(
+        r#"#include <cstdio>
+#include <vector>
+
+#include "protocols_common.hpp"
+int main() {{
+  mavlink::{dialect_type} dialect;
+  mavlink::{dialect_var}_init(dialect);
+
+  auto link = mavlink::create_virtual_link(dialect);
+  mavlink::MissionServer mission_server(link.drone.get());
+  mavlink::CommandServer command_server(link.drone.get());
+  mavlink::MissionProtocol mission_protocol(
+    link.gcs.get(),
+    mavlink::drone_system_id,
+    mavlink::drone_component_id
+  );
+
+  const std::vector<mavlink::mission_item_int_t> plan = {{
+    mavlink::MissionItems::waypoint(
+      0, 47.397742, 8.545594, 50,
+      mavlink::drone_system_id, mavlink::drone_component_id
+    ),
+    mavlink::MissionItems::waypoint(
+      1, 47.398000, 8.546000, 50,
+      mavlink::drone_system_id, mavlink::drone_component_id
+    ),
+  }};
+
+  const auto upload_result = mission_protocol.upload(
+    plan,
+    mavlink::MAV_MISSION_TYPE_MISSION,
+    [](int sent, int total, const mavlink::mission_item_int_t& item) {{
+      std::printf(
+        "Upload progress %d/%d seq=%u cmd=%u\n",
+        sent,
+        total,
+        item.seq,
+        static_cast<unsigned>(item.command)
+      );
+    }}
+  );
+  std::printf("Mission upload result: %d\n", static_cast<int>(upload_result));
+  std::printf("Vehicle stored %zu items\n", mission_server.items().size());
+
+  const auto downloaded = mission_protocol.download(
+    mavlink::MAV_MISSION_TYPE_MISSION,
+    [](int received, int total, const mavlink::mission_item_int_t& item) {{
+      std::printf("Download progress %d/%d seq=%u\n", received, total, item.seq);
+    }}
+  );
+  std::printf("Downloaded %zu mission items\n", downloaded.size());
+
+  mavlink::CommandProtocol command_protocol(
+    link.gcs.get(),
+    mavlink::drone_system_id,
+    mavlink::drone_component_id
+  );
+  const auto set_current = mission_protocol.set_current_with_command(0, &command_protocol);
+  std::printf(
+    "Set current seq=%u ack=%d\n",
+    set_current.sequence,
+    set_current.command_ack.has_value()
+      ? static_cast<int>(set_current.command_ack->result)
+      : -1
+  );
+
+  const auto clear_result = mission_protocol.clear();
+  std::printf("Mission clear result: %d\n", static_cast<int>(clear_result));
+
+  mission_server.close();
+  command_server.close();
+  mavlink::close_virtual_link(link);
+  return 0;
+}}
+"#
+    )
+}
+
+fn render_protocol_parameters_example(dialect_stem: &str) -> String {
+    let dialect_var = dialect_var_name(dialect_stem);
+    let dialect_type = dialect_type_name(dialect_stem);
+
+    format!(
+        r#"#include <cstdio>
+#include <map>
+
+#include "protocols_common.hpp"
+
+/// Parameter protocol example for the `{dialect_stem}` dialect.
+int main() {{
+  mavlink::{dialect_type} dialect;
+  mavlink::{dialect_var}_init(dialect);
+
+  const std::map<std::string, mavlink::ParamStoredValue> initial_values = {{
+    {{"SYSID_THISMAV", {{1.0, mavlink::MAV_PARAM_TYPE_INT32}}}},
+    {{"SYSID_MYGCS", {{255.0, mavlink::MAV_PARAM_TYPE_INT32}}}},
+    {{"COMPASS_ENABLE", {{1.0, mavlink::MAV_PARAM_TYPE_INT32}}}},
+  }};
+
+  auto link = mavlink::create_virtual_link(dialect);
+  mavlink::ParameterServer parameter_server(link.drone.get(), &initial_values);
+  mavlink::ParameterProtocol parameter_protocol(
+    link.gcs.get(),
+    mavlink::drone_system_id,
+    mavlink::drone_component_id
+  );
+
+  const auto all_params = parameter_protocol.fetch_all(
+    [](const mavlink::ParamEntry& entry, int received, int expected) {{
+      std::printf("  [%d/%d] %s=%f\n", received, expected, entry.id.c_str(), entry.value);
+    }}
+  );
+  std::printf(
+    "Fetched %zu parameters (cache size=%zu)\n",
+    all_params.size(),
+    parameter_protocol.cache().size()
+  );
+
+  const auto single = parameter_protocol.read_by_name("SYSID_THISMAV");
+  std::printf("Read SYSID_THISMAV=%f\n", single.value);
+
+  const auto updated = parameter_protocol.write_by_name("COMPASS_ENABLE", 0);
+  std::printf("Wrote COMPASS_ENABLE=%f (%d)\n", updated.value, static_cast<int>(updated.type));
+
+  parameter_server.close();
+  mavlink::close_virtual_link(link);
+  return 0;
+}}
+"#
+    )
+}
+
+fn render_protocol_command_example(dialect_stem: &str) -> String {
+    let dialect_var = dialect_var_name(dialect_stem);
+    let dialect_type = dialect_type_name(dialect_stem);
+
+    format!(
+        r#"#include <cstdio>
+
+#include "protocols_common.hpp"
+
+/// Command protocol example for the `{dialect_stem}` dialect.
+int main() {{
+  mavlink::{dialect_type} dialect;
+  mavlink::{dialect_var}_init(dialect);
+
+  auto link = mavlink::create_virtual_link(dialect);
+  mavlink::CommandServer command_server(
+    link.drone.get(),
+    [](const mavlink::command_long_t& command) {{
+      std::printf(
+        "Vehicle received COMMAND_LONG: %u p1=%f p2=%f\n",
+        static_cast<unsigned>(command.command),
+        command.param1,
+        command.param2
+      );
+      return mavlink::MAV_RESULT_ACCEPTED;
+    }}
+  );
+
+  mavlink::CommandProtocol command_protocol(
+    link.gcs.get(),
+    mavlink::drone_system_id,
+    mavlink::drone_component_id
+  );
+
+  const auto interval_ack = command_protocol.set_message_interval(
+    mavlink::attitude_MSG_ID,
+    100000
+  );
+  std::printf("SET_MESSAGE_INTERVAL ack: %d\n", static_cast<int>(interval_ack.result));
+
+  const auto request_ack = command_protocol.request_message(mavlink::attitude_MSG_ID);
+  std::printf("REQUEST_MESSAGE ack: %d\n", static_cast<int>(request_ack.result));
+
+  const auto arm_ack = command_protocol.arm();
+  std::printf("ARM ack: %d\n", static_cast<int>(arm_ack.result));
+
+  const auto disarm_ack = command_protocol.disarm();
+  std::printf("DISARM ack: %d\n", static_cast<int>(disarm_ack.result));
+
+  command_server.close();
+  mavlink::close_virtual_link(link);
+  return 0;
+}}
+"#
+    )
+}
+
+fn render_protocol_heartbeat_example(dialect_stem: &str) -> String {
+    let dialect_var = dialect_var_name(dialect_stem);
+    let dialect_type = dialect_type_name(dialect_stem);
+
+    format!(
+        r#"#include <chrono>
+#include <cstdio>
+#include <thread>
+
+#include "protocols_common.hpp"
+
+/// Heartbeat protocol example for the `{dialect_stem}` dialect.
+int main() {{
+  mavlink::{dialect_type} dialect;
+  mavlink::{dialect_var}_init(dialect);
+
+  auto link = mavlink::create_virtual_link(dialect);
+
+  mavlink::HeartbeatPublisher gcs_publisher(
+    link.gcs.get(),
+    mavlink::HeartbeatTemplates::gcs(dialect.base.version),
+    std::chrono::milliseconds(500)
+  );
+  mavlink::HeartbeatPublisher drone_publisher(
+    link.drone.get(),
+    mavlink::HeartbeatTemplates::autopilot(dialect.base.version),
+    std::chrono::milliseconds(500)
+  );
+  mavlink::HeartbeatMonitor gcs_monitor(link.gcs.get(), std::chrono::seconds(2));
+
+  gcs_monitor.start();
+  gcs_publisher.start();
+  drone_publisher.start();
+
+  const mavlink::MavlinkNode vehicle = gcs_monitor.wait_for_vehicle(
+    nullptr,
+    std::chrono::seconds(5)
+  );
+  std::printf(
+    "Vehicle discovered: %u:%u\n",
+    vehicle.system_id,
+    vehicle.component_id
+  );
+  std::printf("Drone online: %s\n", gcs_monitor.is_online(vehicle) ? "true" : "false");
+
+  const auto state = gcs_monitor.state_for(vehicle);
+  if (state.has_value()) {{
+    std::printf(
+      "Drone heartbeat: type=%d status=%d\n",
+      static_cast<int>(state->heartbeat_msg.type),
+      static_cast<int>(state->heartbeat_msg.system_status)
+    );
+  }}
+
+  drone_publisher.stop();
+  std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+  std::printf(
+    "Drone online after stop: %s\n",
+    gcs_monitor.is_online(vehicle) ? "true" : "false"
+  );
+
+  gcs_monitor.stop();
+  gcs_publisher.stop();
+  mavlink::close_virtual_link(link);
+  return 0;
+}}
+"#
+    )
+}
+
+fn render_protocol_vehicle_example(dialect_stem: &str) -> String {
+    let dialect_var = dialect_var_name(dialect_stem);
+    let dialect_type = dialect_type_name(dialect_stem);
+
+    format!(
+        r#"#include <chrono>
+#include <cstdio>
+#include <map>
+#include <memory>
+#include <set>
+
+#include "protocols_common.hpp"
+
+/// MavlinkGcs / MavlinkVehicleClient facade example for `{dialect_stem}`.
+int main() {{
+  mavlink::{dialect_type} dialect;
+  mavlink::{dialect_var}_init(dialect);
+
+  auto bus = std::make_shared<mavlink::VirtualMavlinkBus>();
+  auto gcs_link = bus->create_endpoint();
+  auto drone_link = bus->create_endpoint();
+
+  mavlink::MavlinkGcs gcs = mavlink::MavlinkGcs::connect(
+    &dialect.base,
+    gcs_link,
+    mavlink::gcs_system_id,
+    mavlink::gcs_component_id
+  );
+
+  auto drone_session = std::make_unique<mavlink::MavlinkSession>(
+    &dialect.base,
+    drone_link,
+    mavlink::drone_system_id,
+    mavlink::drone_component_id
+  );
+
+  mavlink::HeartbeatPublisher drone_publisher(
+    drone_session.get(),
+    mavlink::HeartbeatTemplates::autopilot(dialect.base.version),
+    std::chrono::milliseconds(500)
+  );
+
+  const std::map<std::string, mavlink::ParamStoredValue> initial_values = {{
+    {{"SYSID_THISMAV", {{1.0, mavlink::MAV_PARAM_TYPE_INT32}}}},
+  }};
+  mavlink::ParameterServer parameter_server(drone_session.get(), &initial_values);
+  mavlink::CommandServer command_server(drone_session.get());
+
+  gcs.start();
+  drone_publisher.start();
+
+  const std::set<uint8_t> exclude = {{mavlink::gcs_system_id}};
+  mavlink::MavlinkVehicleClient client = gcs.wait_for_vehicle(&exclude);
+  std::printf(
+    "Connected to vehicle %u:%u\n",
+    client.vehicle().system_id,
+    client.vehicle().component_id
+  );
+
+  const auto params = client.parameters().fetch_all();
+  std::printf("Vehicle has %zu parameters\n", params.size());
+
+  const auto ack = client.command().request_message(mavlink::heartbeat_MSG_ID);
+  std::printf("REQUEST_MESSAGE ack: %d\n", static_cast<int>(ack.result));
+
+  parameter_server.close();
+  command_server.close();
+  drone_publisher.stop();
+  drone_session->close();
+  gcs.close();
+  bus->close_all();
+  return 0;
+}}
+"#
+    )
+}
+
+fn render_protocol_subscribe_example(dialect_stem: &str) -> String {
+    let dialect_var = dialect_var_name(dialect_stem);
+    let dialect_type = dialect_type_name(dialect_stem);
+
+    format!(
+        r#"#include <chrono>
+#include <cstdio>
+#include <thread>
+#include <vector>
+
+#include "protocols_common.hpp"
+
+/// Typed message subscription example for the `{dialect_stem}` dialect.
+int main() {{
+  mavlink::{dialect_type} dialect;
+  mavlink::{dialect_var}_init(dialect);
+
+  auto link = mavlink::create_virtual_link(dialect);
+  std::vector<mavlink::attitude_t> attitude_samples;
+
+  auto subscription = link.gcs->listen_message(
+    mavlink::attitude_MSG_ID,
+    [&](const uint8_t* payload, size_t, const mavlink::frame_t&) {{
+      mavlink::attitude_t attitude{{}};
+      mavlink::attitude_parse(payload, attitude);
+      attitude_samples.push_back(attitude);
+    }},
+    mavlink::drone_system_id
+  );
+
+  mavlink::attitude_t attitude{{}};
+  attitude.time_boot_ms = 1000;
+  attitude.roll = 0.1f;
+  attitude.pitch = -0.05f;
+  attitude.yaw = 1.57f;
+  uint8_t payload[mavlink::attitude_ENCODED_LENGTH];
+  mavlink::attitude_serialize(attitude, payload);
+  link.drone->send_frame(
+    mavlink::attitude_MSG_ID,
+    mavlink::attitude_CRC_EXTRA,
+    payload,
+    mavlink::attitude_ENCODED_LENGTH
+  );
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(50));
+  subscription.cancel();
+
+  std::printf(
+    "Received %zu ATTITUDE samples via listen_message\n",
+    attitude_samples.size()
+  );
+  if (!attitude_samples.empty()) {{
+    const auto& sample = attitude_samples.front();
+    std::printf(
+      "  roll=%f pitch=%f yaw=%f\n",
+      sample.roll,
+      sample.pitch,
+      sample.yaw
+    );
+  }}
+
+  mavlink::close_virtual_link(link);
   return 0;
 }}
 "#

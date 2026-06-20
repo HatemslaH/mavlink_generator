@@ -14,13 +14,26 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "common.ts",
         include_str!("../../../templates/ts/examples/common.ts"),
     ),
+    (
+        "protocols_common.ts",
+        include_str!("../../../templates/ts/examples/protocols_common.ts"),
+    ),
 ];
 
-const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+const LOW_LEVEL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("heartbeat", render_heartbeat_example),
     ("mission_upload", render_mission_upload_example),
     ("request_telemetry", render_request_telemetry_example),
     ("request_parameters", render_request_parameters_example),
+];
+
+const PROTOCOL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+    ("protocol_mission", render_protocol_mission_example),
+    ("protocol_parameters", render_protocol_parameters_example),
+    ("protocol_command", render_protocol_command_example),
+    ("protocol_heartbeat", render_protocol_heartbeat_example),
+    ("protocol_vehicle", render_protocol_vehicle_example),
+    ("protocol_subscribe", render_protocol_subscribe_example),
 ];
 
 impl LanguageExampleGenerator for TypeScriptExampleGenerator {
@@ -39,8 +52,9 @@ impl LanguageExampleGenerator for TypeScriptExampleGenerator {
             .iter()
             .flat_map(|stem| {
                 let stem = stem.clone();
-                GENERATED_EXAMPLES
+                LOW_LEVEL_EXAMPLES
                     .iter()
+                    .chain(PROTOCOL_EXAMPLES.iter())
                     .map(move |(suffix, render)| ExampleFile {
                         relative_path: PathBuf::from(format!("{stem}_{suffix}.ts")),
                         content: render(&stem),
@@ -372,6 +386,417 @@ function main(): void {{
 }}
 
 main();
+"#
+    )
+}
+
+fn render_protocol_mission_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/** Mission protocol example for the `{dialect_stem}` dialect over VirtualMavlinkBus. */
+
+import {{
+  CommandProtocol,
+  CommandServer,
+  MissionItems,
+  MissionProtocol,
+  MissionServer,
+  closeVirtualLink,
+  createVirtualLink,
+  droneComponentId,
+  droneSystemId,
+  {dialect_class},
+}} from './protocols_common';
+
+async function main(): Promise<void> {{
+  const dialect = new {dialect_class}();
+  const link = createVirtualLink(dialect);
+
+  const missionServer = new MissionServer({{ session: link.drone }});
+  const commandServer = new CommandServer({{ session: link.drone }});
+  const missionProtocol = new MissionProtocol({{
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  }});
+
+  const plan = [
+    MissionItems.waypoint({{
+      seq: 0,
+      latitude: 47.397742,
+      longitude: 8.545594,
+      altitude: 50,
+      targetSystem: droneSystemId,
+      targetComponent: droneComponentId,
+    }}),
+    MissionItems.waypoint({{
+      seq: 1,
+      latitude: 47.398,
+      longitude: 8.546,
+      altitude: 50,
+      targetSystem: droneSystemId,
+      targetComponent: droneComponentId,
+    }}),
+  ];
+
+  const uploadResult = await missionProtocol.upload(plan, {{
+    onProgress: (sent, total, item) => {{
+      console.log(`Upload progress ${{sent}}/${{total}} seq=${{item.seq}} cmd=${{item.command}}`);
+    }},
+  }});
+  console.log(`Mission upload result: ${{uploadResult}}`);
+  console.log(`Vehicle stored ${{missionServer.items.length}} items`);
+
+  const downloaded = await missionProtocol.download({{
+    onProgress: (received, total, item) => {{
+      console.log(`Download progress ${{received}}/${{total}} seq=${{item.seq}}`);
+    }},
+  }});
+  console.log(`Downloaded ${{downloaded.length}} mission items`);
+
+  const commandProtocol = new CommandProtocol({{
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  }});
+  const setCurrent = await missionProtocol.setCurrentWithCommand(0, {{
+    command: commandProtocol,
+  }});
+  console.log(`Set current seq=${{setCurrent.sequence}} ack=${{setCurrent.commandAck?.result}}`);
+
+  const clearResult = await missionProtocol.clear();
+  console.log(`Mission clear result: ${{clearResult}}`);
+
+  await missionServer.close();
+  await commandServer.close();
+  await closeVirtualLink(link);
+}}
+
+void main();
+"#
+    )
+}
+
+fn render_protocol_parameters_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/** Parameter protocol example for the `{dialect_stem}` dialect. */
+
+import {{
+  MavParamType,
+  ParameterProtocol,
+  ParameterServer,
+  closeVirtualLink,
+  createVirtualLink,
+  droneComponentId,
+  droneSystemId,
+  {dialect_class},
+}} from './protocols_common';
+
+async function main(): Promise<void> {{
+  const dialect = new {dialect_class}();
+  const link = createVirtualLink(dialect);
+
+  const parameterServer = new ParameterServer({{
+    session: link.drone,
+    initialValues: new Map([
+      ['SYSID_THISMAV', {{ value: 1, type: MavParamType.MAV_PARAM_TYPE_INT32 }}],
+      ['SYSID_MYGCS', {{ value: 255, type: MavParamType.MAV_PARAM_TYPE_INT32 }}],
+      ['COMPASS_ENABLE', {{ value: 1, type: MavParamType.MAV_PARAM_TYPE_INT32 }}],
+    ]),
+  }});
+
+  const parameterProtocol = new ParameterProtocol({{
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  }});
+
+  const allParams = await parameterProtocol.fetchAll({{
+    onProgress: (entry, received, expected) => {{
+      console.log(`  [${{received}}/${{expected}}] ${{entry.id}}=${{entry.value}}`);
+    }},
+  }});
+  console.log(
+    `Fetched ${{allParams.length}} parameters (cache size=${{parameterProtocol.cache.size}})`,
+  );
+
+  const single = await parameterProtocol.readByName('SYSID_THISMAV');
+  console.log(`Read SYSID_THISMAV=${{single.value}}`);
+
+  const updated = await parameterProtocol.writeByName('COMPASS_ENABLE', 0);
+  console.log(`Wrote COMPASS_ENABLE=${{updated.value}} (${{updated.type}})`);
+
+  await parameterServer.close();
+  await closeVirtualLink(link);
+}}
+
+void main();
+"#
+    )
+}
+
+fn render_protocol_command_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/** Command protocol example for the `{dialect_stem}` dialect. */
+
+import {{
+  Attitude,
+  CommandProtocol,
+  CommandServer,
+  MavResult,
+  closeVirtualLink,
+  createVirtualLink,
+  droneComponentId,
+  droneSystemId,
+  {dialect_class},
+}} from './protocols_common';
+
+async function main(): Promise<void> {{
+  const dialect = new {dialect_class}();
+  const link = createVirtualLink(dialect);
+
+  const commandServer = new CommandServer({{
+    session: link.drone,
+    onCommandLong: async (command) => {{
+      console.log(
+        `Vehicle received COMMAND_LONG: ${{command.command}} ` +
+          `p1=${{command.param1}} p2=${{command.param2}}`,
+      );
+      return MavResult.MAV_RESULT_ACCEPTED;
+    }},
+  }});
+
+  const commandProtocol = new CommandProtocol({{
+    session: link.gcs,
+    targetSystem: droneSystemId,
+    targetComponent: droneComponentId,
+  }});
+
+  const intervalAck = await commandProtocol.setMessageInterval(Attitude.MSG_ID, 100000);
+  console.log(`SET_MESSAGE_INTERVAL ack: ${{intervalAck.result}}`);
+
+  const requestAck = await commandProtocol.requestMessage(Attitude.MSG_ID);
+  console.log(`REQUEST_MESSAGE ack: ${{requestAck.result}}`);
+
+  const armAck = await commandProtocol.arm();
+  console.log(`ARM ack: ${{armAck.result}}`);
+
+  const disarmAck = await commandProtocol.disarm();
+  console.log(`DISARM ack: ${{disarmAck.result}}`);
+
+  await commandServer.close();
+  await closeVirtualLink(link);
+}}
+
+void main();
+"#
+    )
+}
+
+fn render_protocol_heartbeat_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/** Heartbeat protocol example for the `{dialect_stem}` dialect. */
+
+import {{
+  HeartbeatMonitor,
+  HeartbeatPublisher,
+  HeartbeatTemplates,
+  closeVirtualLink,
+  createVirtualLink,
+  gcsSystemId,
+  {dialect_class},
+}} from './protocols_common';
+
+async function main(): Promise<void> {{
+  const dialect = new {dialect_class}();
+  const link = createVirtualLink(dialect);
+
+  const gcsPublisher = new HeartbeatPublisher({{
+    session: link.gcs,
+    heartbeat: HeartbeatTemplates.gcs(dialect.version),
+    intervalMs: 500,
+  }});
+
+  const dronePublisher = new HeartbeatPublisher({{
+    session: link.drone,
+    heartbeat: HeartbeatTemplates.autopilot({{ mavlinkVersion: dialect.version }}),
+    intervalMs: 500,
+  }});
+
+  const gcsMonitor = new HeartbeatMonitor({{
+    session: link.gcs,
+    timeoutMs: 2000,
+  }});
+
+  gcsMonitor.start();
+  gcsPublisher.start();
+  dronePublisher.start();
+
+  const vehicle = await gcsMonitor.waitForVehicle({{
+    excludeSystemIds: new Set([gcsSystemId]),
+    timeoutMs: 5000,
+  }});
+  console.log(`Vehicle discovered: ${{vehicle.toString()}}`);
+  console.log(`Drone online: ${{gcsMonitor.isOnline(vehicle)}}`);
+  const state = gcsMonitor.stateFor(vehicle);
+  if (state !== null) {{
+    console.log(
+      `Drone heartbeat: type=${{state.heartbeat.type}} status=${{state.heartbeat.system_status}}`,
+    );
+  }}
+
+  dronePublisher.stop();
+  await new Promise((resolve) => setTimeout(resolve, 2500));
+  console.log(`Drone online after stop: ${{gcsMonitor.isOnline(vehicle)}}`);
+
+  await gcsMonitor.stop();
+  gcsPublisher.stop();
+
+  await closeVirtualLink(link);
+}}
+
+void main();
+"#
+    )
+}
+
+fn render_protocol_vehicle_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/** MavlinkGcs / MavlinkVehicleClient facade example for `{dialect_stem}`. */
+
+import {{
+  CommandServer,
+  Heartbeat,
+  HeartbeatPublisher,
+  HeartbeatTemplates,
+  MavParamType,
+  MavlinkGcs,
+  MavlinkSession,
+  ParameterServer,
+  VirtualMavlinkBus,
+  droneComponentId,
+  droneSystemId,
+  gcsComponentId,
+  gcsSystemId,
+  {dialect_class},
+}} from './protocols_common';
+
+async function main(): Promise<void> {{
+  const dialect = new {dialect_class}();
+  const bus = new VirtualMavlinkBus();
+  const gcsLink = bus.createEndpoint();
+  const droneLink = bus.createEndpoint();
+
+  const gcs = MavlinkGcs.connect({{
+    dialect,
+    link: gcsLink,
+    systemId: gcsSystemId,
+    componentId: gcsComponentId,
+  }});
+
+  const droneSession = new MavlinkSession({{
+    dialect,
+    link: droneLink,
+    systemId: droneSystemId,
+    componentId: droneComponentId,
+  }});
+
+  const dronePublisher = new HeartbeatPublisher({{
+    session: droneSession,
+    heartbeat: HeartbeatTemplates.autopilot({{ mavlinkVersion: dialect.version }}),
+    intervalMs: 500,
+  }});
+
+  const parameterServer = new ParameterServer({{
+    session: droneSession,
+    initialValues: new Map([
+      ['SYSID_THISMAV', {{ value: 1, type: MavParamType.MAV_PARAM_TYPE_INT32 }}],
+    ]),
+  }});
+
+  const commandServer = new CommandServer({{ session: droneSession }});
+
+  gcs.start();
+  dronePublisher.start();
+
+  const client = await gcs.waitForVehicle({{ excludeSystemIds: new Set([gcsSystemId]) }});
+  console.log(`Connected to vehicle ${{client.vehicle.toString()}}`);
+
+  const params = await client.parameters.fetchAll();
+  console.log(`Vehicle has ${{params.length}} parameters`);
+
+  const ack = await client.command.requestMessage(Heartbeat.MSG_ID);
+  console.log(`REQUEST_MESSAGE ack: ${{ack.result}}`);
+
+  await parameterServer.close();
+  await commandServer.close();
+  dronePublisher.stop();
+  await droneSession.close();
+  await gcs.close();
+  await bus.closeAll();
+}}
+
+void main();
+"#
+    )
+}
+
+fn render_protocol_subscribe_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/** Typed message subscription example for the `{dialect_stem}` dialect. */
+
+import {{
+  Attitude,
+  MavlinkNode,
+  closeVirtualLink,
+  createVirtualLink,
+  droneComponentId,
+  droneSystemId,
+  {dialect_class},
+}} from './protocols_common';
+
+async function main(): Promise<void> {{
+  const dialect = new {dialect_class}();
+  const link = createVirtualLink(dialect);
+  const vehicle = new MavlinkNode(droneSystemId, droneComponentId);
+
+  const attitudeSamples: Attitude[] = [];
+  const subscription = link.gcs.listenMessage(
+    (message) => {{
+      attitudeSamples.push(message);
+    }},
+    {{
+      fromSystemId: vehicle.systemId,
+      messageType: Attitude,
+    }},
+  );
+
+  await link.drone.send(new Attitude(1000, 0.1, -0.05, 1.57, 0, 0, 0));
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  subscription.cancel();
+
+  console.log(`Received ${{attitudeSamples.length}} ATTITUDE samples via listenMessage`);
+  if (attitudeSamples.length > 0) {{
+    const sample = attitudeSamples[0]!;
+    console.log(`  roll=${{sample.roll}} pitch=${{sample.pitch}} yaw=${{sample.yaw}}`);
+  }}
+
+  await closeVirtualLink(link);
+}}
+
+void main();
 "#
     )
 }

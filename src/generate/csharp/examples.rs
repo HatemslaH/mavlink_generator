@@ -14,21 +14,50 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "common.cs",
         include_str!("../../../templates/csharp/examples/common.cs"),
     ),
+    (
+        "protocols_common.cs",
+        include_str!("../../../templates/csharp/examples/protocols_common.cs"),
+    ),
 ];
 
-const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+const LOW_LEVEL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("heartbeat", render_heartbeat_example),
     ("mission_upload", render_mission_upload_example),
     ("request_telemetry", render_request_telemetry_example),
     ("request_parameters", render_request_parameters_example),
 ];
 
-const EXAMPLE_SUFFIXES: &[&str] = &[
-    "heartbeat",
-    "mission_upload",
-    "request_telemetry",
-    "request_parameters",
+const PROTOCOL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+    ("protocol_mission", render_protocol_mission_example),
+    ("protocol_parameters", render_protocol_parameters_example),
+    ("protocol_command", render_protocol_command_example),
+    ("protocol_heartbeat", render_protocol_heartbeat_example),
+    ("protocol_vehicle", render_protocol_vehicle_example),
+    ("protocol_subscribe", render_protocol_subscribe_example),
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::generate::examples::{
+        ALL_EXAMPLE_SUFFIXES, LOW_LEVEL_EXAMPLE_SUFFIXES, PROTOCOL_EXAMPLE_SUFFIXES,
+    };
+
+    #[test]
+    fn example_suffixes_match_shared_constants() {
+        let low_level: Vec<_> = LOW_LEVEL_EXAMPLES.iter().map(|(s, _)| *s).collect();
+        let protocol: Vec<_> = PROTOCOL_EXAMPLES.iter().map(|(s, _)| *s).collect();
+        let all: Vec<_> = LOW_LEVEL_EXAMPLES
+            .iter()
+            .chain(PROTOCOL_EXAMPLES.iter())
+            .map(|(s, _)| *s)
+            .collect();
+
+        assert_eq!(low_level, LOW_LEVEL_EXAMPLE_SUFFIXES);
+        assert_eq!(protocol, PROTOCOL_EXAMPLE_SUFFIXES);
+        assert_eq!(all, ALL_EXAMPLE_SUFFIXES);
+    }
+}
 
 impl LanguageExampleGenerator for CSharpExampleGenerator {
     fn static_files(&self) -> Vec<ExampleFile> {
@@ -46,21 +75,23 @@ impl LanguageExampleGenerator for CSharpExampleGenerator {
             .iter()
             .flat_map(|stem| {
                 let stem = stem.clone();
-                let examples = GENERATED_EXAMPLES.iter().map({
-                    let stem = stem.clone();
-                    move |(suffix, render)| ExampleFile {
-                        relative_path: PathBuf::from(format!("{stem}_{suffix}.cs")),
-                        content: render(&stem),
-                    }
-                });
-                let projects = EXAMPLE_SUFFIXES.iter().map({
-                    let stem = stem.clone();
-                    move |suffix| ExampleFile {
-                        relative_path: PathBuf::from(format!("{stem}_{suffix}.csproj")),
-                        content: super::runtime::render_example_csproj(&stem, suffix),
-                    }
-                });
-                examples.chain(projects)
+                LOW_LEVEL_EXAMPLES
+                    .iter()
+                    .chain(PROTOCOL_EXAMPLES.iter())
+                    .flat_map(move |(suffix, render)| {
+                        let stem = stem.clone();
+                        let suffix = *suffix;
+                        [
+                            ExampleFile {
+                                relative_path: PathBuf::from(format!("{stem}_{suffix}.cs")),
+                                content: render(&stem),
+                            },
+                            ExampleFile {
+                                relative_path: PathBuf::from(format!("{stem}_{suffix}.csproj")),
+                                content: super::runtime::render_example_csproj(&stem, suffix),
+                            },
+                        ]
+                    })
             })
             .collect()
     }
@@ -303,7 +334,7 @@ var simulatedParams = new (string Id, float Value, ushort Index)[]
 foreach (var param in simulatedParams)
 {{
     var value = new ParamValue(
-        ParamValue: param.Value,
+        paramValue: param.Value,
         ParamCount: (ushort)simulatedParams.Length,
         ParamIndex: param.Index,
         ParamId: Common.ParamIdFromString(param.Id),
@@ -315,7 +346,7 @@ foreach (var param in simulatedParams)
     {{
         Console.WriteLine(
             $"  PARAM_VALUE [{{param.Index + 1}}/{{simulatedParams.Length}}] " +
-            $"{{Common.ParamIdToString(parsedValue.ParamId)}}={{parsedValue.ParamValue}}");
+            $"{{Common.ParamIdToString(parsedValue.ParamId)}}={{parsedValue.paramValue}}");
     }}
 }}
 
@@ -334,7 +365,7 @@ if (parsedRead is ParamRequestRead requestRead)
 }}
 
 var singleValue = new ParamValue(
-    ParamValue: 1,
+    paramValue: 1,
     ParamCount: (ushort)simulatedParams.Length,
     ParamIndex: 0,
     ParamId: Common.ParamIdFromString(paramName),
@@ -342,6 +373,318 @@ var singleValue = new ParamValue(
 var singleFrame = Common.FrameFromDrone(singleValue, 51);
 Common.LogFrame("Drone ->", singleFrame);
 Common.RoundTripMessage(dialect, singleValue);
+"#
+    )
+}
+
+fn render_protocol_mission_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/// <summary>
+/// Mission protocol example for the `{dialect_stem}` dialect.
+/// </summary>
+/// <remarks>Uses <see cref="VirtualMavlinkBus"/> via <see cref="ProtocolsCommon.CreateVirtualLink"/>.</remarks>
+using Mavlink;
+using Mavlink.Dialects;
+
+var dialect = new {dialect_class}();
+var link = ProtocolsCommon.CreateVirtualLink(dialect);
+
+await using var missionServer = new MissionServer(link.Drone);
+await using var commandServer = new CommandServer(link.Drone);
+var missionProtocol = new MissionProtocol(
+    link.Gcs,
+    ProtocolsCommon.DroneSystemId,
+    ProtocolsCommon.DroneComponentId);
+
+var plan = new[]
+{{
+    MissionItems.Waypoint(
+        0,
+        47.397742,
+        8.545594,
+        50,
+        ProtocolsCommon.DroneSystemId,
+        ProtocolsCommon.DroneComponentId),
+    MissionItems.Waypoint(
+        1,
+        47.398000,
+        8.546000,
+        50,
+        ProtocolsCommon.DroneSystemId,
+        ProtocolsCommon.DroneComponentId),
+}};
+
+var uploadResult = await missionProtocol.UploadAsync(
+    plan,
+    onProgress: (sent, total, item) =>
+        Console.WriteLine($"Upload progress {{sent}}/{{total}} seq={{item.Seq}} cmd={{item.Command}}"));
+Console.WriteLine($"Mission upload result: {{uploadResult}}");
+Console.WriteLine($"Vehicle stored {{missionServer.Items.Count}} items");
+
+var downloaded = await missionProtocol.DownloadAsync(
+    onProgress: (received, total, item) =>
+        Console.WriteLine($"Download progress {{received}}/{{total}} seq={{item.Seq}}"));
+Console.WriteLine($"Downloaded {{downloaded.Count}} mission items");
+
+var commandProtocol = new CommandProtocol(
+    link.Gcs,
+    ProtocolsCommon.DroneSystemId,
+    ProtocolsCommon.DroneComponentId);
+var setCurrent = await missionProtocol.SetCurrentWithCommandAsync(
+    0,
+    command: commandProtocol);
+Console.WriteLine($"Set current seq={{setCurrent.Sequence}} ack={{setCurrent.CommandAck?.Result}}");
+
+var clearResult = await missionProtocol.ClearAsync();
+Console.WriteLine($"Mission clear result: {{clearResult}}");
+
+await ProtocolsCommon.CloseVirtualLinkAsync(link);
+"#
+    )
+}
+
+fn render_protocol_parameters_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/// <summary>
+/// Parameter protocol example for the `{dialect_stem}` dialect.
+/// </summary>
+using Mavlink;
+using Mavlink.Dialects;
+
+var dialect = new {dialect_class}();
+var link = ProtocolsCommon.CreateVirtualLink(dialect);
+
+await using var parameterServer = new ParameterServer(
+    link.Drone,
+    new Dictionary<string, ParamStoreEntry>
+    {{
+        ["SYSID_THISMAV"] = new(1, MavParamType.MAV_PARAM_TYPE_INT32),
+        ["SYSID_MYGCS"] = new(255, MavParamType.MAV_PARAM_TYPE_INT32),
+        ["COMPASS_ENABLE"] = new(1, MavParamType.MAV_PARAM_TYPE_INT32),
+    }});
+
+var parameterProtocol = new ParameterProtocol(
+    link.Gcs,
+    ProtocolsCommon.DroneSystemId,
+    ProtocolsCommon.DroneComponentId);
+
+var allParams = await parameterProtocol.FetchAllAsync(
+    onProgress: (entry, received, expected) =>
+        Console.WriteLine($"  [{{received}}/{{expected}}] {{entry.Id}}={{entry.Value}}"));
+Console.WriteLine(
+    $"Fetched {{allParams.Count}} parameters (cache size={{parameterProtocol.Cache.Count}})");
+
+var single = await parameterProtocol.ReadByNameAsync("SYSID_THISMAV");
+Console.WriteLine($"Read SYSID_THISMAV={{single.Value}}");
+
+var updated = await parameterProtocol.WriteByNameAsync("COMPASS_ENABLE", 0);
+Console.WriteLine($"Wrote COMPASS_ENABLE={{updated.Value}} ({{updated.Type}})");
+
+await ProtocolsCommon.CloseVirtualLinkAsync(link);
+"#
+    )
+}
+
+fn render_protocol_command_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/// <summary>
+/// Command protocol example for the `{dialect_stem}` dialect.
+/// </summary>
+using Mavlink;
+using Mavlink.Dialects;
+
+var dialect = new {dialect_class}();
+var link = ProtocolsCommon.CreateVirtualLink(dialect);
+
+await using var commandServer = new CommandServer(
+    link.Drone,
+    onCommandLong: command =>
+    {{
+        Console.WriteLine(
+            $"Vehicle received COMMAND_LONG: {{command.Command}} " +
+            $"p1={{command.Param1}} p2={{command.Param2}}");
+        return Task.FromResult(MavResult.MAV_RESULT_ACCEPTED);
+    }});
+
+var commandProtocol = new CommandProtocol(
+    link.Gcs,
+    ProtocolsCommon.DroneSystemId,
+    ProtocolsCommon.DroneComponentId);
+
+var intervalAck = await commandProtocol.SetMessageIntervalAsync(Attitude.MsgId, 100000);
+Console.WriteLine($"SET_MESSAGE_INTERVAL ack: {{intervalAck.Result}}");
+
+var requestAck = await commandProtocol.RequestMessageAsync(Attitude.MsgId);
+Console.WriteLine($"REQUEST_MESSAGE ack: {{requestAck.Result}}");
+
+var armAck = await commandProtocol.ArmAsync();
+Console.WriteLine($"ARM ack: {{armAck.Result}}");
+
+var disarmAck = await commandProtocol.DisarmAsync();
+Console.WriteLine($"DISARM ack: {{disarmAck.Result}}");
+
+await ProtocolsCommon.CloseVirtualLinkAsync(link);
+"#
+    )
+}
+
+fn render_protocol_heartbeat_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/// <summary>
+/// Heartbeat protocol example for the `{dialect_stem}` dialect.
+/// </summary>
+using Mavlink;
+using Mavlink.Dialects;
+
+var dialect = new {dialect_class}();
+var link = ProtocolsCommon.CreateVirtualLink(dialect);
+
+var gcsPublisher = new HeartbeatPublisher(
+    link.Gcs,
+    HeartbeatTemplates.Gcs(dialect.Version),
+    TimeSpan.FromMilliseconds(500));
+
+var dronePublisher = new HeartbeatPublisher(
+    link.Drone,
+    HeartbeatTemplates.Autopilot(dialect.Version),
+    TimeSpan.FromMilliseconds(500));
+
+var gcsMonitor = new HeartbeatMonitor(link.Gcs, TimeSpan.FromSeconds(2));
+
+gcsMonitor.Start();
+gcsPublisher.Start();
+dronePublisher.Start();
+
+var vehicle = await gcsMonitor.WaitForVehicleAsync(
+    excludeSystemIds: new HashSet<byte> {{ ProtocolsCommon.GcsSystemId }},
+    timeout: TimeSpan.FromSeconds(5));
+Console.WriteLine($"Vehicle discovered: {{vehicle}}");
+Console.WriteLine($"Drone online: {{gcsMonitor.IsOnline(vehicle)}}");
+var state = gcsMonitor.StateFor(vehicle);
+if (state is not null)
+{{
+    Console.WriteLine(
+        $"Drone heartbeat: type={{state.Heartbeat.Type}} status={{state.Heartbeat.SystemStatus}}");
+}}
+
+dronePublisher.Stop();
+await Task.Delay(TimeSpan.FromMilliseconds(2500));
+Console.WriteLine($"Drone online after stop: {{gcsMonitor.IsOnline(vehicle)}}");
+
+await gcsMonitor.StopAsync();
+gcsPublisher.Stop();
+
+await ProtocolsCommon.CloseVirtualLinkAsync(link);
+"#
+    )
+}
+
+fn render_protocol_vehicle_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/// <summary>
+/// MavlinkGcs / MavlinkVehicleClient facade example for `{dialect_stem}`.
+/// </summary>
+using Mavlink;
+using Mavlink.Dialects;
+
+var dialect = new {dialect_class}();
+var bus = new VirtualMavlinkBus();
+var gcsLink = bus.CreateEndpoint();
+var droneLink = bus.CreateEndpoint();
+
+await using var gcs = MavlinkGcs.Connect(dialect, gcsLink);
+
+var droneSession = new MavlinkSession(
+    dialect,
+    droneLink,
+    ProtocolsCommon.DroneSystemId,
+    ProtocolsCommon.DroneComponentId);
+
+var dronePublisher = new HeartbeatPublisher(
+    droneSession,
+    HeartbeatTemplates.Autopilot(dialect.Version),
+    TimeSpan.FromMilliseconds(500));
+
+await using var parameterServer = new ParameterServer(
+    droneSession,
+    new Dictionary<string, ParamStoreEntry>
+    {{
+        ["SYSID_THISMAV"] = new(1, MavParamType.MAV_PARAM_TYPE_INT32),
+    }});
+
+await using var commandServer = new CommandServer(droneSession);
+
+gcs.Start();
+dronePublisher.Start();
+
+var client = await gcs.WaitForVehicleAsync(
+    excludeSystemIds: new HashSet<byte> {{ ProtocolsCommon.GcsSystemId }});
+Console.WriteLine($"Connected to vehicle {{client.Vehicle}}");
+
+var parameters = await client.Parameters.FetchAllAsync();
+Console.WriteLine($"Vehicle has {{parameters.Count}} parameters");
+
+var ack = await client.Command.RequestMessageAsync(Heartbeat.MsgId);
+Console.WriteLine($"REQUEST_MESSAGE ack: {{ack.Result}}");
+
+dronePublisher.Stop();
+await droneSession.CloseAsync();
+await gcs.CloseAsync();
+await bus.CloseAllAsync();
+"#
+    )
+}
+
+fn render_protocol_subscribe_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"/// <summary>
+/// Typed message subscription example for the `{dialect_stem}` dialect.
+/// </summary>
+using Mavlink;
+using Mavlink.Dialects;
+
+var dialect = new {dialect_class}();
+var link = ProtocolsCommon.CreateVirtualLink(dialect);
+var vehicle = new MavlinkNode(ProtocolsCommon.DroneSystemId, ProtocolsCommon.DroneComponentId);
+
+var attitudeSamples = new List<Attitude>();
+using var subscription = link.Gcs.ListenMessage<Attitude>(
+    (message, frame) => attitudeSamples.Add(message),
+    fromSystemId: vehicle.SystemId);
+
+await link.Drone.SendAsync(
+    new Attitude(
+        TimeBootMs: 1000,
+        Roll: 0.1f,
+        Pitch: -0.05f,
+        Yaw: 1.57f,
+        Rollspeed: 0,
+        Pitchspeed: 0,
+        Yawspeed: 0));
+
+await Task.Delay(TimeSpan.FromMilliseconds(50));
+subscription.Cancel();
+
+Console.WriteLine($"Received {{attitudeSamples.Count}} ATTITUDE samples via ListenMessage");
+if (attitudeSamples.Count > 0)
+{{
+    var sample = attitudeSamples[0];
+    Console.WriteLine($"  roll={{sample.Roll}} pitch={{sample.Pitch}} yaw={{sample.Yaw}}");
+}}
+
+await ProtocolsCommon.CloseVirtualLinkAsync(link);
 "#
     )
 }

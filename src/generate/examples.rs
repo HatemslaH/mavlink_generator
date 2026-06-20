@@ -19,6 +19,38 @@ pub trait LanguageExampleGenerator {
 
 pub const EXAMPLES_DIR: &str = "examples";
 
+/// Low-level virtual examples (message round-trip, no protocol classes).
+pub const LOW_LEVEL_EXAMPLE_SUFFIXES: &[&str] = &[
+    "heartbeat",
+    "mission_upload",
+    "request_telemetry",
+    "request_parameters",
+];
+
+/// Protocol-class virtual examples (transport-agnostic clients over `VirtualMavlinkBus`).
+pub const PROTOCOL_EXAMPLE_SUFFIXES: &[&str] = &[
+    "protocol_mission",
+    "protocol_parameters",
+    "protocol_command",
+    "protocol_heartbeat",
+    "protocol_vehicle",
+    "protocol_subscribe",
+];
+
+/// All generated example suffixes in order (low-level, then protocol).
+pub const ALL_EXAMPLE_SUFFIXES: &[&str] = &[
+    "heartbeat",
+    "mission_upload",
+    "request_telemetry",
+    "request_parameters",
+    "protocol_mission",
+    "protocol_parameters",
+    "protocol_command",
+    "protocol_heartbeat",
+    "protocol_vehicle",
+    "protocol_subscribe",
+];
+
 pub fn examples_output_dir(language: TargetLanguage) -> PathBuf {
     crate::generate::runtime::language_output_dir(language).join(EXAMPLES_DIR)
 }
@@ -68,4 +100,19 @@ fn write_example_file(output_dir: &Path, file: &ExampleFile) -> Result<()> {
     }
     fs::write(path, &file.content)?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn all_example_suffixes_concatenate_low_level_and_protocol() {
+        let expected: Vec<&str> = LOW_LEVEL_EXAMPLE_SUFFIXES
+            .iter()
+            .chain(PROTOCOL_EXAMPLE_SUFFIXES.iter())
+            .copied()
+            .collect();
+        assert_eq!(expected, ALL_EXAMPLE_SUFFIXES);
+    }
 }

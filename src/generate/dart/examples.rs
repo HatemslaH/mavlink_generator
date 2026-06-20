@@ -20,11 +20,14 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
     ),
 ];
 
-const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+const LOW_LEVEL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("heartbeat", render_heartbeat_example),
     ("mission_upload", render_mission_upload_example),
     ("request_telemetry", render_request_telemetry_example),
     ("request_parameters", render_request_parameters_example),
+];
+
+const PROTOCOL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("protocol_mission", render_protocol_mission_example),
     ("protocol_parameters", render_protocol_parameters_example),
     ("protocol_command", render_protocol_command_example),
@@ -32,6 +35,29 @@ const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("protocol_vehicle", render_protocol_vehicle_example),
     ("protocol_subscribe", render_protocol_subscribe_example),
 ];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::generate::examples::{
+        ALL_EXAMPLE_SUFFIXES, LOW_LEVEL_EXAMPLE_SUFFIXES, PROTOCOL_EXAMPLE_SUFFIXES,
+    };
+
+    #[test]
+    fn example_suffixes_match_shared_constants() {
+        let low_level: Vec<_> = LOW_LEVEL_EXAMPLES.iter().map(|(s, _)| *s).collect();
+        let protocol: Vec<_> = PROTOCOL_EXAMPLES.iter().map(|(s, _)| *s).collect();
+        let all: Vec<_> = LOW_LEVEL_EXAMPLES
+            .iter()
+            .chain(PROTOCOL_EXAMPLES.iter())
+            .map(|(s, _)| *s)
+            .collect();
+
+        assert_eq!(low_level, LOW_LEVEL_EXAMPLE_SUFFIXES);
+        assert_eq!(protocol, PROTOCOL_EXAMPLE_SUFFIXES);
+        assert_eq!(all, ALL_EXAMPLE_SUFFIXES);
+    }
+}
 
 impl LanguageExampleGenerator for DartExampleGenerator {
     fn static_files(&self) -> Vec<ExampleFile> {
@@ -49,8 +75,9 @@ impl LanguageExampleGenerator for DartExampleGenerator {
             .iter()
             .flat_map(|stem| {
                 let stem = stem.clone();
-                GENERATED_EXAMPLES
+                LOW_LEVEL_EXAMPLES
                     .iter()
+                    .chain(PROTOCOL_EXAMPLES.iter())
                     .map(move |(suffix, render)| ExampleFile {
                         relative_path: PathBuf::from(format!("{stem}_{suffix}.dart")),
                         content: render(&stem),

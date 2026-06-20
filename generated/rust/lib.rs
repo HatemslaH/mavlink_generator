@@ -6,8 +6,10 @@ pub mod mavlink_dialect;
 pub mod mavlink_frame;
 pub mod mavlink_message;
 pub mod mavlink_parser;
+pub mod mavlink_protocols;
 pub mod mavlink_types;
 pub mod mavlink_version;
+pub mod protocols;
 
 pub use crc::CrcX25;
 pub use dialects::rt_rc::*;
