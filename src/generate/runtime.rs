@@ -78,7 +78,7 @@ pub fn generate_runtime_files(
     }
 
     if language == TargetLanguage::CSharp {
-        let csproj = crate::generate::csharp::render_mavlink_csproj();
+        let csproj = crate::generate::csharp::render_mavlink_csproj(dialect_stems);
         write_runtime_file(
             output_dir,
             &RuntimeFile {

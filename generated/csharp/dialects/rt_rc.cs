@@ -11218,12 +11218,12 @@ public sealed class Heartbeat : MavlinkMessage {
   public byte MavlinkVersion { get; init; }
 
   public Heartbeat(uint CustomMode, MavType Type, MavAutopilot Autopilot, byte BaseMode, MavState SystemStatus, byte MavlinkVersion) {
-    CustomMode = CustomMode;
-    Type = Type;
-    Autopilot = Autopilot;
-    BaseMode = BaseMode;
-    SystemStatus = SystemStatus;
-    MavlinkVersion = MavlinkVersion;
+    this.CustomMode = CustomMode;
+    this.Type = Type;
+    this.Autopilot = Autopilot;
+    this.BaseMode = BaseMode;
+    this.SystemStatus = SystemStatus;
+    this.MavlinkVersion = MavlinkVersion;
   }
 
   public static Heartbeat Parse(ReadOnlySpan<byte> data) {
@@ -11375,19 +11375,19 @@ public sealed class SysStatus : MavlinkMessage {
   public sbyte BatteryRemaining { get; init; }
 
   public SysStatus(uint OnboardControlSensorsPresent, uint OnboardControlSensorsEnabled, uint OnboardControlSensorsHealth, ushort Load, ushort VoltageBattery, short CurrentBattery, ushort DropRateComm, ushort ErrorsComm, ushort ErrorsCount1, ushort ErrorsCount2, ushort ErrorsCount3, ushort ErrorsCount4, sbyte BatteryRemaining) {
-    OnboardControlSensorsPresent = OnboardControlSensorsPresent;
-    OnboardControlSensorsEnabled = OnboardControlSensorsEnabled;
-    OnboardControlSensorsHealth = OnboardControlSensorsHealth;
-    Load = Load;
-    VoltageBattery = VoltageBattery;
-    CurrentBattery = CurrentBattery;
-    DropRateComm = DropRateComm;
-    ErrorsComm = ErrorsComm;
-    ErrorsCount1 = ErrorsCount1;
-    ErrorsCount2 = ErrorsCount2;
-    ErrorsCount3 = ErrorsCount3;
-    ErrorsCount4 = ErrorsCount4;
-    BatteryRemaining = BatteryRemaining;
+    this.OnboardControlSensorsPresent = OnboardControlSensorsPresent;
+    this.OnboardControlSensorsEnabled = OnboardControlSensorsEnabled;
+    this.OnboardControlSensorsHealth = OnboardControlSensorsHealth;
+    this.Load = Load;
+    this.VoltageBattery = VoltageBattery;
+    this.CurrentBattery = CurrentBattery;
+    this.DropRateComm = DropRateComm;
+    this.ErrorsComm = ErrorsComm;
+    this.ErrorsCount1 = ErrorsCount1;
+    this.ErrorsCount2 = ErrorsCount2;
+    this.ErrorsCount3 = ErrorsCount3;
+    this.ErrorsCount4 = ErrorsCount4;
+    this.BatteryRemaining = BatteryRemaining;
   }
 
   public static SysStatus Parse(ReadOnlySpan<byte> data) {
@@ -11474,8 +11474,8 @@ public sealed class SystemTime : MavlinkMessage {
   public uint TimeBootMs { get; init; }
 
   public SystemTime(ulong TimeUnixUsec, uint TimeBootMs) {
-    TimeUnixUsec = TimeUnixUsec;
-    TimeBootMs = TimeBootMs;
+    this.TimeUnixUsec = TimeUnixUsec;
+    this.TimeBootMs = TimeBootMs;
   }
 
   public static SystemTime Parse(ReadOnlySpan<byte> data) {
@@ -11542,10 +11542,10 @@ public sealed class Ping : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public Ping(ulong TimeUsec, uint Seq, byte TargetSystem, byte TargetComponent) {
-    TimeUsec = TimeUsec;
-    Seq = Seq;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.TimeUsec = TimeUsec;
+    this.Seq = Seq;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static Ping Parse(ReadOnlySpan<byte> data) {
@@ -11618,10 +11618,10 @@ public sealed class ChangeOperatorControl : MavlinkMessage {
   public byte[] Passkey { get; init; }
 
   public ChangeOperatorControl(byte TargetSystem, byte ControlRequest, byte Version, byte[] Passkey) {
-    TargetSystem = TargetSystem;
-    ControlRequest = ControlRequest;
-    Version = Version;
-    Passkey = Passkey;
+    this.TargetSystem = TargetSystem;
+    this.ControlRequest = ControlRequest;
+    this.Version = Version;
+    this.Passkey = Passkey;
   }
 
   public static ChangeOperatorControl Parse(ReadOnlySpan<byte> data) {
@@ -11686,9 +11686,9 @@ public sealed class ChangeOperatorControlAck : MavlinkMessage {
   public byte Ack { get; init; }
 
   public ChangeOperatorControlAck(byte GcsSystemId, byte ControlRequest, byte Ack) {
-    GcsSystemId = GcsSystemId;
-    ControlRequest = ControlRequest;
-    Ack = Ack;
+    this.GcsSystemId = GcsSystemId;
+    this.ControlRequest = ControlRequest;
+    this.Ack = Ack;
   }
 
   public static ChangeOperatorControlAck Parse(ReadOnlySpan<byte> data) {
@@ -11736,7 +11736,7 @@ public sealed class AuthKey : MavlinkMessage {
   public byte[] Key { get; init; }
 
   public AuthKey(byte[] Key) {
-    Key = Key;
+    this.Key = Key;
   }
 
   public static AuthKey Parse(ReadOnlySpan<byte> data) {
@@ -11793,9 +11793,9 @@ public sealed class SetMode : MavlinkMessage {
   public MavMode BaseMode { get; init; }
 
   public SetMode(uint CustomMode, byte TargetSystem, MavMode BaseMode) {
-    CustomMode = CustomMode;
-    TargetSystem = TargetSystem;
-    BaseMode = BaseMode;
+    this.CustomMode = CustomMode;
+    this.TargetSystem = TargetSystem;
+    this.BaseMode = BaseMode;
   }
 
   public static SetMode Parse(ReadOnlySpan<byte> data) {
@@ -11865,10 +11865,10 @@ public sealed class ParamRequestRead : MavlinkMessage {
   public byte[] ParamId { get; init; }
 
   public ParamRequestRead(short ParamIndex, byte TargetSystem, byte TargetComponent, byte[] ParamId) {
-    ParamIndex = ParamIndex;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    ParamId = ParamId;
+    this.ParamIndex = ParamIndex;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.ParamId = ParamId;
   }
 
   public static ParamRequestRead Parse(ReadOnlySpan<byte> data) {
@@ -11926,8 +11926,8 @@ public sealed class ParamRequestList : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public ParamRequestList(byte TargetSystem, byte TargetComponent) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static ParamRequestList Parse(ReadOnlySpan<byte> data) {
@@ -12001,11 +12001,11 @@ public sealed class ParamValue : MavlinkMessage {
   public MavParamType ParamType { get; init; }
 
   public ParamValue(float paramValue, ushort ParamCount, ushort ParamIndex, byte[] ParamId, MavParamType ParamType) {
-    paramValue = paramValue;
-    ParamCount = ParamCount;
-    ParamIndex = ParamIndex;
-    ParamId = ParamId;
-    ParamType = ParamType;
+    this.paramValue = paramValue;
+    this.ParamCount = ParamCount;
+    this.ParamIndex = ParamIndex;
+    this.ParamId = ParamId;
+    this.ParamType = ParamType;
   }
 
   public static ParamValue Parse(ReadOnlySpan<byte> data) {
@@ -12090,11 +12090,11 @@ public sealed class ParamSet : MavlinkMessage {
   public MavParamType ParamType { get; init; }
 
   public ParamSet(float ParamValue, byte TargetSystem, byte TargetComponent, byte[] ParamId, MavParamType ParamType) {
-    ParamValue = ParamValue;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    ParamId = ParamId;
-    ParamType = ParamType;
+    this.ParamValue = ParamValue;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.ParamId = ParamId;
+    this.ParamType = ParamType;
   }
 
   public static ParamSet Parse(ReadOnlySpan<byte> data) {
@@ -12274,22 +12274,22 @@ public sealed class GpsRawInt : MavlinkMessage {
   public ushort Yaw { get; init; }
 
   public GpsRawInt(ulong TimeUsec, int Lat, int Lon, int Alt, ushort Eph, ushort Epv, ushort Vel, ushort Cog, GpsFixType FixType, byte SatellitesVisible, int AltEllipsoid, uint HAcc, uint VAcc, uint VelAcc, uint HdgAcc, ushort Yaw) {
-    TimeUsec = TimeUsec;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    Eph = Eph;
-    Epv = Epv;
-    Vel = Vel;
-    Cog = Cog;
-    FixType = FixType;
-    SatellitesVisible = SatellitesVisible;
-    AltEllipsoid = AltEllipsoid;
-    HAcc = HAcc;
-    VAcc = VAcc;
-    VelAcc = VelAcc;
-    HdgAcc = HdgAcc;
-    Yaw = Yaw;
+    this.TimeUsec = TimeUsec;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.Eph = Eph;
+    this.Epv = Epv;
+    this.Vel = Vel;
+    this.Cog = Cog;
+    this.FixType = FixType;
+    this.SatellitesVisible = SatellitesVisible;
+    this.AltEllipsoid = AltEllipsoid;
+    this.HAcc = HAcc;
+    this.VAcc = VAcc;
+    this.VelAcc = VelAcc;
+    this.HdgAcc = HdgAcc;
+    this.Yaw = Yaw;
   }
 
   public static GpsRawInt Parse(ReadOnlySpan<byte> data) {
@@ -12415,12 +12415,12 @@ public sealed class GpsStatus : MavlinkMessage {
   public byte[] SatelliteSnr { get; init; }
 
   public GpsStatus(byte SatellitesVisible, byte[] SatellitePrn, byte[] SatelliteUsed, byte[] SatelliteElevation, byte[] SatelliteAzimuth, byte[] SatelliteSnr) {
-    SatellitesVisible = SatellitesVisible;
-    SatellitePrn = SatellitePrn;
-    SatelliteUsed = SatelliteUsed;
-    SatelliteElevation = SatelliteElevation;
-    SatelliteAzimuth = SatelliteAzimuth;
-    SatelliteSnr = SatelliteSnr;
+    this.SatellitesVisible = SatellitesVisible;
+    this.SatellitePrn = SatellitePrn;
+    this.SatelliteUsed = SatelliteUsed;
+    this.SatelliteElevation = SatelliteElevation;
+    this.SatelliteAzimuth = SatelliteAzimuth;
+    this.SatelliteSnr = SatelliteSnr;
   }
 
   public static GpsStatus Parse(ReadOnlySpan<byte> data) {
@@ -12559,17 +12559,17 @@ public sealed class ScaledImu : MavlinkMessage {
   public short Temperature { get; init; }
 
   public ScaledImu(uint TimeBootMs, short Xacc, short Yacc, short Zacc, short Xgyro, short Ygyro, short Zgyro, short Xmag, short Ymag, short Zmag, short Temperature) {
-    TimeBootMs = TimeBootMs;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Xmag = Xmag;
-    Ymag = Ymag;
-    Zmag = Zmag;
-    Temperature = Temperature;
+    this.TimeBootMs = TimeBootMs;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Xmag = Xmag;
+    this.Ymag = Ymag;
+    this.Zmag = Zmag;
+    this.Temperature = Temperature;
   }
 
   public static ScaledImu Parse(ReadOnlySpan<byte> data) {
@@ -12722,18 +12722,18 @@ public sealed class RawImu : MavlinkMessage {
   public short Temperature { get; init; }
 
   public RawImu(ulong TimeUsec, short Xacc, short Yacc, short Zacc, short Xgyro, short Ygyro, short Zgyro, short Xmag, short Ymag, short Zmag, byte Id, short Temperature) {
-    TimeUsec = TimeUsec;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Xmag = Xmag;
-    Ymag = Ymag;
-    Zmag = Zmag;
-    Id = Id;
-    Temperature = Temperature;
+    this.TimeUsec = TimeUsec;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Xmag = Xmag;
+    this.Ymag = Ymag;
+    this.Zmag = Zmag;
+    this.Id = Id;
+    this.Temperature = Temperature;
   }
 
   public static RawImu Parse(ReadOnlySpan<byte> data) {
@@ -12837,11 +12837,11 @@ public sealed class RawPressure : MavlinkMessage {
   public short Temperature { get; init; }
 
   public RawPressure(ulong TimeUsec, short PressAbs, short PressDiff1, short PressDiff2, short Temperature) {
-    TimeUsec = TimeUsec;
-    PressAbs = PressAbs;
-    PressDiff1 = PressDiff1;
-    PressDiff2 = PressDiff2;
-    Temperature = Temperature;
+    this.TimeUsec = TimeUsec;
+    this.PressAbs = PressAbs;
+    this.PressDiff1 = PressDiff1;
+    this.PressDiff2 = PressDiff2;
+    this.Temperature = Temperature;
   }
 
   public static RawPressure Parse(ReadOnlySpan<byte> data) {
@@ -12929,11 +12929,11 @@ public sealed class ScaledPressure : MavlinkMessage {
   public short TemperaturePressDiff { get; init; }
 
   public ScaledPressure(uint TimeBootMs, float PressAbs, float PressDiff, short Temperature, short TemperaturePressDiff) {
-    TimeBootMs = TimeBootMs;
-    PressAbs = PressAbs;
-    PressDiff = PressDiff;
-    Temperature = Temperature;
-    TemperaturePressDiff = TemperaturePressDiff;
+    this.TimeBootMs = TimeBootMs;
+    this.PressAbs = PressAbs;
+    this.PressDiff = PressDiff;
+    this.Temperature = Temperature;
+    this.TemperaturePressDiff = TemperaturePressDiff;
   }
 
   public static ScaledPressure Parse(ReadOnlySpan<byte> data) {
@@ -13036,13 +13036,13 @@ public sealed class Attitude : MavlinkMessage {
   public float Yawspeed { get; init; }
 
   public Attitude(uint TimeBootMs, float Roll, float Pitch, float Yaw, float Rollspeed, float Pitchspeed, float Yawspeed) {
-    TimeBootMs = TimeBootMs;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Rollspeed = Rollspeed;
-    Pitchspeed = Pitchspeed;
-    Yawspeed = Yawspeed;
+    this.TimeBootMs = TimeBootMs;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Rollspeed = Rollspeed;
+    this.Pitchspeed = Pitchspeed;
+    this.Yawspeed = Yawspeed;
   }
 
   public static Attitude Parse(ReadOnlySpan<byte> data) {
@@ -13163,15 +13163,15 @@ public sealed class AttitudeQuaternion : MavlinkMessage {
   public float[] ReprOffsetQ { get; init; }
 
   public AttitudeQuaternion(uint TimeBootMs, float Q1, float Q2, float Q3, float Q4, float Rollspeed, float Pitchspeed, float Yawspeed, float[] ReprOffsetQ) {
-    TimeBootMs = TimeBootMs;
-    Q1 = Q1;
-    Q2 = Q2;
-    Q3 = Q3;
-    Q4 = Q4;
-    Rollspeed = Rollspeed;
-    Pitchspeed = Pitchspeed;
-    Yawspeed = Yawspeed;
-    ReprOffsetQ = ReprOffsetQ;
+    this.TimeBootMs = TimeBootMs;
+    this.Q1 = Q1;
+    this.Q2 = Q2;
+    this.Q3 = Q3;
+    this.Q4 = Q4;
+    this.Rollspeed = Rollspeed;
+    this.Pitchspeed = Pitchspeed;
+    this.Yawspeed = Yawspeed;
+    this.ReprOffsetQ = ReprOffsetQ;
   }
 
   public static AttitudeQuaternion Parse(ReadOnlySpan<byte> data) {
@@ -13286,13 +13286,13 @@ public sealed class LocalPositionNed : MavlinkMessage {
   public float Vz { get; init; }
 
   public LocalPositionNed(uint TimeBootMs, float X, float Y, float Z, float Vx, float Vy, float Vz) {
-    TimeBootMs = TimeBootMs;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
+    this.TimeBootMs = TimeBootMs;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
   }
 
   public static LocalPositionNed Parse(ReadOnlySpan<byte> data) {
@@ -13418,15 +13418,15 @@ public sealed class GlobalPositionInt : MavlinkMessage {
   public ushort Hdg { get; init; }
 
   public GlobalPositionInt(uint TimeBootMs, int Lat, int Lon, int Alt, int RelativeAlt, short Vx, short Vy, short Vz, ushort Hdg) {
-    TimeBootMs = TimeBootMs;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    RelativeAlt = RelativeAlt;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Hdg = Hdg;
+    this.TimeBootMs = TimeBootMs;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.RelativeAlt = RelativeAlt;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Hdg = Hdg;
   }
 
   public static GlobalPositionInt Parse(ReadOnlySpan<byte> data) {
@@ -13563,17 +13563,17 @@ public sealed class RcChannelsScaled : MavlinkMessage {
   public byte Rssi { get; init; }
 
   public RcChannelsScaled(uint TimeBootMs, short Chan1Scaled, short Chan2Scaled, short Chan3Scaled, short Chan4Scaled, short Chan5Scaled, short Chan6Scaled, short Chan7Scaled, short Chan8Scaled, byte Port, byte Rssi) {
-    TimeBootMs = TimeBootMs;
-    Chan1Scaled = Chan1Scaled;
-    Chan2Scaled = Chan2Scaled;
-    Chan3Scaled = Chan3Scaled;
-    Chan4Scaled = Chan4Scaled;
-    Chan5Scaled = Chan5Scaled;
-    Chan6Scaled = Chan6Scaled;
-    Chan7Scaled = Chan7Scaled;
-    Chan8Scaled = Chan8Scaled;
-    Port = Port;
-    Rssi = Rssi;
+    this.TimeBootMs = TimeBootMs;
+    this.Chan1Scaled = Chan1Scaled;
+    this.Chan2Scaled = Chan2Scaled;
+    this.Chan3Scaled = Chan3Scaled;
+    this.Chan4Scaled = Chan4Scaled;
+    this.Chan5Scaled = Chan5Scaled;
+    this.Chan6Scaled = Chan6Scaled;
+    this.Chan7Scaled = Chan7Scaled;
+    this.Chan8Scaled = Chan8Scaled;
+    this.Port = Port;
+    this.Rssi = Rssi;
   }
 
   public static RcChannelsScaled Parse(ReadOnlySpan<byte> data) {
@@ -13724,17 +13724,17 @@ public sealed class RcChannelsRaw : MavlinkMessage {
   public byte Rssi { get; init; }
 
   public RcChannelsRaw(uint TimeBootMs, ushort Chan1Raw, ushort Chan2Raw, ushort Chan3Raw, ushort Chan4Raw, ushort Chan5Raw, ushort Chan6Raw, ushort Chan7Raw, ushort Chan8Raw, byte Port, byte Rssi) {
-    TimeBootMs = TimeBootMs;
-    Chan1Raw = Chan1Raw;
-    Chan2Raw = Chan2Raw;
-    Chan3Raw = Chan3Raw;
-    Chan4Raw = Chan4Raw;
-    Chan5Raw = Chan5Raw;
-    Chan6Raw = Chan6Raw;
-    Chan7Raw = Chan7Raw;
-    Chan8Raw = Chan8Raw;
-    Port = Port;
-    Rssi = Rssi;
+    this.TimeBootMs = TimeBootMs;
+    this.Chan1Raw = Chan1Raw;
+    this.Chan2Raw = Chan2Raw;
+    this.Chan3Raw = Chan3Raw;
+    this.Chan4Raw = Chan4Raw;
+    this.Chan5Raw = Chan5Raw;
+    this.Chan6Raw = Chan6Raw;
+    this.Chan7Raw = Chan7Raw;
+    this.Chan8Raw = Chan8Raw;
+    this.Port = Port;
+    this.Rssi = Rssi;
   }
 
   public static RcChannelsRaw Parse(ReadOnlySpan<byte> data) {
@@ -13950,24 +13950,24 @@ public sealed class ServoOutputRaw : MavlinkMessage {
   public ushort Servo16Raw { get; init; }
 
   public ServoOutputRaw(uint TimeUsec, ushort Servo1Raw, ushort Servo2Raw, ushort Servo3Raw, ushort Servo4Raw, ushort Servo5Raw, ushort Servo6Raw, ushort Servo7Raw, ushort Servo8Raw, byte Port, ushort Servo9Raw, ushort Servo10Raw, ushort Servo11Raw, ushort Servo12Raw, ushort Servo13Raw, ushort Servo14Raw, ushort Servo15Raw, ushort Servo16Raw) {
-    TimeUsec = TimeUsec;
-    Servo1Raw = Servo1Raw;
-    Servo2Raw = Servo2Raw;
-    Servo3Raw = Servo3Raw;
-    Servo4Raw = Servo4Raw;
-    Servo5Raw = Servo5Raw;
-    Servo6Raw = Servo6Raw;
-    Servo7Raw = Servo7Raw;
-    Servo8Raw = Servo8Raw;
-    Port = Port;
-    Servo9Raw = Servo9Raw;
-    Servo10Raw = Servo10Raw;
-    Servo11Raw = Servo11Raw;
-    Servo12Raw = Servo12Raw;
-    Servo13Raw = Servo13Raw;
-    Servo14Raw = Servo14Raw;
-    Servo15Raw = Servo15Raw;
-    Servo16Raw = Servo16Raw;
+    this.TimeUsec = TimeUsec;
+    this.Servo1Raw = Servo1Raw;
+    this.Servo2Raw = Servo2Raw;
+    this.Servo3Raw = Servo3Raw;
+    this.Servo4Raw = Servo4Raw;
+    this.Servo5Raw = Servo5Raw;
+    this.Servo6Raw = Servo6Raw;
+    this.Servo7Raw = Servo7Raw;
+    this.Servo8Raw = Servo8Raw;
+    this.Port = Port;
+    this.Servo9Raw = Servo9Raw;
+    this.Servo10Raw = Servo10Raw;
+    this.Servo11Raw = Servo11Raw;
+    this.Servo12Raw = Servo12Raw;
+    this.Servo13Raw = Servo13Raw;
+    this.Servo14Raw = Servo14Raw;
+    this.Servo15Raw = Servo15Raw;
+    this.Servo16Raw = Servo16Raw;
   }
 
   public static ServoOutputRaw Parse(ReadOnlySpan<byte> data) {
@@ -14090,11 +14090,11 @@ public sealed class MissionRequestPartialList : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionRequestPartialList(short StartIndex, short EndIndex, byte TargetSystem, byte TargetComponent, MavMissionType MissionType) {
-    StartIndex = StartIndex;
-    EndIndex = EndIndex;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MissionType = MissionType;
+    this.StartIndex = StartIndex;
+    this.EndIndex = EndIndex;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MissionType = MissionType;
   }
 
   public static MissionRequestPartialList Parse(ReadOnlySpan<byte> data) {
@@ -14179,11 +14179,11 @@ public sealed class MissionWritePartialList : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionWritePartialList(short StartIndex, short EndIndex, byte TargetSystem, byte TargetComponent, MavMissionType MissionType) {
-    StartIndex = StartIndex;
-    EndIndex = EndIndex;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MissionType = MissionType;
+    this.StartIndex = StartIndex;
+    this.EndIndex = EndIndex;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MissionType = MissionType;
   }
 
   public static MissionWritePartialList Parse(ReadOnlySpan<byte> data) {
@@ -14341,21 +14341,21 @@ public sealed class MissionItem : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionItem(float Param1, float Param2, float Param3, float Param4, float X, float Y, float Z, ushort Seq, MavCmd Command, byte TargetSystem, byte TargetComponent, MavFrame Frame, byte Current, byte Autocontinue, MavMissionType MissionType) {
-    Param1 = Param1;
-    Param2 = Param2;
-    Param3 = Param3;
-    Param4 = Param4;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Seq = Seq;
-    Command = Command;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Frame = Frame;
-    Current = Current;
-    Autocontinue = Autocontinue;
-    MissionType = MissionType;
+    this.Param1 = Param1;
+    this.Param2 = Param2;
+    this.Param3 = Param3;
+    this.Param4 = Param4;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Seq = Seq;
+    this.Command = Command;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Frame = Frame;
+    this.Current = Current;
+    this.Autocontinue = Autocontinue;
+    this.MissionType = MissionType;
   }
 
   public static MissionItem Parse(ReadOnlySpan<byte> data) {
@@ -14465,10 +14465,10 @@ public sealed class MissionRequest : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionRequest(ushort Seq, byte TargetSystem, byte TargetComponent, MavMissionType MissionType) {
-    Seq = Seq;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MissionType = MissionType;
+    this.Seq = Seq;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MissionType = MissionType;
   }
 
   public static MissionRequest Parse(ReadOnlySpan<byte> data) {
@@ -14534,9 +14534,9 @@ public sealed class MissionSetCurrent : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public MissionSetCurrent(ushort Seq, byte TargetSystem, byte TargetComponent) {
-    Seq = Seq;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Seq = Seq;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static MissionSetCurrent Parse(ReadOnlySpan<byte> data) {
@@ -14609,10 +14609,10 @@ public sealed class MissionCurrent : MavlinkMessage {
   public byte MissionMode { get; init; }
 
   public MissionCurrent(ushort Seq, ushort Total, MissionState MissionState, byte MissionMode) {
-    Seq = Seq;
-    Total = Total;
-    MissionState = MissionState;
-    MissionMode = MissionMode;
+    this.Seq = Seq;
+    this.Total = Total;
+    this.MissionState = MissionState;
+    this.MissionMode = MissionMode;
   }
 
   public static MissionCurrent Parse(ReadOnlySpan<byte> data) {
@@ -14680,9 +14680,9 @@ public sealed class MissionRequestList : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionRequestList(byte TargetSystem, byte TargetComponent, MavMissionType MissionType) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MissionType = MissionType;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MissionType = MissionType;
   }
 
   public static MissionRequestList Parse(ReadOnlySpan<byte> data) {
@@ -14754,10 +14754,10 @@ public sealed class MissionCount : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionCount(ushort Count, byte TargetSystem, byte TargetComponent, MavMissionType MissionType) {
-    Count = Count;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MissionType = MissionType;
+    this.Count = Count;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MissionType = MissionType;
   }
 
   public static MissionCount Parse(ReadOnlySpan<byte> data) {
@@ -14825,9 +14825,9 @@ public sealed class MissionClearAll : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionClearAll(byte TargetSystem, byte TargetComponent, MavMissionType MissionType) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MissionType = MissionType;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MissionType = MissionType;
   }
 
   public static MissionClearAll Parse(ReadOnlySpan<byte> data) {
@@ -14876,7 +14876,7 @@ public sealed class MissionItemReached : MavlinkMessage {
   public ushort Seq { get; init; }
 
   public MissionItemReached(ushort Seq) {
-    Seq = Seq;
+    this.Seq = Seq;
   }
 
   public static MissionItemReached Parse(ReadOnlySpan<byte> data) {
@@ -14942,10 +14942,10 @@ public sealed class MissionAck : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionAck(byte TargetSystem, byte TargetComponent, MavMissionResult Type, MavMissionType MissionType) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Type = Type;
-    MissionType = MissionType;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Type = Type;
+    this.MissionType = MissionType;
   }
 
   public static MissionAck Parse(ReadOnlySpan<byte> data) {
@@ -15031,11 +15031,11 @@ public sealed class SetGpsGlobalOrigin : MavlinkMessage {
   public ulong TimeUsec { get; init; }
 
   public SetGpsGlobalOrigin(int Latitude, int Longitude, int Altitude, byte TargetSystem, ulong TimeUsec) {
-    Latitude = Latitude;
-    Longitude = Longitude;
-    Altitude = Altitude;
-    TargetSystem = TargetSystem;
-    TimeUsec = TimeUsec;
+    this.Latitude = Latitude;
+    this.Longitude = Longitude;
+    this.Altitude = Altitude;
+    this.TargetSystem = TargetSystem;
+    this.TimeUsec = TimeUsec;
   }
 
   public static SetGpsGlobalOrigin Parse(ReadOnlySpan<byte> data) {
@@ -15115,10 +15115,10 @@ public sealed class GpsGlobalOrigin : MavlinkMessage {
   public ulong TimeUsec { get; init; }
 
   public GpsGlobalOrigin(int Latitude, int Longitude, int Altitude, ulong TimeUsec) {
-    Latitude = Latitude;
-    Longitude = Longitude;
-    Altitude = Altitude;
-    TimeUsec = TimeUsec;
+    this.Latitude = Latitude;
+    this.Longitude = Longitude;
+    this.Altitude = Altitude;
+    this.TimeUsec = TimeUsec;
   }
 
   public static GpsGlobalOrigin Parse(ReadOnlySpan<byte> data) {
@@ -15225,15 +15225,15 @@ public sealed class ParamMapRc : MavlinkMessage {
   public byte ParameterRcChannelIndex { get; init; }
 
   public ParamMapRc(float ParamValue0, float Scale, float ParamValueMin, float ParamValueMax, short ParamIndex, byte TargetSystem, byte TargetComponent, byte[] ParamId, byte ParameterRcChannelIndex) {
-    ParamValue0 = ParamValue0;
-    Scale = Scale;
-    ParamValueMin = ParamValueMin;
-    ParamValueMax = ParamValueMax;
-    ParamIndex = ParamIndex;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    ParamId = ParamId;
-    ParameterRcChannelIndex = ParameterRcChannelIndex;
+    this.ParamValue0 = ParamValue0;
+    this.Scale = Scale;
+    this.ParamValueMin = ParamValueMin;
+    this.ParamValueMax = ParamValueMax;
+    this.ParamIndex = ParamIndex;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.ParamId = ParamId;
+    this.ParameterRcChannelIndex = ParameterRcChannelIndex;
   }
 
   public static ParamMapRc Parse(ReadOnlySpan<byte> data) {
@@ -15322,10 +15322,10 @@ public sealed class MissionRequestInt : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionRequestInt(ushort Seq, byte TargetSystem, byte TargetComponent, MavMissionType MissionType) {
-    Seq = Seq;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MissionType = MissionType;
+    this.Seq = Seq;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MissionType = MissionType;
   }
 
   public static MissionRequestInt Parse(ReadOnlySpan<byte> data) {
@@ -15440,15 +15440,15 @@ public sealed class SafetySetAllowedArea : MavlinkMessage {
   public MavFrame Frame { get; init; }
 
   public SafetySetAllowedArea(float P1x, float P1y, float P1z, float P2x, float P2y, float P2z, byte TargetSystem, byte TargetComponent, MavFrame Frame) {
-    P1x = P1x;
-    P1y = P1y;
-    P1z = P1z;
-    P2x = P2x;
-    P2y = P2y;
-    P2z = P2z;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Frame = Frame;
+    this.P1x = P1x;
+    this.P1y = P1y;
+    this.P1z = P1z;
+    this.P2x = P2x;
+    this.P2y = P2y;
+    this.P2z = P2z;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Frame = Frame;
   }
 
   public static SafetySetAllowedArea Parse(ReadOnlySpan<byte> data) {
@@ -15564,13 +15564,13 @@ public sealed class SafetyAllowedArea : MavlinkMessage {
   public MavFrame Frame { get; init; }
 
   public SafetyAllowedArea(float P1x, float P1y, float P1z, float P2x, float P2y, float P2z, MavFrame Frame) {
-    P1x = P1x;
-    P1y = P1y;
-    P1z = P1z;
-    P2x = P2x;
-    P2y = P2y;
-    P2z = P2z;
-    Frame = Frame;
+    this.P1x = P1x;
+    this.P1y = P1y;
+    this.P1z = P1z;
+    this.P2x = P2x;
+    this.P2y = P2y;
+    this.P2z = P2z;
+    this.Frame = Frame;
   }
 
   public static SafetyAllowedArea Parse(ReadOnlySpan<byte> data) {
@@ -15670,12 +15670,12 @@ public sealed class AttitudeQuaternionCov : MavlinkMessage {
   public float[] Covariance { get; init; }
 
   public AttitudeQuaternionCov(ulong TimeUsec, float[] Q, float Rollspeed, float Pitchspeed, float Yawspeed, float[] Covariance) {
-    TimeUsec = TimeUsec;
-    Q = Q;
-    Rollspeed = Rollspeed;
-    Pitchspeed = Pitchspeed;
-    Yawspeed = Yawspeed;
-    Covariance = Covariance;
+    this.TimeUsec = TimeUsec;
+    this.Q = Q;
+    this.Rollspeed = Rollspeed;
+    this.Pitchspeed = Pitchspeed;
+    this.Yawspeed = Yawspeed;
+    this.Covariance = Covariance;
   }
 
   public static AttitudeQuaternionCov Parse(ReadOnlySpan<byte> data) {
@@ -15789,14 +15789,14 @@ public sealed class NavControllerOutput : MavlinkMessage {
   public ushort WpDist { get; init; }
 
   public NavControllerOutput(float NavRoll, float NavPitch, float AltError, float AspdError, float XtrackError, short NavBearing, short TargetBearing, ushort WpDist) {
-    NavRoll = NavRoll;
-    NavPitch = NavPitch;
-    AltError = AltError;
-    AspdError = AspdError;
-    XtrackError = XtrackError;
-    NavBearing = NavBearing;
-    TargetBearing = TargetBearing;
-    WpDist = WpDist;
+    this.NavRoll = NavRoll;
+    this.NavPitch = NavPitch;
+    this.AltError = AltError;
+    this.AspdError = AspdError;
+    this.XtrackError = XtrackError;
+    this.NavBearing = NavBearing;
+    this.TargetBearing = TargetBearing;
+    this.WpDist = WpDist;
   }
 
   public static NavControllerOutput Parse(ReadOnlySpan<byte> data) {
@@ -15931,16 +15931,16 @@ public sealed class GlobalPositionIntCov : MavlinkMessage {
   public MavEstimatorType EstimatorType { get; init; }
 
   public GlobalPositionIntCov(ulong TimeUsec, int Lat, int Lon, int Alt, int RelativeAlt, float Vx, float Vy, float Vz, float[] Covariance, MavEstimatorType EstimatorType) {
-    TimeUsec = TimeUsec;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    RelativeAlt = RelativeAlt;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Covariance = Covariance;
-    EstimatorType = EstimatorType;
+    this.TimeUsec = TimeUsec;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.RelativeAlt = RelativeAlt;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Covariance = Covariance;
+    this.EstimatorType = EstimatorType;
   }
 
   public static GlobalPositionIntCov Parse(ReadOnlySpan<byte> data) {
@@ -16098,18 +16098,18 @@ public sealed class LocalPositionNedCov : MavlinkMessage {
   public MavEstimatorType EstimatorType { get; init; }
 
   public LocalPositionNedCov(ulong TimeUsec, float X, float Y, float Z, float Vx, float Vy, float Vz, float Ax, float Ay, float Az, float[] Covariance, MavEstimatorType EstimatorType) {
-    TimeUsec = TimeUsec;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Ax = Ax;
-    Ay = Ay;
-    Az = Az;
-    Covariance = Covariance;
-    EstimatorType = EstimatorType;
+    this.TimeUsec = TimeUsec;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Ax = Ax;
+    this.Ay = Ay;
+    this.Az = Az;
+    this.Covariance = Covariance;
+    this.EstimatorType = EstimatorType;
   }
 
   public static LocalPositionNedCov Parse(ReadOnlySpan<byte> data) {
@@ -16344,27 +16344,27 @@ public sealed class RcChannels : MavlinkMessage {
   public byte Rssi { get; init; }
 
   public RcChannels(uint TimeBootMs, ushort Chan1Raw, ushort Chan2Raw, ushort Chan3Raw, ushort Chan4Raw, ushort Chan5Raw, ushort Chan6Raw, ushort Chan7Raw, ushort Chan8Raw, ushort Chan9Raw, ushort Chan10Raw, ushort Chan11Raw, ushort Chan12Raw, ushort Chan13Raw, ushort Chan14Raw, ushort Chan15Raw, ushort Chan16Raw, ushort Chan17Raw, ushort Chan18Raw, byte Chancount, byte Rssi) {
-    TimeBootMs = TimeBootMs;
-    Chan1Raw = Chan1Raw;
-    Chan2Raw = Chan2Raw;
-    Chan3Raw = Chan3Raw;
-    Chan4Raw = Chan4Raw;
-    Chan5Raw = Chan5Raw;
-    Chan6Raw = Chan6Raw;
-    Chan7Raw = Chan7Raw;
-    Chan8Raw = Chan8Raw;
-    Chan9Raw = Chan9Raw;
-    Chan10Raw = Chan10Raw;
-    Chan11Raw = Chan11Raw;
-    Chan12Raw = Chan12Raw;
-    Chan13Raw = Chan13Raw;
-    Chan14Raw = Chan14Raw;
-    Chan15Raw = Chan15Raw;
-    Chan16Raw = Chan16Raw;
-    Chan17Raw = Chan17Raw;
-    Chan18Raw = Chan18Raw;
-    Chancount = Chancount;
-    Rssi = Rssi;
+    this.TimeBootMs = TimeBootMs;
+    this.Chan1Raw = Chan1Raw;
+    this.Chan2Raw = Chan2Raw;
+    this.Chan3Raw = Chan3Raw;
+    this.Chan4Raw = Chan4Raw;
+    this.Chan5Raw = Chan5Raw;
+    this.Chan6Raw = Chan6Raw;
+    this.Chan7Raw = Chan7Raw;
+    this.Chan8Raw = Chan8Raw;
+    this.Chan9Raw = Chan9Raw;
+    this.Chan10Raw = Chan10Raw;
+    this.Chan11Raw = Chan11Raw;
+    this.Chan12Raw = Chan12Raw;
+    this.Chan13Raw = Chan13Raw;
+    this.Chan14Raw = Chan14Raw;
+    this.Chan15Raw = Chan15Raw;
+    this.Chan16Raw = Chan16Raw;
+    this.Chan17Raw = Chan17Raw;
+    this.Chan18Raw = Chan18Raw;
+    this.Chancount = Chancount;
+    this.Rssi = Rssi;
   }
 
   public static RcChannels Parse(ReadOnlySpan<byte> data) {
@@ -16495,11 +16495,11 @@ public sealed class RequestDataStream : MavlinkMessage {
   public byte StartStop { get; init; }
 
   public RequestDataStream(ushort ReqMessageRate, byte TargetSystem, byte TargetComponent, byte ReqStreamId, byte StartStop) {
-    ReqMessageRate = ReqMessageRate;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    ReqStreamId = ReqStreamId;
-    StartStop = StartStop;
+    this.ReqMessageRate = ReqMessageRate;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.ReqStreamId = ReqStreamId;
+    this.StartStop = StartStop;
   }
 
   public static RequestDataStream Parse(ReadOnlySpan<byte> data) {
@@ -16568,9 +16568,9 @@ public sealed class DataStream : MavlinkMessage {
   public byte OnOff { get; init; }
 
   public DataStream(ushort MessageRate, byte StreamId, byte OnOff) {
-    MessageRate = MessageRate;
-    StreamId = StreamId;
-    OnOff = OnOff;
+    this.MessageRate = MessageRate;
+    this.StreamId = StreamId;
+    this.OnOff = OnOff;
   }
 
   public static DataStream Parse(ReadOnlySpan<byte> data) {
@@ -16733,22 +16733,22 @@ public sealed class ManualControl : MavlinkMessage {
   public short Aux6 { get; init; }
 
   public ManualControl(short X, short Y, short Z, short R, ushort Buttons, byte Target, ushort Buttons2, byte EnabledExtensions, short S, short T, short Aux1, short Aux2, short Aux3, short Aux4, short Aux5, short Aux6) {
-    X = X;
-    Y = Y;
-    Z = Z;
-    R = R;
-    Buttons = Buttons;
-    Target = Target;
-    Buttons2 = Buttons2;
-    EnabledExtensions = EnabledExtensions;
-    S = S;
-    T = T;
-    Aux1 = Aux1;
-    Aux2 = Aux2;
-    Aux3 = Aux3;
-    Aux4 = Aux4;
-    Aux5 = Aux5;
-    Aux6 = Aux6;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.R = R;
+    this.Buttons = Buttons;
+    this.Target = Target;
+    this.Buttons2 = Buttons2;
+    this.EnabledExtensions = EnabledExtensions;
+    this.S = S;
+    this.T = T;
+    this.Aux1 = Aux1;
+    this.Aux2 = Aux2;
+    this.Aux3 = Aux3;
+    this.Aux4 = Aux4;
+    this.Aux5 = Aux5;
+    this.Aux6 = Aux6;
   }
 
   public static ManualControl Parse(ReadOnlySpan<byte> data) {
@@ -16996,26 +16996,26 @@ public sealed class RcChannelsOverride : MavlinkMessage {
   public ushort Chan18Raw { get; init; }
 
   public RcChannelsOverride(ushort Chan1Raw, ushort Chan2Raw, ushort Chan3Raw, ushort Chan4Raw, ushort Chan5Raw, ushort Chan6Raw, ushort Chan7Raw, ushort Chan8Raw, byte TargetSystem, byte TargetComponent, ushort Chan9Raw, ushort Chan10Raw, ushort Chan11Raw, ushort Chan12Raw, ushort Chan13Raw, ushort Chan14Raw, ushort Chan15Raw, ushort Chan16Raw, ushort Chan17Raw, ushort Chan18Raw) {
-    Chan1Raw = Chan1Raw;
-    Chan2Raw = Chan2Raw;
-    Chan3Raw = Chan3Raw;
-    Chan4Raw = Chan4Raw;
-    Chan5Raw = Chan5Raw;
-    Chan6Raw = Chan6Raw;
-    Chan7Raw = Chan7Raw;
-    Chan8Raw = Chan8Raw;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Chan9Raw = Chan9Raw;
-    Chan10Raw = Chan10Raw;
-    Chan11Raw = Chan11Raw;
-    Chan12Raw = Chan12Raw;
-    Chan13Raw = Chan13Raw;
-    Chan14Raw = Chan14Raw;
-    Chan15Raw = Chan15Raw;
-    Chan16Raw = Chan16Raw;
-    Chan17Raw = Chan17Raw;
-    Chan18Raw = Chan18Raw;
+    this.Chan1Raw = Chan1Raw;
+    this.Chan2Raw = Chan2Raw;
+    this.Chan3Raw = Chan3Raw;
+    this.Chan4Raw = Chan4Raw;
+    this.Chan5Raw = Chan5Raw;
+    this.Chan6Raw = Chan6Raw;
+    this.Chan7Raw = Chan7Raw;
+    this.Chan8Raw = Chan8Raw;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Chan9Raw = Chan9Raw;
+    this.Chan10Raw = Chan10Raw;
+    this.Chan11Raw = Chan11Raw;
+    this.Chan12Raw = Chan12Raw;
+    this.Chan13Raw = Chan13Raw;
+    this.Chan14Raw = Chan14Raw;
+    this.Chan15Raw = Chan15Raw;
+    this.Chan16Raw = Chan16Raw;
+    this.Chan17Raw = Chan17Raw;
+    this.Chan18Raw = Chan18Raw;
   }
 
   public static RcChannelsOverride Parse(ReadOnlySpan<byte> data) {
@@ -17217,21 +17217,21 @@ public sealed class MissionItemInt : MavlinkMessage {
   public MavMissionType MissionType { get; init; }
 
   public MissionItemInt(float Param1, float Param2, float Param3, float Param4, int X, int Y, float Z, ushort Seq, MavCmd Command, byte TargetSystem, byte TargetComponent, MavFrame Frame, byte Current, byte Autocontinue, MavMissionType MissionType) {
-    Param1 = Param1;
-    Param2 = Param2;
-    Param3 = Param3;
-    Param4 = Param4;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Seq = Seq;
-    Command = Command;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Frame = Frame;
-    Current = Current;
-    Autocontinue = Autocontinue;
-    MissionType = MissionType;
+    this.Param1 = Param1;
+    this.Param2 = Param2;
+    this.Param3 = Param3;
+    this.Param4 = Param4;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Seq = Seq;
+    this.Command = Command;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Frame = Frame;
+    this.Current = Current;
+    this.Autocontinue = Autocontinue;
+    this.MissionType = MissionType;
   }
 
   public static MissionItemInt Parse(ReadOnlySpan<byte> data) {
@@ -17359,12 +17359,12 @@ public sealed class VfrHud : MavlinkMessage {
   public ushort Throttle { get; init; }
 
   public VfrHud(float Airspeed, float Groundspeed, float Alt, float Climb, short Heading, ushort Throttle) {
-    Airspeed = Airspeed;
-    Groundspeed = Groundspeed;
-    Alt = Alt;
-    Climb = Climb;
-    Heading = Heading;
-    Throttle = Throttle;
+    this.Airspeed = Airspeed;
+    this.Groundspeed = Groundspeed;
+    this.Alt = Alt;
+    this.Climb = Climb;
+    this.Heading = Heading;
+    this.Throttle = Throttle;
   }
 
   public static VfrHud Parse(ReadOnlySpan<byte> data) {
@@ -17507,19 +17507,19 @@ public sealed class CommandInt : MavlinkMessage {
   public byte Autocontinue { get; init; }
 
   public CommandInt(float Param1, float Param2, float Param3, float Param4, int X, int Y, float Z, MavCmd Command, byte TargetSystem, byte TargetComponent, MavFrame Frame, byte Current, byte Autocontinue) {
-    Param1 = Param1;
-    Param2 = Param2;
-    Param3 = Param3;
-    Param4 = Param4;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Command = Command;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Frame = Frame;
-    Current = Current;
-    Autocontinue = Autocontinue;
+    this.Param1 = Param1;
+    this.Param2 = Param2;
+    this.Param3 = Param3;
+    this.Param4 = Param4;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Command = Command;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Frame = Frame;
+    this.Current = Current;
+    this.Autocontinue = Autocontinue;
   }
 
   public static CommandInt Parse(ReadOnlySpan<byte> data) {
@@ -17670,17 +17670,17 @@ public sealed class CommandLong : MavlinkMessage {
   public byte Confirmation { get; init; }
 
   public CommandLong(float Param1, float Param2, float Param3, float Param4, float Param5, float Param6, float Param7, MavCmd Command, byte TargetSystem, byte TargetComponent, byte Confirmation) {
-    Param1 = Param1;
-    Param2 = Param2;
-    Param3 = Param3;
-    Param4 = Param4;
-    Param5 = Param5;
-    Param6 = Param6;
-    Param7 = Param7;
-    Command = Command;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Confirmation = Confirmation;
+    this.Param1 = Param1;
+    this.Param2 = Param2;
+    this.Param3 = Param3;
+    this.Param4 = Param4;
+    this.Param5 = Param5;
+    this.Param6 = Param6;
+    this.Param7 = Param7;
+    this.Command = Command;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Confirmation = Confirmation;
   }
 
   public static CommandLong Parse(ReadOnlySpan<byte> data) {
@@ -17794,12 +17794,12 @@ public sealed class CommandAck : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public CommandAck(MavCmd Command, MavResult Result, byte Progress, int ResultParam2, byte TargetSystem, byte TargetComponent) {
-    Command = Command;
-    Result = Result;
-    Progress = Progress;
-    ResultParam2 = ResultParam2;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Command = Command;
+    this.Result = Result;
+    this.Progress = Progress;
+    this.ResultParam2 = ResultParam2;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static CommandAck Parse(ReadOnlySpan<byte> data) {
@@ -17904,13 +17904,13 @@ public sealed class ManualSetpoint : MavlinkMessage {
   public byte ManualOverrideSwitch { get; init; }
 
   public ManualSetpoint(uint TimeBootMs, float Roll, float Pitch, float Yaw, float Thrust, byte ModeSwitch, byte ManualOverrideSwitch) {
-    TimeBootMs = TimeBootMs;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Thrust = Thrust;
-    ModeSwitch = ModeSwitch;
-    ManualOverrideSwitch = ManualOverrideSwitch;
+    this.TimeBootMs = TimeBootMs;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Thrust = Thrust;
+    this.ModeSwitch = ModeSwitch;
+    this.ManualOverrideSwitch = ManualOverrideSwitch;
   }
 
   public static ManualSetpoint Parse(ReadOnlySpan<byte> data) {
@@ -18031,15 +18031,15 @@ public sealed class SetAttitudeTarget : MavlinkMessage {
   public byte TypeMask { get; init; }
 
   public SetAttitudeTarget(uint TimeBootMs, float[] Q, float BodyRollRate, float BodyPitchRate, float BodyYawRate, float Thrust, byte TargetSystem, byte TargetComponent, byte TypeMask) {
-    TimeBootMs = TimeBootMs;
-    Q = Q;
-    BodyRollRate = BodyRollRate;
-    BodyPitchRate = BodyPitchRate;
-    BodyYawRate = BodyYawRate;
-    Thrust = Thrust;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    TypeMask = TypeMask;
+    this.TimeBootMs = TimeBootMs;
+    this.Q = Q;
+    this.BodyRollRate = BodyRollRate;
+    this.BodyPitchRate = BodyPitchRate;
+    this.BodyYawRate = BodyYawRate;
+    this.Thrust = Thrust;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.TypeMask = TypeMask;
   }
 
   public static SetAttitudeTarget Parse(ReadOnlySpan<byte> data) {
@@ -18152,13 +18152,13 @@ public sealed class AttitudeTarget : MavlinkMessage {
   public byte TypeMask { get; init; }
 
   public AttitudeTarget(uint TimeBootMs, float[] Q, float BodyRollRate, float BodyPitchRate, float BodyYawRate, float Thrust, byte TypeMask) {
-    TimeBootMs = TimeBootMs;
-    Q = Q;
-    BodyRollRate = BodyRollRate;
-    BodyPitchRate = BodyPitchRate;
-    BodyYawRate = BodyYawRate;
-    Thrust = Thrust;
-    TypeMask = TypeMask;
+    this.TimeBootMs = TimeBootMs;
+    this.Q = Q;
+    this.BodyRollRate = BodyRollRate;
+    this.BodyPitchRate = BodyPitchRate;
+    this.BodyYawRate = BodyYawRate;
+    this.Thrust = Thrust;
+    this.TypeMask = TypeMask;
   }
 
   public static AttitudeTarget Parse(ReadOnlySpan<byte> data) {
@@ -18337,22 +18337,22 @@ public sealed class SetPositionTargetLocalNed : MavlinkMessage {
   public MavFrame CoordinateFrame { get; init; }
 
   public SetPositionTargetLocalNed(uint TimeBootMs, float X, float Y, float Z, float Vx, float Vy, float Vz, float Afx, float Afy, float Afz, float Yaw, float YawRate, ushort TypeMask, byte TargetSystem, byte TargetComponent, MavFrame CoordinateFrame) {
-    TimeBootMs = TimeBootMs;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Afx = Afx;
-    Afy = Afy;
-    Afz = Afz;
-    Yaw = Yaw;
-    YawRate = YawRate;
-    TypeMask = TypeMask;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    CoordinateFrame = CoordinateFrame;
+    this.TimeBootMs = TimeBootMs;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Afx = Afx;
+    this.Afy = Afy;
+    this.Afz = Afz;
+    this.Yaw = Yaw;
+    this.YawRate = YawRate;
+    this.TypeMask = TypeMask;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.CoordinateFrame = CoordinateFrame;
   }
 
   public static SetPositionTargetLocalNed Parse(ReadOnlySpan<byte> data) {
@@ -18545,20 +18545,20 @@ public sealed class PositionTargetLocalNed : MavlinkMessage {
   public MavFrame CoordinateFrame { get; init; }
 
   public PositionTargetLocalNed(uint TimeBootMs, float X, float Y, float Z, float Vx, float Vy, float Vz, float Afx, float Afy, float Afz, float Yaw, float YawRate, ushort TypeMask, MavFrame CoordinateFrame) {
-    TimeBootMs = TimeBootMs;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Afx = Afx;
-    Afy = Afy;
-    Afz = Afz;
-    Yaw = Yaw;
-    YawRate = YawRate;
-    TypeMask = TypeMask;
-    CoordinateFrame = CoordinateFrame;
+    this.TimeBootMs = TimeBootMs;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Afx = Afx;
+    this.Afy = Afy;
+    this.Afz = Afz;
+    this.Yaw = Yaw;
+    this.YawRate = YawRate;
+    this.TypeMask = TypeMask;
+    this.CoordinateFrame = CoordinateFrame;
   }
 
   public static PositionTargetLocalNed Parse(ReadOnlySpan<byte> data) {
@@ -18759,22 +18759,22 @@ public sealed class SetPositionTargetGlobalInt : MavlinkMessage {
   public MavFrame CoordinateFrame { get; init; }
 
   public SetPositionTargetGlobalInt(uint TimeBootMs, int LatInt, int LonInt, float Alt, float Vx, float Vy, float Vz, float Afx, float Afy, float Afz, float Yaw, float YawRate, ushort TypeMask, byte TargetSystem, byte TargetComponent, MavFrame CoordinateFrame) {
-    TimeBootMs = TimeBootMs;
-    LatInt = LatInt;
-    LonInt = LonInt;
-    Alt = Alt;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Afx = Afx;
-    Afy = Afy;
-    Afz = Afz;
-    Yaw = Yaw;
-    YawRate = YawRate;
-    TypeMask = TypeMask;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    CoordinateFrame = CoordinateFrame;
+    this.TimeBootMs = TimeBootMs;
+    this.LatInt = LatInt;
+    this.LonInt = LonInt;
+    this.Alt = Alt;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Afx = Afx;
+    this.Afy = Afy;
+    this.Afz = Afz;
+    this.Yaw = Yaw;
+    this.YawRate = YawRate;
+    this.TypeMask = TypeMask;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.CoordinateFrame = CoordinateFrame;
   }
 
   public static SetPositionTargetGlobalInt Parse(ReadOnlySpan<byte> data) {
@@ -18967,20 +18967,20 @@ public sealed class PositionTargetGlobalInt : MavlinkMessage {
   public MavFrame CoordinateFrame { get; init; }
 
   public PositionTargetGlobalInt(uint TimeBootMs, int LatInt, int LonInt, float Alt, float Vx, float Vy, float Vz, float Afx, float Afy, float Afz, float Yaw, float YawRate, ushort TypeMask, MavFrame CoordinateFrame) {
-    TimeBootMs = TimeBootMs;
-    LatInt = LatInt;
-    LonInt = LonInt;
-    Alt = Alt;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Afx = Afx;
-    Afy = Afy;
-    Afz = Afz;
-    Yaw = Yaw;
-    YawRate = YawRate;
-    TypeMask = TypeMask;
-    CoordinateFrame = CoordinateFrame;
+    this.TimeBootMs = TimeBootMs;
+    this.LatInt = LatInt;
+    this.LonInt = LonInt;
+    this.Alt = Alt;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Afx = Afx;
+    this.Afy = Afy;
+    this.Afz = Afz;
+    this.Yaw = Yaw;
+    this.YawRate = YawRate;
+    this.TypeMask = TypeMask;
+    this.CoordinateFrame = CoordinateFrame;
   }
 
   public static PositionTargetGlobalInt Parse(ReadOnlySpan<byte> data) {
@@ -19111,13 +19111,13 @@ public sealed class LocalPositionNedSystemGlobalOffset : MavlinkMessage {
   public float Yaw { get; init; }
 
   public LocalPositionNedSystemGlobalOffset(uint TimeBootMs, float X, float Y, float Z, float Roll, float Pitch, float Yaw) {
-    TimeBootMs = TimeBootMs;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
+    this.TimeBootMs = TimeBootMs;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
   }
 
   public static LocalPositionNedSystemGlobalOffset Parse(ReadOnlySpan<byte> data) {
@@ -19298,22 +19298,22 @@ public sealed class HilState : MavlinkMessage {
   public short Zacc { get; init; }
 
   public HilState(ulong TimeUsec, float Roll, float Pitch, float Yaw, float Rollspeed, float Pitchspeed, float Yawspeed, int Lat, int Lon, int Alt, short Vx, short Vy, short Vz, short Xacc, short Yacc, short Zacc) {
-    TimeUsec = TimeUsec;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Rollspeed = Rollspeed;
-    Pitchspeed = Pitchspeed;
-    Yawspeed = Yawspeed;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
+    this.TimeUsec = TimeUsec;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Rollspeed = Rollspeed;
+    this.Pitchspeed = Pitchspeed;
+    this.Yawspeed = Yawspeed;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
   }
 
   public static HilState Parse(ReadOnlySpan<byte> data) {
@@ -19472,17 +19472,17 @@ public sealed class HilControls : MavlinkMessage {
   public byte NavMode { get; init; }
 
   public HilControls(ulong TimeUsec, float RollAilerons, float PitchElevator, float YawRudder, float Throttle, float Aux1, float Aux2, float Aux3, float Aux4, MavMode Mode, byte NavMode) {
-    TimeUsec = TimeUsec;
-    RollAilerons = RollAilerons;
-    PitchElevator = PitchElevator;
-    YawRudder = YawRudder;
-    Throttle = Throttle;
-    Aux1 = Aux1;
-    Aux2 = Aux2;
-    Aux3 = Aux3;
-    Aux4 = Aux4;
-    Mode = Mode;
-    NavMode = NavMode;
+    this.TimeUsec = TimeUsec;
+    this.RollAilerons = RollAilerons;
+    this.PitchElevator = PitchElevator;
+    this.YawRudder = YawRudder;
+    this.Throttle = Throttle;
+    this.Aux1 = Aux1;
+    this.Aux2 = Aux2;
+    this.Aux3 = Aux3;
+    this.Aux4 = Aux4;
+    this.Mode = Mode;
+    this.NavMode = NavMode;
   }
 
   public static HilControls Parse(ReadOnlySpan<byte> data) {
@@ -19659,20 +19659,20 @@ public sealed class HilRcInputsRaw : MavlinkMessage {
   public byte Rssi { get; init; }
 
   public HilRcInputsRaw(ulong TimeUsec, ushort Chan1Raw, ushort Chan2Raw, ushort Chan3Raw, ushort Chan4Raw, ushort Chan5Raw, ushort Chan6Raw, ushort Chan7Raw, ushort Chan8Raw, ushort Chan9Raw, ushort Chan10Raw, ushort Chan11Raw, ushort Chan12Raw, byte Rssi) {
-    TimeUsec = TimeUsec;
-    Chan1Raw = Chan1Raw;
-    Chan2Raw = Chan2Raw;
-    Chan3Raw = Chan3Raw;
-    Chan4Raw = Chan4Raw;
-    Chan5Raw = Chan5Raw;
-    Chan6Raw = Chan6Raw;
-    Chan7Raw = Chan7Raw;
-    Chan8Raw = Chan8Raw;
-    Chan9Raw = Chan9Raw;
-    Chan10Raw = Chan10Raw;
-    Chan11Raw = Chan11Raw;
-    Chan12Raw = Chan12Raw;
-    Rssi = Rssi;
+    this.TimeUsec = TimeUsec;
+    this.Chan1Raw = Chan1Raw;
+    this.Chan2Raw = Chan2Raw;
+    this.Chan3Raw = Chan3Raw;
+    this.Chan4Raw = Chan4Raw;
+    this.Chan5Raw = Chan5Raw;
+    this.Chan6Raw = Chan6Raw;
+    this.Chan7Raw = Chan7Raw;
+    this.Chan8Raw = Chan8Raw;
+    this.Chan9Raw = Chan9Raw;
+    this.Chan10Raw = Chan10Raw;
+    this.Chan11Raw = Chan11Raw;
+    this.Chan12Raw = Chan12Raw;
+    this.Rssi = Rssi;
   }
 
   public static HilRcInputsRaw Parse(ReadOnlySpan<byte> data) {
@@ -19776,10 +19776,10 @@ public sealed class HilActuatorControls : MavlinkMessage {
   public byte Mode { get; init; }
 
   public HilActuatorControls(ulong TimeUsec, ulong Flags, float[] Controls, byte Mode) {
-    TimeUsec = TimeUsec;
-    Flags = Flags;
-    Controls = Controls;
-    Mode = Mode;
+    this.TimeUsec = TimeUsec;
+    this.Flags = Flags;
+    this.Controls = Controls;
+    this.Mode = Mode;
   }
 
   public static HilActuatorControls Parse(ReadOnlySpan<byte> data) {
@@ -19903,16 +19903,16 @@ public sealed class OpticalFlow : MavlinkMessage {
   public float FlowRateY { get; init; }
 
   public OpticalFlow(ulong TimeUsec, float FlowCompMX, float FlowCompMY, float GroundDistance, short FlowX, short FlowY, byte SensorId, byte Quality, float FlowRateX, float FlowRateY) {
-    TimeUsec = TimeUsec;
-    FlowCompMX = FlowCompMX;
-    FlowCompMY = FlowCompMY;
-    GroundDistance = GroundDistance;
-    FlowX = FlowX;
-    FlowY = FlowY;
-    SensorId = SensorId;
-    Quality = Quality;
-    FlowRateX = FlowRateX;
-    FlowRateY = FlowRateY;
+    this.TimeUsec = TimeUsec;
+    this.FlowCompMX = FlowCompMX;
+    this.FlowCompMY = FlowCompMY;
+    this.GroundDistance = GroundDistance;
+    this.FlowX = FlowX;
+    this.FlowY = FlowY;
+    this.SensorId = SensorId;
+    this.Quality = Quality;
+    this.FlowRateX = FlowRateX;
+    this.FlowRateY = FlowRateY;
   }
 
   public static OpticalFlow Parse(ReadOnlySpan<byte> data) {
@@ -20046,15 +20046,15 @@ public sealed class GlobalVisionPositionEstimate : MavlinkMessage {
   public byte ResetCounter { get; init; }
 
   public GlobalVisionPositionEstimate(ulong Usec, float X, float Y, float Z, float Roll, float Pitch, float Yaw, float[] Covariance, byte ResetCounter) {
-    Usec = Usec;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Covariance = Covariance;
-    ResetCounter = ResetCounter;
+    this.Usec = Usec;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Covariance = Covariance;
+    this.ResetCounter = ResetCounter;
   }
 
   public static GlobalVisionPositionEstimate Parse(ReadOnlySpan<byte> data) {
@@ -20185,15 +20185,15 @@ public sealed class VisionPositionEstimate : MavlinkMessage {
   public byte ResetCounter { get; init; }
 
   public VisionPositionEstimate(ulong Usec, float X, float Y, float Z, float Roll, float Pitch, float Yaw, float[] Covariance, byte ResetCounter) {
-    Usec = Usec;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Covariance = Covariance;
-    ResetCounter = ResetCounter;
+    this.Usec = Usec;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Covariance = Covariance;
+    this.ResetCounter = ResetCounter;
   }
 
   public static VisionPositionEstimate Parse(ReadOnlySpan<byte> data) {
@@ -20300,12 +20300,12 @@ public sealed class VisionSpeedEstimate : MavlinkMessage {
   public byte ResetCounter { get; init; }
 
   public VisionSpeedEstimate(ulong Usec, float X, float Y, float Z, float[] Covariance, byte ResetCounter) {
-    Usec = Usec;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Covariance = Covariance;
-    ResetCounter = ResetCounter;
+    this.Usec = Usec;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Covariance = Covariance;
+    this.ResetCounter = ResetCounter;
   }
 
   public static VisionSpeedEstimate Parse(ReadOnlySpan<byte> data) {
@@ -20419,14 +20419,14 @@ public sealed class ViconPositionEstimate : MavlinkMessage {
   public float[] Covariance { get; init; }
 
   public ViconPositionEstimate(ulong Usec, float X, float Y, float Z, float Roll, float Pitch, float Yaw, float[] Covariance) {
-    Usec = Usec;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Covariance = Covariance;
+    this.Usec = Usec;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Covariance = Covariance;
   }
 
   public static ViconPositionEstimate Parse(ReadOnlySpan<byte> data) {
@@ -20608,22 +20608,22 @@ public sealed class HighresImu : MavlinkMessage {
   public byte Id { get; init; }
 
   public HighresImu(ulong TimeUsec, float Xacc, float Yacc, float Zacc, float Xgyro, float Ygyro, float Zgyro, float Xmag, float Ymag, float Zmag, float AbsPressure, float DiffPressure, float PressureAlt, float Temperature, ushort FieldsUpdated, byte Id) {
-    TimeUsec = TimeUsec;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Xmag = Xmag;
-    Ymag = Ymag;
-    Zmag = Zmag;
-    AbsPressure = AbsPressure;
-    DiffPressure = DiffPressure;
-    PressureAlt = PressureAlt;
-    Temperature = Temperature;
-    FieldsUpdated = FieldsUpdated;
-    Id = Id;
+    this.TimeUsec = TimeUsec;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Xmag = Xmag;
+    this.Ymag = Ymag;
+    this.Zmag = Zmag;
+    this.AbsPressure = AbsPressure;
+    this.DiffPressure = DiffPressure;
+    this.PressureAlt = PressureAlt;
+    this.Temperature = Temperature;
+    this.FieldsUpdated = FieldsUpdated;
+    this.Id = Id;
   }
 
   public static HighresImu Parse(ReadOnlySpan<byte> data) {
@@ -20797,18 +20797,18 @@ public sealed class OpticalFlowRad : MavlinkMessage {
   public byte Quality { get; init; }
 
   public OpticalFlowRad(ulong TimeUsec, uint IntegrationTimeUs, float IntegratedX, float IntegratedY, float IntegratedXgyro, float IntegratedYgyro, float IntegratedZgyro, uint TimeDeltaDistanceUs, float Distance, short Temperature, byte SensorId, byte Quality) {
-    TimeUsec = TimeUsec;
-    IntegrationTimeUs = IntegrationTimeUs;
-    IntegratedX = IntegratedX;
-    IntegratedY = IntegratedY;
-    IntegratedXgyro = IntegratedXgyro;
-    IntegratedYgyro = IntegratedYgyro;
-    IntegratedZgyro = IntegratedZgyro;
-    TimeDeltaDistanceUs = TimeDeltaDistanceUs;
-    Distance = Distance;
-    Temperature = Temperature;
-    SensorId = SensorId;
-    Quality = Quality;
+    this.TimeUsec = TimeUsec;
+    this.IntegrationTimeUs = IntegrationTimeUs;
+    this.IntegratedX = IntegratedX;
+    this.IntegratedY = IntegratedY;
+    this.IntegratedXgyro = IntegratedXgyro;
+    this.IntegratedYgyro = IntegratedYgyro;
+    this.IntegratedZgyro = IntegratedZgyro;
+    this.TimeDeltaDistanceUs = TimeDeltaDistanceUs;
+    this.Distance = Distance;
+    this.Temperature = Temperature;
+    this.SensorId = SensorId;
+    this.Quality = Quality;
   }
 
   public static OpticalFlowRad Parse(ReadOnlySpan<byte> data) {
@@ -21002,22 +21002,22 @@ public sealed class HilSensor : MavlinkMessage {
   public byte Id { get; init; }
 
   public HilSensor(ulong TimeUsec, float Xacc, float Yacc, float Zacc, float Xgyro, float Ygyro, float Zgyro, float Xmag, float Ymag, float Zmag, float AbsPressure, float DiffPressure, float PressureAlt, float Temperature, uint FieldsUpdated, byte Id) {
-    TimeUsec = TimeUsec;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Xmag = Xmag;
-    Ymag = Ymag;
-    Zmag = Zmag;
-    AbsPressure = AbsPressure;
-    DiffPressure = DiffPressure;
-    PressureAlt = PressureAlt;
-    Temperature = Temperature;
-    FieldsUpdated = FieldsUpdated;
-    Id = Id;
+    this.TimeUsec = TimeUsec;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Xmag = Xmag;
+    this.Ymag = Ymag;
+    this.Zmag = Zmag;
+    this.AbsPressure = AbsPressure;
+    this.DiffPressure = DiffPressure;
+    this.PressureAlt = PressureAlt;
+    this.Temperature = Temperature;
+    this.FieldsUpdated = FieldsUpdated;
+    this.Id = Id;
   }
 
   public static HilSensor Parse(ReadOnlySpan<byte> data) {
@@ -21274,29 +21274,29 @@ public sealed class SimState : MavlinkMessage {
   public int LonInt { get; init; }
 
   public SimState(float Q1, float Q2, float Q3, float Q4, float Roll, float Pitch, float Yaw, float Xacc, float Yacc, float Zacc, float Xgyro, float Ygyro, float Zgyro, float Lat, float Lon, float Alt, float StdDevHorz, float StdDevVert, float Vn, float Ve, float Vd, int LatInt, int LonInt) {
-    Q1 = Q1;
-    Q2 = Q2;
-    Q3 = Q3;
-    Q4 = Q4;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    StdDevHorz = StdDevHorz;
-    StdDevVert = StdDevVert;
-    Vn = Vn;
-    Ve = Ve;
-    Vd = Vd;
-    LatInt = LatInt;
-    LonInt = LonInt;
+    this.Q1 = Q1;
+    this.Q2 = Q2;
+    this.Q3 = Q3;
+    this.Q4 = Q4;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.StdDevHorz = StdDevHorz;
+    this.StdDevVert = StdDevVert;
+    this.Vn = Vn;
+    this.Ve = Ve;
+    this.Vd = Vd;
+    this.LatInt = LatInt;
+    this.LonInt = LonInt;
   }
 
   public static SimState Parse(ReadOnlySpan<byte> data) {
@@ -21447,13 +21447,13 @@ public sealed class RadioStatus : MavlinkMessage {
   public byte Remnoise { get; init; }
 
   public RadioStatus(ushort Rxerrors, ushort Fixed, byte Rssi, byte Remrssi, byte Txbuf, byte Noise, byte Remnoise) {
-    Rxerrors = Rxerrors;
-    Fixed = Fixed;
-    Rssi = Rssi;
-    Remrssi = Remrssi;
-    Txbuf = Txbuf;
-    Noise = Noise;
-    Remnoise = Remnoise;
+    this.Rxerrors = Rxerrors;
+    this.Fixed = Fixed;
+    this.Rssi = Rssi;
+    this.Remrssi = Remrssi;
+    this.Txbuf = Txbuf;
+    this.Noise = Noise;
+    this.Remnoise = Remnoise;
   }
 
   public static RadioStatus Parse(ReadOnlySpan<byte> data) {
@@ -21534,10 +21534,10 @@ public sealed class FileTransferProtocol : MavlinkMessage {
   public byte[] Payload { get; init; }
 
   public FileTransferProtocol(byte TargetNetwork, byte TargetSystem, byte TargetComponent, byte[] Payload) {
-    TargetNetwork = TargetNetwork;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Payload = Payload;
+    this.TargetNetwork = TargetNetwork;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Payload = Payload;
   }
 
   public static FileTransferProtocol Parse(ReadOnlySpan<byte> data) {
@@ -21595,8 +21595,8 @@ public sealed class Timesync : MavlinkMessage {
   public long Ts1 { get; init; }
 
   public Timesync(long Tc1, long Ts1) {
-    Tc1 = Tc1;
-    Ts1 = Ts1;
+    this.Tc1 = Tc1;
+    this.Ts1 = Ts1;
   }
 
   public static Timesync Parse(ReadOnlySpan<byte> data) {
@@ -21649,8 +21649,8 @@ public sealed class CameraTrigger : MavlinkMessage {
   public uint Seq { get; init; }
 
   public CameraTrigger(ulong TimeUsec, uint Seq) {
-    TimeUsec = TimeUsec;
-    Seq = Seq;
+    this.TimeUsec = TimeUsec;
+    this.Seq = Seq;
   }
 
   public static CameraTrigger Parse(ReadOnlySpan<byte> data) {
@@ -21806,21 +21806,21 @@ public sealed class HilGps : MavlinkMessage {
   public ushort Yaw { get; init; }
 
   public HilGps(ulong TimeUsec, int Lat, int Lon, int Alt, ushort Eph, ushort Epv, ushort Vel, short Vn, short Ve, short Vd, ushort Cog, byte FixType, byte SatellitesVisible, byte Id, ushort Yaw) {
-    TimeUsec = TimeUsec;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    Eph = Eph;
-    Epv = Epv;
-    Vel = Vel;
-    Vn = Vn;
-    Ve = Ve;
-    Vd = Vd;
-    Cog = Cog;
-    FixType = FixType;
-    SatellitesVisible = SatellitesVisible;
-    Id = Id;
-    Yaw = Yaw;
+    this.TimeUsec = TimeUsec;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.Eph = Eph;
+    this.Epv = Epv;
+    this.Vel = Vel;
+    this.Vn = Vn;
+    this.Ve = Ve;
+    this.Vd = Vd;
+    this.Cog = Cog;
+    this.FixType = FixType;
+    this.SatellitesVisible = SatellitesVisible;
+    this.Id = Id;
+    this.Yaw = Yaw;
   }
 
   public static HilGps Parse(ReadOnlySpan<byte> data) {
@@ -21991,18 +21991,18 @@ public sealed class HilOpticalFlow : MavlinkMessage {
   public byte Quality { get; init; }
 
   public HilOpticalFlow(ulong TimeUsec, uint IntegrationTimeUs, float IntegratedX, float IntegratedY, float IntegratedXgyro, float IntegratedYgyro, float IntegratedZgyro, uint TimeDeltaDistanceUs, float Distance, short Temperature, byte SensorId, byte Quality) {
-    TimeUsec = TimeUsec;
-    IntegrationTimeUs = IntegrationTimeUs;
-    IntegratedX = IntegratedX;
-    IntegratedY = IntegratedY;
-    IntegratedXgyro = IntegratedXgyro;
-    IntegratedYgyro = IntegratedYgyro;
-    IntegratedZgyro = IntegratedZgyro;
-    TimeDeltaDistanceUs = TimeDeltaDistanceUs;
-    Distance = Distance;
-    Temperature = Temperature;
-    SensorId = SensorId;
-    Quality = Quality;
+    this.TimeUsec = TimeUsec;
+    this.IntegrationTimeUs = IntegrationTimeUs;
+    this.IntegratedX = IntegratedX;
+    this.IntegratedY = IntegratedY;
+    this.IntegratedXgyro = IntegratedXgyro;
+    this.IntegratedYgyro = IntegratedYgyro;
+    this.IntegratedZgyro = IntegratedZgyro;
+    this.TimeDeltaDistanceUs = TimeDeltaDistanceUs;
+    this.Distance = Distance;
+    this.Temperature = Temperature;
+    this.SensorId = SensorId;
+    this.Quality = Quality;
   }
 
   public static HilOpticalFlow Parse(ReadOnlySpan<byte> data) {
@@ -22197,22 +22197,22 @@ public sealed class HilStateQuaternion : MavlinkMessage {
   public short Zacc { get; init; }
 
   public HilStateQuaternion(ulong TimeUsec, float[] AttitudeQuaternion, float Rollspeed, float Pitchspeed, float Yawspeed, int Lat, int Lon, int Alt, short Vx, short Vy, short Vz, ushort IndAirspeed, ushort TrueAirspeed, short Xacc, short Yacc, short Zacc) {
-    TimeUsec = TimeUsec;
-    AttitudeQuaternion = AttitudeQuaternion;
-    Rollspeed = Rollspeed;
-    Pitchspeed = Pitchspeed;
-    Yawspeed = Yawspeed;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    IndAirspeed = IndAirspeed;
-    TrueAirspeed = TrueAirspeed;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
+    this.TimeUsec = TimeUsec;
+    this.AttitudeQuaternion = AttitudeQuaternion;
+    this.Rollspeed = Rollspeed;
+    this.Pitchspeed = Pitchspeed;
+    this.Yawspeed = Yawspeed;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.IndAirspeed = IndAirspeed;
+    this.TrueAirspeed = TrueAirspeed;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
   }
 
   public static HilStateQuaternion Parse(ReadOnlySpan<byte> data) {
@@ -22381,17 +22381,17 @@ public sealed class ScaledImu2 : MavlinkMessage {
   public short Temperature { get; init; }
 
   public ScaledImu2(uint TimeBootMs, short Xacc, short Yacc, short Zacc, short Xgyro, short Ygyro, short Zgyro, short Xmag, short Ymag, short Zmag, short Temperature) {
-    TimeBootMs = TimeBootMs;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Xmag = Xmag;
-    Ymag = Ymag;
-    Zmag = Zmag;
-    Temperature = Temperature;
+    this.TimeBootMs = TimeBootMs;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Xmag = Xmag;
+    this.Ymag = Ymag;
+    this.Zmag = Zmag;
+    this.Temperature = Temperature;
   }
 
   public static ScaledImu2 Parse(ReadOnlySpan<byte> data) {
@@ -22484,10 +22484,10 @@ public sealed class LogRequestList : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public LogRequestList(ushort Start, ushort End, byte TargetSystem, byte TargetComponent) {
-    Start = Start;
-    End = End;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Start = Start;
+    this.End = End;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static LogRequestList Parse(ReadOnlySpan<byte> data) {
@@ -22568,11 +22568,11 @@ public sealed class LogEntry : MavlinkMessage {
   public ushort LastLogNum { get; init; }
 
   public LogEntry(uint TimeUtc, uint Size, ushort Id, ushort NumLogs, ushort LastLogNum) {
-    TimeUtc = TimeUtc;
-    Size = Size;
-    Id = Id;
-    NumLogs = NumLogs;
-    LastLogNum = LastLogNum;
+    this.TimeUtc = TimeUtc;
+    this.Size = Size;
+    this.Id = Id;
+    this.NumLogs = NumLogs;
+    this.LastLogNum = LastLogNum;
   }
 
   public static LogEntry Parse(ReadOnlySpan<byte> data) {
@@ -22655,11 +22655,11 @@ public sealed class LogRequestData : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public LogRequestData(uint Ofs, uint Count, ushort Id, byte TargetSystem, byte TargetComponent) {
-    Ofs = Ofs;
-    Count = Count;
-    Id = Id;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Ofs = Ofs;
+    this.Count = Count;
+    this.Id = Id;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static LogRequestData Parse(ReadOnlySpan<byte> data) {
@@ -22735,10 +22735,10 @@ public sealed class LogData : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public LogData(uint Ofs, ushort Id, byte Count, byte[] Data) {
-    Ofs = Ofs;
-    Id = Id;
-    Count = Count;
-    Data = Data;
+    this.Ofs = Ofs;
+    this.Id = Id;
+    this.Count = Count;
+    this.Data = Data;
   }
 
   public static LogData Parse(ReadOnlySpan<byte> data) {
@@ -22796,8 +22796,8 @@ public sealed class LogErase : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public LogErase(byte TargetSystem, byte TargetComponent) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static LogErase Parse(ReadOnlySpan<byte> data) {
@@ -22849,8 +22849,8 @@ public sealed class LogRequestEnd : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public LogRequestEnd(byte TargetSystem, byte TargetComponent) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static LogRequestEnd Parse(ReadOnlySpan<byte> data) {
@@ -22917,10 +22917,10 @@ public sealed class GpsInjectData : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public GpsInjectData(byte TargetSystem, byte TargetComponent, byte Len, byte[] Data) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Len = Len;
-    Data = Data;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static GpsInjectData Parse(ReadOnlySpan<byte> data) {
@@ -23110,24 +23110,24 @@ public sealed class Gps2Raw : MavlinkMessage {
   public uint HdgAcc { get; init; }
 
   public Gps2Raw(ulong TimeUsec, int Lat, int Lon, int Alt, uint DgpsAge, ushort Eph, ushort Epv, ushort Vel, ushort Cog, GpsFixType FixType, byte SatellitesVisible, byte DgpsNumch, ushort Yaw, int AltEllipsoid, uint HAcc, uint VAcc, uint VelAcc, uint HdgAcc) {
-    TimeUsec = TimeUsec;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    DgpsAge = DgpsAge;
-    Eph = Eph;
-    Epv = Epv;
-    Vel = Vel;
-    Cog = Cog;
-    FixType = FixType;
-    SatellitesVisible = SatellitesVisible;
-    DgpsNumch = DgpsNumch;
-    Yaw = Yaw;
-    AltEllipsoid = AltEllipsoid;
-    HAcc = HAcc;
-    VAcc = VAcc;
-    VelAcc = VelAcc;
-    HdgAcc = HdgAcc;
+    this.TimeUsec = TimeUsec;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.DgpsAge = DgpsAge;
+    this.Eph = Eph;
+    this.Epv = Epv;
+    this.Vel = Vel;
+    this.Cog = Cog;
+    this.FixType = FixType;
+    this.SatellitesVisible = SatellitesVisible;
+    this.DgpsNumch = DgpsNumch;
+    this.Yaw = Yaw;
+    this.AltEllipsoid = AltEllipsoid;
+    this.HAcc = HAcc;
+    this.VAcc = VAcc;
+    this.VelAcc = VelAcc;
+    this.HdgAcc = HdgAcc;
   }
 
   public static Gps2Raw Parse(ReadOnlySpan<byte> data) {
@@ -23238,9 +23238,9 @@ public sealed class PowerStatus : MavlinkMessage {
   public ushort Flags { get; init; }
 
   public PowerStatus(ushort Vcc, ushort Vservo, ushort Flags) {
-    Vcc = Vcc;
-    Vservo = Vservo;
-    Flags = Flags;
+    this.Vcc = Vcc;
+    this.Vservo = Vservo;
+    this.Flags = Flags;
   }
 
   public static PowerStatus Parse(ReadOnlySpan<byte> data) {
@@ -23328,12 +23328,12 @@ public sealed class SerialControl : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public SerialControl(uint Baudrate, ushort Timeout, SerialControlDev Device, byte Flags, byte Count, byte[] Data) {
-    Baudrate = Baudrate;
-    Timeout = Timeout;
-    Device = Device;
-    Flags = Flags;
-    Count = Count;
-    Data = Data;
+    this.Baudrate = Baudrate;
+    this.Timeout = Timeout;
+    this.Device = Device;
+    this.Flags = Flags;
+    this.Count = Count;
+    this.Data = Data;
   }
 
   public static SerialControl Parse(ReadOnlySpan<byte> data) {
@@ -23482,19 +23482,19 @@ public sealed class GpsRtk : MavlinkMessage {
   public RtkBaselineCoordinateSystem BaselineCoordsType { get; init; }
 
   public GpsRtk(uint TimeLastBaselineMs, uint Tow, int BaselineAMm, int BaselineBMm, int BaselineCMm, uint Accuracy, int IarNumHypotheses, ushort Wn, byte RtkReceiverId, byte RtkHealth, byte RtkRate, byte Nsats, RtkBaselineCoordinateSystem BaselineCoordsType) {
-    TimeLastBaselineMs = TimeLastBaselineMs;
-    Tow = Tow;
-    BaselineAMm = BaselineAMm;
-    BaselineBMm = BaselineBMm;
-    BaselineCMm = BaselineCMm;
-    Accuracy = Accuracy;
-    IarNumHypotheses = IarNumHypotheses;
-    Wn = Wn;
-    RtkReceiverId = RtkReceiverId;
-    RtkHealth = RtkHealth;
-    RtkRate = RtkRate;
-    Nsats = Nsats;
-    BaselineCoordsType = BaselineCoordsType;
+    this.TimeLastBaselineMs = TimeLastBaselineMs;
+    this.Tow = Tow;
+    this.BaselineAMm = BaselineAMm;
+    this.BaselineBMm = BaselineBMm;
+    this.BaselineCMm = BaselineCMm;
+    this.Accuracy = Accuracy;
+    this.IarNumHypotheses = IarNumHypotheses;
+    this.Wn = Wn;
+    this.RtkReceiverId = RtkReceiverId;
+    this.RtkHealth = RtkHealth;
+    this.RtkRate = RtkRate;
+    this.Nsats = Nsats;
+    this.BaselineCoordsType = BaselineCoordsType;
   }
 
   public static GpsRtk Parse(ReadOnlySpan<byte> data) {
@@ -23664,19 +23664,19 @@ public sealed class Gps2Rtk : MavlinkMessage {
   public RtkBaselineCoordinateSystem BaselineCoordsType { get; init; }
 
   public Gps2Rtk(uint TimeLastBaselineMs, uint Tow, int BaselineAMm, int BaselineBMm, int BaselineCMm, uint Accuracy, int IarNumHypotheses, ushort Wn, byte RtkReceiverId, byte RtkHealth, byte RtkRate, byte Nsats, RtkBaselineCoordinateSystem BaselineCoordsType) {
-    TimeLastBaselineMs = TimeLastBaselineMs;
-    Tow = Tow;
-    BaselineAMm = BaselineAMm;
-    BaselineBMm = BaselineBMm;
-    BaselineCMm = BaselineCMm;
-    Accuracy = Accuracy;
-    IarNumHypotheses = IarNumHypotheses;
-    Wn = Wn;
-    RtkReceiverId = RtkReceiverId;
-    RtkHealth = RtkHealth;
-    RtkRate = RtkRate;
-    Nsats = Nsats;
-    BaselineCoordsType = BaselineCoordsType;
+    this.TimeLastBaselineMs = TimeLastBaselineMs;
+    this.Tow = Tow;
+    this.BaselineAMm = BaselineAMm;
+    this.BaselineBMm = BaselineBMm;
+    this.BaselineCMm = BaselineCMm;
+    this.Accuracy = Accuracy;
+    this.IarNumHypotheses = IarNumHypotheses;
+    this.Wn = Wn;
+    this.RtkReceiverId = RtkReceiverId;
+    this.RtkHealth = RtkHealth;
+    this.RtkRate = RtkRate;
+    this.Nsats = Nsats;
+    this.BaselineCoordsType = BaselineCoordsType;
   }
 
   public static Gps2Rtk Parse(ReadOnlySpan<byte> data) {
@@ -23837,17 +23837,17 @@ public sealed class ScaledImu3 : MavlinkMessage {
   public short Temperature { get; init; }
 
   public ScaledImu3(uint TimeBootMs, short Xacc, short Yacc, short Zacc, short Xgyro, short Ygyro, short Zgyro, short Xmag, short Ymag, short Zmag, short Temperature) {
-    TimeBootMs = TimeBootMs;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Xmag = Xmag;
-    Ymag = Ymag;
-    Zmag = Zmag;
-    Temperature = Temperature;
+    this.TimeBootMs = TimeBootMs;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Xmag = Xmag;
+    this.Ymag = Ymag;
+    this.Zmag = Zmag;
+    this.Temperature = Temperature;
   }
 
   public static ScaledImu3 Parse(ReadOnlySpan<byte> data) {
@@ -23965,13 +23965,13 @@ public sealed class DataTransmissionHandshake : MavlinkMessage {
   public byte JpgQuality { get; init; }
 
   public DataTransmissionHandshake(uint Size, ushort Width, ushort Height, ushort Packets, MavlinkDataStreamType Type, byte Payload, byte JpgQuality) {
-    Size = Size;
-    Width = Width;
-    Height = Height;
-    Packets = Packets;
-    Type = Type;
-    Payload = Payload;
-    JpgQuality = JpgQuality;
+    this.Size = Size;
+    this.Width = Width;
+    this.Height = Height;
+    this.Packets = Packets;
+    this.Type = Type;
+    this.Payload = Payload;
+    this.JpgQuality = JpgQuality;
   }
 
   public static DataTransmissionHandshake Parse(ReadOnlySpan<byte> data) {
@@ -24039,8 +24039,8 @@ public sealed class EncapsulatedData : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public EncapsulatedData(ushort Seqnr, byte[] Data) {
-    Seqnr = Seqnr;
-    Data = Data;
+    this.Seqnr = Seqnr;
+    this.Data = Data;
   }
 
   public static EncapsulatedData Parse(ReadOnlySpan<byte> data) {
@@ -24176,18 +24176,18 @@ public sealed class DistanceSensor : MavlinkMessage {
   public byte SignalQuality { get; init; }
 
   public DistanceSensor(uint TimeBootMs, ushort MinDistance, ushort MaxDistance, ushort CurrentDistance, MavDistanceSensor Type, byte Id, MavSensorOrientation Orientation, byte Covariance, float HorizontalFov, float VerticalFov, float[] Quaternion, byte SignalQuality) {
-    TimeBootMs = TimeBootMs;
-    MinDistance = MinDistance;
-    MaxDistance = MaxDistance;
-    CurrentDistance = CurrentDistance;
-    Type = Type;
-    Id = Id;
-    Orientation = Orientation;
-    Covariance = Covariance;
-    HorizontalFov = HorizontalFov;
-    VerticalFov = VerticalFov;
-    Quaternion = Quaternion;
-    SignalQuality = SignalQuality;
+    this.TimeBootMs = TimeBootMs;
+    this.MinDistance = MinDistance;
+    this.MaxDistance = MaxDistance;
+    this.CurrentDistance = CurrentDistance;
+    this.Type = Type;
+    this.Id = Id;
+    this.Orientation = Orientation;
+    this.Covariance = Covariance;
+    this.HorizontalFov = HorizontalFov;
+    this.VerticalFov = VerticalFov;
+    this.Quaternion = Quaternion;
+    this.SignalQuality = SignalQuality;
   }
 
   public static DistanceSensor Parse(ReadOnlySpan<byte> data) {
@@ -24288,10 +24288,10 @@ public sealed class TerrainRequest : MavlinkMessage {
   public ushort GridSpacing { get; init; }
 
   public TerrainRequest(ulong Mask, int Lat, int Lon, ushort GridSpacing) {
-    Mask = Mask;
-    Lat = Lat;
-    Lon = Lon;
-    GridSpacing = GridSpacing;
+    this.Mask = Mask;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.GridSpacing = GridSpacing;
   }
 
   public static TerrainRequest Parse(ReadOnlySpan<byte> data) {
@@ -24374,11 +24374,11 @@ public sealed class TerrainData : MavlinkMessage {
   public byte Gridbit { get; init; }
 
   public TerrainData(int Lat, int Lon, ushort GridSpacing, short[] Data, byte Gridbit) {
-    Lat = Lat;
-    Lon = Lon;
-    GridSpacing = GridSpacing;
-    Data = Data;
-    Gridbit = Gridbit;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.GridSpacing = GridSpacing;
+    this.Data = Data;
+    this.Gridbit = Gridbit;
   }
 
   public static TerrainData Parse(ReadOnlySpan<byte> data) {
@@ -24441,8 +24441,8 @@ public sealed class TerrainCheck : MavlinkMessage {
   public int Lon { get; init; }
 
   public TerrainCheck(int Lat, int Lon) {
-    Lat = Lat;
-    Lon = Lon;
+    this.Lat = Lat;
+    this.Lon = Lon;
   }
 
   public static TerrainCheck Parse(ReadOnlySpan<byte> data) {
@@ -24533,13 +24533,13 @@ public sealed class TerrainReport : MavlinkMessage {
   public ushort Loaded { get; init; }
 
   public TerrainReport(int Lat, int Lon, float TerrainHeight, float CurrentHeight, ushort Spacing, ushort Pending, ushort Loaded) {
-    Lat = Lat;
-    Lon = Lon;
-    TerrainHeight = TerrainHeight;
-    CurrentHeight = CurrentHeight;
-    Spacing = Spacing;
-    Pending = Pending;
-    Loaded = Loaded;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.TerrainHeight = TerrainHeight;
+    this.CurrentHeight = CurrentHeight;
+    this.Spacing = Spacing;
+    this.Pending = Pending;
+    this.Loaded = Loaded;
   }
 
   public static TerrainReport Parse(ReadOnlySpan<byte> data) {
@@ -24633,11 +24633,11 @@ public sealed class ScaledPressure2 : MavlinkMessage {
   public short TemperaturePressDiff { get; init; }
 
   public ScaledPressure2(uint TimeBootMs, float PressAbs, float PressDiff, short Temperature, short TemperaturePressDiff) {
-    TimeBootMs = TimeBootMs;
-    PressAbs = PressAbs;
-    PressDiff = PressDiff;
-    Temperature = Temperature;
-    TemperaturePressDiff = TemperaturePressDiff;
+    this.TimeBootMs = TimeBootMs;
+    this.PressAbs = PressAbs;
+    this.PressDiff = PressDiff;
+    this.Temperature = Temperature;
+    this.TemperaturePressDiff = TemperaturePressDiff;
   }
 
   public static ScaledPressure2 Parse(ReadOnlySpan<byte> data) {
@@ -24731,12 +24731,12 @@ public sealed class AttPosMocap : MavlinkMessage {
   public float[] Covariance { get; init; }
 
   public AttPosMocap(ulong TimeUsec, float[] Q, float X, float Y, float Z, float[] Covariance) {
-    TimeUsec = TimeUsec;
-    Q = Q;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Covariance = Covariance;
+    this.TimeUsec = TimeUsec;
+    this.Q = Q;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Covariance = Covariance;
   }
 
   public static AttPosMocap Parse(ReadOnlySpan<byte> data) {
@@ -24822,11 +24822,11 @@ public sealed class SetActuatorControlTarget : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public SetActuatorControlTarget(ulong TimeUsec, float[] Controls, byte GroupMlx, byte TargetSystem, byte TargetComponent) {
-    TimeUsec = TimeUsec;
-    Controls = Controls;
-    GroupMlx = GroupMlx;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.TimeUsec = TimeUsec;
+    this.Controls = Controls;
+    this.GroupMlx = GroupMlx;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static SetActuatorControlTarget Parse(ReadOnlySpan<byte> data) {
@@ -24895,9 +24895,9 @@ public sealed class ActuatorControlTarget : MavlinkMessage {
   public byte GroupMlx { get; init; }
 
   public ActuatorControlTarget(ulong TimeUsec, float[] Controls, byte GroupMlx) {
-    TimeUsec = TimeUsec;
-    Controls = Controls;
-    GroupMlx = GroupMlx;
+    this.TimeUsec = TimeUsec;
+    this.Controls = Controls;
+    this.GroupMlx = GroupMlx;
   }
 
   public static ActuatorControlTarget Parse(ReadOnlySpan<byte> data) {
@@ -24994,13 +24994,13 @@ public sealed class Altitude : MavlinkMessage {
   public float BottomClearance { get; init; }
 
   public Altitude(ulong TimeUsec, float AltitudeMonotonic, float AltitudeAmsl, float AltitudeLocal, float AltitudeRelative, float AltitudeTerrain, float BottomClearance) {
-    TimeUsec = TimeUsec;
-    AltitudeMonotonic = AltitudeMonotonic;
-    AltitudeAmsl = AltitudeAmsl;
-    AltitudeLocal = AltitudeLocal;
-    AltitudeRelative = AltitudeRelative;
-    AltitudeTerrain = AltitudeTerrain;
-    BottomClearance = BottomClearance;
+    this.TimeUsec = TimeUsec;
+    this.AltitudeMonotonic = AltitudeMonotonic;
+    this.AltitudeAmsl = AltitudeAmsl;
+    this.AltitudeLocal = AltitudeLocal;
+    this.AltitudeRelative = AltitudeRelative;
+    this.AltitudeTerrain = AltitudeTerrain;
+    this.BottomClearance = BottomClearance;
   }
 
   public static Altitude Parse(ReadOnlySpan<byte> data) {
@@ -25088,11 +25088,11 @@ public sealed class ResourceRequest : MavlinkMessage {
   public byte[] Storage { get; init; }
 
   public ResourceRequest(byte RequestId, byte UriType, byte[] Uri, byte TransferType, byte[] Storage) {
-    RequestId = RequestId;
-    UriType = UriType;
-    Uri = Uri;
-    TransferType = TransferType;
-    Storage = Storage;
+    this.RequestId = RequestId;
+    this.UriType = UriType;
+    this.Uri = Uri;
+    this.TransferType = TransferType;
+    this.Storage = Storage;
   }
 
   public static ResourceRequest Parse(ReadOnlySpan<byte> data) {
@@ -25180,11 +25180,11 @@ public sealed class ScaledPressure3 : MavlinkMessage {
   public short TemperaturePressDiff { get; init; }
 
   public ScaledPressure3(uint TimeBootMs, float PressAbs, float PressDiff, short Temperature, short TemperaturePressDiff) {
-    TimeBootMs = TimeBootMs;
-    PressAbs = PressAbs;
-    PressDiff = PressDiff;
-    Temperature = Temperature;
-    TemperaturePressDiff = TemperaturePressDiff;
+    this.TimeBootMs = TimeBootMs;
+    this.PressAbs = PressAbs;
+    this.PressDiff = PressDiff;
+    this.Temperature = Temperature;
+    this.TemperaturePressDiff = TemperaturePressDiff;
   }
 
   public static ScaledPressure3 Parse(ReadOnlySpan<byte> data) {
@@ -25314,17 +25314,17 @@ public sealed class FollowTarget : MavlinkMessage {
   public byte EstCapabilities { get; init; }
 
   public FollowTarget(ulong Timestamp, ulong CustomState, int Lat, int Lon, float Alt, float[] Vel, float[] Acc, float[] AttitudeQ, float[] Rates, float[] PositionCov, byte EstCapabilities) {
-    Timestamp = Timestamp;
-    CustomState = CustomState;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    Vel = Vel;
-    Acc = Acc;
-    AttitudeQ = AttitudeQ;
-    Rates = Rates;
-    PositionCov = PositionCov;
-    EstCapabilities = EstCapabilities;
+    this.Timestamp = Timestamp;
+    this.CustomState = CustomState;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.Vel = Vel;
+    this.Acc = Acc;
+    this.AttitudeQ = AttitudeQ;
+    this.Rates = Rates;
+    this.PositionCov = PositionCov;
+    this.EstCapabilities = EstCapabilities;
   }
 
   public static FollowTarget Parse(ReadOnlySpan<byte> data) {
@@ -25522,23 +25522,23 @@ public sealed class ControlSystemState : MavlinkMessage {
   public float YawRate { get; init; }
 
   public ControlSystemState(ulong TimeUsec, float XAcc, float YAcc, float ZAcc, float XVel, float YVel, float ZVel, float XPos, float YPos, float ZPos, float Airspeed, float[] VelVariance, float[] PosVariance, float[] Q, float RollRate, float PitchRate, float YawRate) {
-    TimeUsec = TimeUsec;
-    XAcc = XAcc;
-    YAcc = YAcc;
-    ZAcc = ZAcc;
-    XVel = XVel;
-    YVel = YVel;
-    ZVel = ZVel;
-    XPos = XPos;
-    YPos = YPos;
-    ZPos = ZPos;
-    Airspeed = Airspeed;
-    VelVariance = VelVariance;
-    PosVariance = PosVariance;
-    Q = Q;
-    RollRate = RollRate;
-    PitchRate = PitchRate;
-    YawRate = YawRate;
+    this.TimeUsec = TimeUsec;
+    this.XAcc = XAcc;
+    this.YAcc = YAcc;
+    this.ZAcc = ZAcc;
+    this.XVel = XVel;
+    this.YVel = YVel;
+    this.ZVel = ZVel;
+    this.XPos = XPos;
+    this.YPos = YPos;
+    this.ZPos = ZPos;
+    this.Airspeed = Airspeed;
+    this.VelVariance = VelVariance;
+    this.PosVariance = PosVariance;
+    this.Q = Q;
+    this.RollRate = RollRate;
+    this.PitchRate = PitchRate;
+    this.YawRate = YawRate;
   }
 
   public static ControlSystemState Parse(ReadOnlySpan<byte> data) {
@@ -25737,20 +25737,20 @@ public sealed class BatteryStatus : MavlinkMessage {
   public uint FaultBitmask { get; init; }
 
   public BatteryStatus(int CurrentConsumed, int EnergyConsumed, short Temperature, ushort[] Voltages, short CurrentBattery, byte Id, MavBatteryFunction BatteryFunction, MavBatteryType Type, sbyte BatteryRemaining, int TimeRemaining, MavBatteryChargeState ChargeState, ushort[] VoltagesExt, MavBatteryMode Mode, uint FaultBitmask) {
-    CurrentConsumed = CurrentConsumed;
-    EnergyConsumed = EnergyConsumed;
-    Temperature = Temperature;
-    Voltages = Voltages;
-    CurrentBattery = CurrentBattery;
-    Id = Id;
-    BatteryFunction = BatteryFunction;
-    Type = Type;
-    BatteryRemaining = BatteryRemaining;
-    TimeRemaining = TimeRemaining;
-    ChargeState = ChargeState;
-    VoltagesExt = VoltagesExt;
-    Mode = Mode;
-    FaultBitmask = FaultBitmask;
+    this.CurrentConsumed = CurrentConsumed;
+    this.EnergyConsumed = EnergyConsumed;
+    this.Temperature = Temperature;
+    this.Voltages = Voltages;
+    this.CurrentBattery = CurrentBattery;
+    this.Id = Id;
+    this.BatteryFunction = BatteryFunction;
+    this.Type = Type;
+    this.BatteryRemaining = BatteryRemaining;
+    this.TimeRemaining = TimeRemaining;
+    this.ChargeState = ChargeState;
+    this.VoltagesExt = VoltagesExt;
+    this.Mode = Mode;
+    this.FaultBitmask = FaultBitmask;
   }
 
   public static BatteryStatus Parse(ReadOnlySpan<byte> data) {
@@ -25914,18 +25914,18 @@ public sealed class AutopilotVersion : MavlinkMessage {
   public byte[] Uid2 { get; init; }
 
   public AutopilotVersion(ulong Capabilities, ulong Uid, uint FlightSwVersion, uint MiddlewareSwVersion, uint OsSwVersion, uint BoardVersion, ushort VendorId, ushort ProductId, byte[] FlightCustomVersion, byte[] MiddlewareCustomVersion, byte[] OsCustomVersion, byte[] Uid2) {
-    Capabilities = Capabilities;
-    Uid = Uid;
-    FlightSwVersion = FlightSwVersion;
-    MiddlewareSwVersion = MiddlewareSwVersion;
-    OsSwVersion = OsSwVersion;
-    BoardVersion = BoardVersion;
-    VendorId = VendorId;
-    ProductId = ProductId;
-    FlightCustomVersion = FlightCustomVersion;
-    MiddlewareCustomVersion = MiddlewareCustomVersion;
-    OsCustomVersion = OsCustomVersion;
-    Uid2 = Uid2;
+    this.Capabilities = Capabilities;
+    this.Uid = Uid;
+    this.FlightSwVersion = FlightSwVersion;
+    this.MiddlewareSwVersion = MiddlewareSwVersion;
+    this.OsSwVersion = OsSwVersion;
+    this.BoardVersion = BoardVersion;
+    this.VendorId = VendorId;
+    this.ProductId = ProductId;
+    this.FlightCustomVersion = FlightCustomVersion;
+    this.MiddlewareCustomVersion = MiddlewareCustomVersion;
+    this.OsCustomVersion = OsCustomVersion;
+    this.Uid2 = Uid2;
   }
 
   public static AutopilotVersion Parse(ReadOnlySpan<byte> data) {
@@ -26108,20 +26108,20 @@ public sealed class LandingTarget : MavlinkMessage {
   public byte PositionValid { get; init; }
 
   public LandingTarget(ulong TimeUsec, float AngleX, float AngleY, float Distance, float SizeX, float SizeY, byte TargetNum, MavFrame Frame, float X, float Y, float Z, float[] Q, LandingTargetType Type, byte PositionValid) {
-    TimeUsec = TimeUsec;
-    AngleX = AngleX;
-    AngleY = AngleY;
-    Distance = Distance;
-    SizeX = SizeX;
-    SizeY = SizeY;
-    TargetNum = TargetNum;
-    Frame = Frame;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Q = Q;
-    Type = Type;
-    PositionValid = PositionValid;
+    this.TimeUsec = TimeUsec;
+    this.AngleX = AngleX;
+    this.AngleY = AngleY;
+    this.Distance = Distance;
+    this.SizeX = SizeX;
+    this.SizeY = SizeY;
+    this.TargetNum = TargetNum;
+    this.Frame = Frame;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Q = Q;
+    this.Type = Type;
+    this.PositionValid = PositionValid;
   }
 
   public static LandingTarget Parse(ReadOnlySpan<byte> data) {
@@ -26236,11 +26236,11 @@ public sealed class FenceStatus : MavlinkMessage {
   public FenceMitigate BreachMitigation { get; init; }
 
   public FenceStatus(uint BreachTime, ushort BreachCount, byte BreachStatus, FenceBreach BreachType, FenceMitigate BreachMitigation) {
-    BreachTime = BreachTime;
-    BreachCount = BreachCount;
-    BreachStatus = BreachStatus;
-    BreachType = BreachType;
-    BreachMitigation = BreachMitigation;
+    this.BreachTime = BreachTime;
+    this.BreachCount = BreachCount;
+    this.BreachStatus = BreachStatus;
+    this.BreachType = BreachType;
+    this.BreachMitigation = BreachMitigation;
   }
 
   public static FenceStatus Parse(ReadOnlySpan<byte> data) {
@@ -26423,24 +26423,24 @@ public sealed class MagCalReport : MavlinkMessage {
   public float ScaleFactor { get; init; }
 
   public MagCalReport(float Fitness, float OfsX, float OfsY, float OfsZ, float DiagX, float DiagY, float DiagZ, float OffdiagX, float OffdiagY, float OffdiagZ, byte CompassId, byte CalMask, MagCalStatus CalStatus, byte Autosaved, float OrientationConfidence, MavSensorOrientation OldOrientation, MavSensorOrientation NewOrientation, float ScaleFactor) {
-    Fitness = Fitness;
-    OfsX = OfsX;
-    OfsY = OfsY;
-    OfsZ = OfsZ;
-    DiagX = DiagX;
-    DiagY = DiagY;
-    DiagZ = DiagZ;
-    OffdiagX = OffdiagX;
-    OffdiagY = OffdiagY;
-    OffdiagZ = OffdiagZ;
-    CompassId = CompassId;
-    CalMask = CalMask;
-    CalStatus = CalStatus;
-    Autosaved = Autosaved;
-    OrientationConfidence = OrientationConfidence;
-    OldOrientation = OldOrientation;
-    NewOrientation = NewOrientation;
-    ScaleFactor = ScaleFactor;
+    this.Fitness = Fitness;
+    this.OfsX = OfsX;
+    this.OfsY = OfsY;
+    this.OfsZ = OfsZ;
+    this.DiagX = DiagX;
+    this.DiagY = DiagY;
+    this.DiagZ = DiagZ;
+    this.OffdiagX = OffdiagX;
+    this.OffdiagY = OffdiagY;
+    this.OffdiagZ = OffdiagZ;
+    this.CompassId = CompassId;
+    this.CalMask = CalMask;
+    this.CalStatus = CalStatus;
+    this.Autosaved = Autosaved;
+    this.OrientationConfidence = OrientationConfidence;
+    this.OldOrientation = OldOrientation;
+    this.NewOrientation = NewOrientation;
+    this.ScaleFactor = ScaleFactor;
   }
 
   public static MagCalReport Parse(ReadOnlySpan<byte> data) {
@@ -26679,25 +26679,25 @@ public sealed class EfiStatus : MavlinkMessage {
   public float FuelPressure { get; init; }
 
   public EfiStatus(float EcuIndex, float Rpm, float FuelConsumed, float FuelFlow, float EngineLoad, float ThrottlePosition, float SparkDwellTime, float BarometricPressure, float IntakeManifoldPressure, float IntakeManifoldTemperature, float CylinderHeadTemperature, float IgnitionTiming, float InjectionTime, float ExhaustGasTemperature, float ThrottleOut, float PtCompensation, byte Health, float IgnitionVoltage, float FuelPressure) {
-    EcuIndex = EcuIndex;
-    Rpm = Rpm;
-    FuelConsumed = FuelConsumed;
-    FuelFlow = FuelFlow;
-    EngineLoad = EngineLoad;
-    ThrottlePosition = ThrottlePosition;
-    SparkDwellTime = SparkDwellTime;
-    BarometricPressure = BarometricPressure;
-    IntakeManifoldPressure = IntakeManifoldPressure;
-    IntakeManifoldTemperature = IntakeManifoldTemperature;
-    CylinderHeadTemperature = CylinderHeadTemperature;
-    IgnitionTiming = IgnitionTiming;
-    InjectionTime = InjectionTime;
-    ExhaustGasTemperature = ExhaustGasTemperature;
-    ThrottleOut = ThrottleOut;
-    PtCompensation = PtCompensation;
-    Health = Health;
-    IgnitionVoltage = IgnitionVoltage;
-    FuelPressure = FuelPressure;
+    this.EcuIndex = EcuIndex;
+    this.Rpm = Rpm;
+    this.FuelConsumed = FuelConsumed;
+    this.FuelFlow = FuelFlow;
+    this.EngineLoad = EngineLoad;
+    this.ThrottlePosition = ThrottlePosition;
+    this.SparkDwellTime = SparkDwellTime;
+    this.BarometricPressure = BarometricPressure;
+    this.IntakeManifoldPressure = IntakeManifoldPressure;
+    this.IntakeManifoldTemperature = IntakeManifoldTemperature;
+    this.CylinderHeadTemperature = CylinderHeadTemperature;
+    this.IgnitionTiming = IgnitionTiming;
+    this.InjectionTime = InjectionTime;
+    this.ExhaustGasTemperature = ExhaustGasTemperature;
+    this.ThrottleOut = ThrottleOut;
+    this.PtCompensation = PtCompensation;
+    this.Health = Health;
+    this.IgnitionVoltage = IgnitionVoltage;
+    this.FuelPressure = FuelPressure;
   }
 
   public static EfiStatus Parse(ReadOnlySpan<byte> data) {
@@ -26860,16 +26860,16 @@ public sealed class EstimatorStatus : MavlinkMessage {
   public ushort Flags { get; init; }
 
   public EstimatorStatus(ulong TimeUsec, float VelRatio, float PosHorizRatio, float PosVertRatio, float MagRatio, float HaglRatio, float TasRatio, float PosHorizAccuracy, float PosVertAccuracy, ushort Flags) {
-    TimeUsec = TimeUsec;
-    VelRatio = VelRatio;
-    PosHorizRatio = PosHorizRatio;
-    PosVertRatio = PosVertRatio;
-    MagRatio = MagRatio;
-    HaglRatio = HaglRatio;
-    TasRatio = TasRatio;
-    PosHorizAccuracy = PosHorizAccuracy;
-    PosVertAccuracy = PosVertAccuracy;
-    Flags = Flags;
+    this.TimeUsec = TimeUsec;
+    this.VelRatio = VelRatio;
+    this.PosHorizRatio = PosHorizRatio;
+    this.PosVertRatio = PosVertRatio;
+    this.MagRatio = MagRatio;
+    this.HaglRatio = HaglRatio;
+    this.TasRatio = TasRatio;
+    this.PosHorizAccuracy = PosHorizAccuracy;
+    this.PosVertAccuracy = PosVertAccuracy;
+    this.Flags = Flags;
   }
 
   public static EstimatorStatus Parse(ReadOnlySpan<byte> data) {
@@ -27003,15 +27003,15 @@ public sealed class WindCov : MavlinkMessage {
   public float VertAccuracy { get; init; }
 
   public WindCov(ulong TimeUsec, float WindX, float WindY, float WindZ, float VarHoriz, float VarVert, float WindAlt, float HorizAccuracy, float VertAccuracy) {
-    TimeUsec = TimeUsec;
-    WindX = WindX;
-    WindY = WindY;
-    WindZ = WindZ;
-    VarHoriz = VarHoriz;
-    VarVert = VarVert;
-    WindAlt = WindAlt;
-    HorizAccuracy = HorizAccuracy;
-    VertAccuracy = VertAccuracy;
+    this.TimeUsec = TimeUsec;
+    this.WindX = WindX;
+    this.WindY = WindY;
+    this.WindZ = WindZ;
+    this.VarHoriz = VarHoriz;
+    this.VarVert = VarVert;
+    this.WindAlt = WindAlt;
+    this.HorizAccuracy = HorizAccuracy;
+    this.VertAccuracy = VertAccuracy;
   }
 
   public static WindCov Parse(ReadOnlySpan<byte> data) {
@@ -27217,25 +27217,25 @@ public sealed class GpsInput : MavlinkMessage {
   public ushort Yaw { get; init; }
 
   public GpsInput(ulong TimeUsec, uint TimeWeekMs, int Lat, int Lon, float Alt, float Hdop, float Vdop, float Vn, float Ve, float Vd, float SpeedAccuracy, float HorizAccuracy, float VertAccuracy, ushort IgnoreFlags, ushort TimeWeek, byte GpsId, byte FixType, byte SatellitesVisible, ushort Yaw) {
-    TimeUsec = TimeUsec;
-    TimeWeekMs = TimeWeekMs;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    Hdop = Hdop;
-    Vdop = Vdop;
-    Vn = Vn;
-    Ve = Ve;
-    Vd = Vd;
-    SpeedAccuracy = SpeedAccuracy;
-    HorizAccuracy = HorizAccuracy;
-    VertAccuracy = VertAccuracy;
-    IgnoreFlags = IgnoreFlags;
-    TimeWeek = TimeWeek;
-    GpsId = GpsId;
-    FixType = FixType;
-    SatellitesVisible = SatellitesVisible;
-    Yaw = Yaw;
+    this.TimeUsec = TimeUsec;
+    this.TimeWeekMs = TimeWeekMs;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.Hdop = Hdop;
+    this.Vdop = Vdop;
+    this.Vn = Vn;
+    this.Ve = Ve;
+    this.Vd = Vd;
+    this.SpeedAccuracy = SpeedAccuracy;
+    this.HorizAccuracy = HorizAccuracy;
+    this.VertAccuracy = VertAccuracy;
+    this.IgnoreFlags = IgnoreFlags;
+    this.TimeWeek = TimeWeek;
+    this.GpsId = GpsId;
+    this.FixType = FixType;
+    this.SatellitesVisible = SatellitesVisible;
+    this.Yaw = Yaw;
   }
 
   public static GpsInput Parse(ReadOnlySpan<byte> data) {
@@ -27346,9 +27346,9 @@ public sealed class GpsRtcmData : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public GpsRtcmData(byte Flags, byte Len, byte[] Data) {
-    Flags = Flags;
-    Len = Len;
-    Data = Data;
+    this.Flags = Flags;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static GpsRtcmData Parse(ReadOnlySpan<byte> data) {
@@ -27577,30 +27577,30 @@ public sealed class HighLatency : MavlinkMessage {
   public byte WpNum { get; init; }
 
   public HighLatency(uint CustomMode, int Latitude, int Longitude, short Roll, short Pitch, ushort Heading, short HeadingSp, short AltitudeAmsl, short AltitudeSp, ushort WpDistance, byte BaseMode, MavLandedState LandedState, sbyte Throttle, byte Airspeed, byte AirspeedSp, byte Groundspeed, sbyte ClimbRate, byte GpsNsat, GpsFixType GpsFixType, byte BatteryRemaining, sbyte Temperature, sbyte TemperatureAir, byte Failsafe, byte WpNum) {
-    CustomMode = CustomMode;
-    Latitude = Latitude;
-    Longitude = Longitude;
-    Roll = Roll;
-    Pitch = Pitch;
-    Heading = Heading;
-    HeadingSp = HeadingSp;
-    AltitudeAmsl = AltitudeAmsl;
-    AltitudeSp = AltitudeSp;
-    WpDistance = WpDistance;
-    BaseMode = BaseMode;
-    LandedState = LandedState;
-    Throttle = Throttle;
-    Airspeed = Airspeed;
-    AirspeedSp = AirspeedSp;
-    Groundspeed = Groundspeed;
-    ClimbRate = ClimbRate;
-    GpsNsat = GpsNsat;
-    GpsFixType = GpsFixType;
-    BatteryRemaining = BatteryRemaining;
-    Temperature = Temperature;
-    TemperatureAir = TemperatureAir;
-    Failsafe = Failsafe;
-    WpNum = WpNum;
+    this.CustomMode = CustomMode;
+    this.Latitude = Latitude;
+    this.Longitude = Longitude;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Heading = Heading;
+    this.HeadingSp = HeadingSp;
+    this.AltitudeAmsl = AltitudeAmsl;
+    this.AltitudeSp = AltitudeSp;
+    this.WpDistance = WpDistance;
+    this.BaseMode = BaseMode;
+    this.LandedState = LandedState;
+    this.Throttle = Throttle;
+    this.Airspeed = Airspeed;
+    this.AirspeedSp = AirspeedSp;
+    this.Groundspeed = Groundspeed;
+    this.ClimbRate = ClimbRate;
+    this.GpsNsat = GpsNsat;
+    this.GpsFixType = GpsFixType;
+    this.BatteryRemaining = BatteryRemaining;
+    this.Temperature = Temperature;
+    this.TemperatureAir = TemperatureAir;
+    this.Failsafe = Failsafe;
+    this.WpNum = WpNum;
   }
 
   public static HighLatency Parse(ReadOnlySpan<byte> data) {
@@ -27917,33 +27917,33 @@ public sealed class HighLatency2 : MavlinkMessage {
   public sbyte Custom2 { get; init; }
 
   public HighLatency2(uint Timestamp, int Latitude, int Longitude, ushort CustomMode, short Altitude, short TargetAltitude, ushort TargetDistance, ushort WpNum, ushort FailureFlags, MavType Type, MavAutopilot Autopilot, byte Heading, byte TargetHeading, byte Throttle, byte Airspeed, byte AirspeedSp, byte Groundspeed, byte Windspeed, byte WindHeading, byte Eph, byte Epv, sbyte TemperatureAir, sbyte ClimbRate, sbyte Battery, sbyte Custom0, sbyte Custom1, sbyte Custom2) {
-    Timestamp = Timestamp;
-    Latitude = Latitude;
-    Longitude = Longitude;
-    CustomMode = CustomMode;
-    Altitude = Altitude;
-    TargetAltitude = TargetAltitude;
-    TargetDistance = TargetDistance;
-    WpNum = WpNum;
-    FailureFlags = FailureFlags;
-    Type = Type;
-    Autopilot = Autopilot;
-    Heading = Heading;
-    TargetHeading = TargetHeading;
-    Throttle = Throttle;
-    Airspeed = Airspeed;
-    AirspeedSp = AirspeedSp;
-    Groundspeed = Groundspeed;
-    Windspeed = Windspeed;
-    WindHeading = WindHeading;
-    Eph = Eph;
-    Epv = Epv;
-    TemperatureAir = TemperatureAir;
-    ClimbRate = ClimbRate;
-    Battery = Battery;
-    Custom0 = Custom0;
-    Custom1 = Custom1;
-    Custom2 = Custom2;
+    this.Timestamp = Timestamp;
+    this.Latitude = Latitude;
+    this.Longitude = Longitude;
+    this.CustomMode = CustomMode;
+    this.Altitude = Altitude;
+    this.TargetAltitude = TargetAltitude;
+    this.TargetDistance = TargetDistance;
+    this.WpNum = WpNum;
+    this.FailureFlags = FailureFlags;
+    this.Type = Type;
+    this.Autopilot = Autopilot;
+    this.Heading = Heading;
+    this.TargetHeading = TargetHeading;
+    this.Throttle = Throttle;
+    this.Airspeed = Airspeed;
+    this.AirspeedSp = AirspeedSp;
+    this.Groundspeed = Groundspeed;
+    this.Windspeed = Windspeed;
+    this.WindHeading = WindHeading;
+    this.Eph = Eph;
+    this.Epv = Epv;
+    this.TemperatureAir = TemperatureAir;
+    this.ClimbRate = ClimbRate;
+    this.Battery = Battery;
+    this.Custom0 = Custom0;
+    this.Custom1 = Custom1;
+    this.Custom2 = Custom2;
   }
 
   public static HighLatency2 Parse(ReadOnlySpan<byte> data) {
@@ -28108,13 +28108,13 @@ public sealed class Vibration : MavlinkMessage {
   public uint Clipping2 { get; init; }
 
   public Vibration(ulong TimeUsec, float VibrationX, float VibrationY, float VibrationZ, uint Clipping0, uint Clipping1, uint Clipping2) {
-    TimeUsec = TimeUsec;
-    VibrationX = VibrationX;
-    VibrationY = VibrationY;
-    VibrationZ = VibrationZ;
-    Clipping0 = Clipping0;
-    Clipping1 = Clipping1;
-    Clipping2 = Clipping2;
+    this.TimeUsec = TimeUsec;
+    this.VibrationX = VibrationX;
+    this.VibrationY = VibrationY;
+    this.VibrationZ = VibrationZ;
+    this.Clipping0 = Clipping0;
+    this.Clipping1 = Clipping1;
+    this.Clipping2 = Clipping2;
   }
 
   public static Vibration Parse(ReadOnlySpan<byte> data) {
@@ -28255,17 +28255,17 @@ public sealed class HomePosition : MavlinkMessage {
   public ulong TimeUsec { get; init; }
 
   public HomePosition(int Latitude, int Longitude, int Altitude, float X, float Y, float Z, float[] Q, float ApproachX, float ApproachY, float ApproachZ, ulong TimeUsec) {
-    Latitude = Latitude;
-    Longitude = Longitude;
-    Altitude = Altitude;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Q = Q;
-    ApproachX = ApproachX;
-    ApproachY = ApproachY;
-    ApproachZ = ApproachZ;
-    TimeUsec = TimeUsec;
+    this.Latitude = Latitude;
+    this.Longitude = Longitude;
+    this.Altitude = Altitude;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Q = Q;
+    this.ApproachX = ApproachX;
+    this.ApproachY = ApproachY;
+    this.ApproachZ = ApproachZ;
+    this.TimeUsec = TimeUsec;
   }
 
   public static HomePosition Parse(ReadOnlySpan<byte> data) {
@@ -28425,18 +28425,18 @@ public sealed class SetHomePosition : MavlinkMessage {
   public ulong TimeUsec { get; init; }
 
   public SetHomePosition(int Latitude, int Longitude, int Altitude, float X, float Y, float Z, float[] Q, float ApproachX, float ApproachY, float ApproachZ, byte TargetSystem, ulong TimeUsec) {
-    Latitude = Latitude;
-    Longitude = Longitude;
-    Altitude = Altitude;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Q = Q;
-    ApproachX = ApproachX;
-    ApproachY = ApproachY;
-    ApproachZ = ApproachZ;
-    TargetSystem = TargetSystem;
-    TimeUsec = TimeUsec;
+    this.Latitude = Latitude;
+    this.Longitude = Longitude;
+    this.Altitude = Altitude;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Q = Q;
+    this.ApproachX = ApproachX;
+    this.ApproachY = ApproachY;
+    this.ApproachZ = ApproachZ;
+    this.TargetSystem = TargetSystem;
+    this.TimeUsec = TimeUsec;
   }
 
   public static SetHomePosition Parse(ReadOnlySpan<byte> data) {
@@ -28519,8 +28519,8 @@ public sealed class MessageInterval : MavlinkMessage {
   public ushort MessageId { get; init; }
 
   public MessageInterval(int IntervalUs, ushort MessageId) {
-    IntervalUs = IntervalUs;
-    MessageId = MessageId;
+    this.IntervalUs = IntervalUs;
+    this.MessageId = MessageId;
   }
 
   public static MessageInterval Parse(ReadOnlySpan<byte> data) {
@@ -28574,8 +28574,8 @@ public sealed class ExtendedSysState : MavlinkMessage {
   public MavLandedState LandedState { get; init; }
 
   public ExtendedSysState(MavVtolState VtolState, MavLandedState LandedState) {
-    VtolState = VtolState;
-    LandedState = LandedState;
+    this.VtolState = VtolState;
+    this.LandedState = LandedState;
   }
 
   public static ExtendedSysState Parse(ReadOnlySpan<byte> data) {
@@ -28716,19 +28716,19 @@ public sealed class AdsbVehicle : MavlinkMessage {
   public byte Tslc { get; init; }
 
   public AdsbVehicle(uint IcaoAddress, int Lat, int Lon, int Altitude, ushort Heading, ushort HorVelocity, short VerVelocity, ushort Flags, ushort Squawk, AdsbAltitudeType AltitudeType, byte[] Callsign, AdsbEmitterType EmitterType, byte Tslc) {
-    IcaoAddress = IcaoAddress;
-    Lat = Lat;
-    Lon = Lon;
-    Altitude = Altitude;
-    Heading = Heading;
-    HorVelocity = HorVelocity;
-    VerVelocity = VerVelocity;
-    Flags = Flags;
-    Squawk = Squawk;
-    AltitudeType = AltitudeType;
-    Callsign = Callsign;
-    EmitterType = EmitterType;
-    Tslc = Tslc;
+    this.IcaoAddress = IcaoAddress;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Altitude = Altitude;
+    this.Heading = Heading;
+    this.HorVelocity = HorVelocity;
+    this.VerVelocity = VerVelocity;
+    this.Flags = Flags;
+    this.Squawk = Squawk;
+    this.AltitudeType = AltitudeType;
+    this.Callsign = Callsign;
+    this.EmitterType = EmitterType;
+    this.Tslc = Tslc;
   }
 
   public static AdsbVehicle Parse(ReadOnlySpan<byte> data) {
@@ -28856,13 +28856,13 @@ public sealed class Collision : MavlinkMessage {
   public MavCollisionThreatLevel ThreatLevel { get; init; }
 
   public Collision(uint Id, float TimeToMinimumDelta, float AltitudeMinimumDelta, float HorizontalMinimumDelta, MavCollisionSrc Src, MavCollisionAction Action, MavCollisionThreatLevel ThreatLevel) {
-    Id = Id;
-    TimeToMinimumDelta = TimeToMinimumDelta;
-    AltitudeMinimumDelta = AltitudeMinimumDelta;
-    HorizontalMinimumDelta = HorizontalMinimumDelta;
-    Src = Src;
-    Action = Action;
-    ThreatLevel = ThreatLevel;
+    this.Id = Id;
+    this.TimeToMinimumDelta = TimeToMinimumDelta;
+    this.AltitudeMinimumDelta = AltitudeMinimumDelta;
+    this.HorizontalMinimumDelta = HorizontalMinimumDelta;
+    this.Src = Src;
+    this.Action = Action;
+    this.ThreatLevel = ThreatLevel;
   }
 
   public static Collision Parse(ReadOnlySpan<byte> data) {
@@ -28953,11 +28953,11 @@ public sealed class V2Extension : MavlinkMessage {
   public byte[] Payload { get; init; }
 
   public V2Extension(ushort MessageType, byte TargetNetwork, byte TargetSystem, byte TargetComponent, byte[] Payload) {
-    MessageType = MessageType;
-    TargetNetwork = TargetNetwork;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Payload = Payload;
+    this.MessageType = MessageType;
+    this.TargetNetwork = TargetNetwork;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Payload = Payload;
   }
 
   public static V2Extension Parse(ReadOnlySpan<byte> data) {
@@ -29032,10 +29032,10 @@ public sealed class MemoryVect : MavlinkMessage {
   public sbyte[] Value { get; init; }
 
   public MemoryVect(ushort Address, byte Ver, byte Type, sbyte[] Value) {
-    Address = Address;
-    Ver = Ver;
-    Type = Type;
-    Value = Value;
+    this.Address = Address;
+    this.Ver = Ver;
+    this.Type = Type;
+    this.Value = Value;
   }
 
   public static MemoryVect Parse(ReadOnlySpan<byte> data) {
@@ -29115,11 +29115,11 @@ public sealed class DebugVect : MavlinkMessage {
   public byte[] Name { get; init; }
 
   public DebugVect(ulong TimeUsec, float X, float Y, float Z, byte[] Name) {
-    TimeUsec = TimeUsec;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Name = Name;
+    this.TimeUsec = TimeUsec;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Name = Name;
   }
 
   public static DebugVect Parse(ReadOnlySpan<byte> data) {
@@ -29188,9 +29188,9 @@ public sealed class NamedValueFloat : MavlinkMessage {
   public byte[] Name { get; init; }
 
   public NamedValueFloat(uint TimeBootMs, float Value, byte[] Name) {
-    TimeBootMs = TimeBootMs;
-    Value = Value;
-    Name = Name;
+    this.TimeBootMs = TimeBootMs;
+    this.Value = Value;
+    this.Name = Name;
   }
 
   public static NamedValueFloat Parse(ReadOnlySpan<byte> data) {
@@ -29253,9 +29253,9 @@ public sealed class NamedValueInt : MavlinkMessage {
   public byte[] Name { get; init; }
 
   public NamedValueInt(uint TimeBootMs, int Value, byte[] Name) {
-    TimeBootMs = TimeBootMs;
-    Value = Value;
-    Name = Name;
+    this.TimeBootMs = TimeBootMs;
+    this.Value = Value;
+    this.Name = Name;
   }
 
   public static NamedValueInt Parse(ReadOnlySpan<byte> data) {
@@ -29327,10 +29327,10 @@ public sealed class Statustext : MavlinkMessage {
   public byte ChunkSeq { get; init; }
 
   public Statustext(MavSeverity Severity, byte[] Text, ushort Id, byte ChunkSeq) {
-    Severity = Severity;
-    Text = Text;
-    Id = Id;
-    ChunkSeq = ChunkSeq;
+    this.Severity = Severity;
+    this.Text = Text;
+    this.Id = Id;
+    this.ChunkSeq = ChunkSeq;
   }
 
   public static Statustext Parse(ReadOnlySpan<byte> data) {
@@ -29397,9 +29397,9 @@ public sealed class Debug : MavlinkMessage {
   public byte Ind { get; init; }
 
   public Debug(uint TimeBootMs, float Value, byte Ind) {
-    TimeBootMs = TimeBootMs;
-    Value = Value;
-    Ind = Ind;
+    this.TimeBootMs = TimeBootMs;
+    this.Value = Value;
+    this.Ind = Ind;
   }
 
   public static Debug Parse(ReadOnlySpan<byte> data) {
@@ -29468,10 +29468,10 @@ public sealed class SetupSigning : MavlinkMessage {
   public byte[] SecretKey { get; init; }
 
   public SetupSigning(ulong InitialTimestamp, byte TargetSystem, byte TargetComponent, byte[] SecretKey) {
-    InitialTimestamp = InitialTimestamp;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    SecretKey = SecretKey;
+    this.InitialTimestamp = InitialTimestamp;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.SecretKey = SecretKey;
   }
 
   public static SetupSigning Parse(ReadOnlySpan<byte> data) {
@@ -29538,9 +29538,9 @@ public sealed class ButtonChange : MavlinkMessage {
   public byte State { get; init; }
 
   public ButtonChange(uint TimeBootMs, uint LastChangeMs, byte State) {
-    TimeBootMs = TimeBootMs;
-    LastChangeMs = LastChangeMs;
-    State = State;
+    this.TimeBootMs = TimeBootMs;
+    this.LastChangeMs = LastChangeMs;
+    this.State = State;
   }
 
   public static ButtonChange Parse(ReadOnlySpan<byte> data) {
@@ -29610,10 +29610,10 @@ public sealed class PlayTune : MavlinkMessage {
   public byte[] Tune2 { get; init; }
 
   public PlayTune(byte TargetSystem, byte TargetComponent, byte[] Tune, byte[] Tune2) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Tune = Tune;
-    Tune2 = Tune2;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Tune = Tune;
+    this.Tune2 = Tune2;
   }
 
   public static PlayTune Parse(ReadOnlySpan<byte> data) {
@@ -29763,20 +29763,20 @@ public sealed class CameraInformation : MavlinkMessage {
   public byte GimbalDeviceId { get; init; }
 
   public CameraInformation(uint TimeBootMs, uint FirmwareVersion, float FocalLength, float SensorSizeH, float SensorSizeV, uint Flags, ushort ResolutionH, ushort ResolutionV, ushort CamDefinitionVersion, byte[] VendorName, byte[] ModelName, byte LensId, byte[] CamDefinitionUri, byte GimbalDeviceId) {
-    TimeBootMs = TimeBootMs;
-    FirmwareVersion = FirmwareVersion;
-    FocalLength = FocalLength;
-    SensorSizeH = SensorSizeH;
-    SensorSizeV = SensorSizeV;
-    Flags = Flags;
-    ResolutionH = ResolutionH;
-    ResolutionV = ResolutionV;
-    CamDefinitionVersion = CamDefinitionVersion;
-    VendorName = VendorName;
-    ModelName = ModelName;
-    LensId = LensId;
-    CamDefinitionUri = CamDefinitionUri;
-    GimbalDeviceId = GimbalDeviceId;
+    this.TimeBootMs = TimeBootMs;
+    this.FirmwareVersion = FirmwareVersion;
+    this.FocalLength = FocalLength;
+    this.SensorSizeH = SensorSizeH;
+    this.SensorSizeV = SensorSizeV;
+    this.Flags = Flags;
+    this.ResolutionH = ResolutionH;
+    this.ResolutionV = ResolutionV;
+    this.CamDefinitionVersion = CamDefinitionVersion;
+    this.VendorName = VendorName;
+    this.ModelName = ModelName;
+    this.LensId = LensId;
+    this.CamDefinitionUri = CamDefinitionUri;
+    this.GimbalDeviceId = GimbalDeviceId;
   }
 
   public static CameraInformation Parse(ReadOnlySpan<byte> data) {
@@ -29882,10 +29882,10 @@ public sealed class CameraSettings : MavlinkMessage {
   public float Focuslevel { get; init; }
 
   public CameraSettings(uint TimeBootMs, CameraMode ModeId, float Zoomlevel, float Focuslevel) {
-    TimeBootMs = TimeBootMs;
-    ModeId = ModeId;
-    Zoomlevel = Zoomlevel;
-    Focuslevel = Focuslevel;
+    this.TimeBootMs = TimeBootMs;
+    this.ModeId = ModeId;
+    this.Zoomlevel = Zoomlevel;
+    this.Focuslevel = Focuslevel;
   }
 
   public static CameraSettings Parse(ReadOnlySpan<byte> data) {
@@ -30017,17 +30017,17 @@ public sealed class StorageInformation : MavlinkMessage {
   public byte[] Name { get; init; }
 
   public StorageInformation(uint TimeBootMs, float TotalCapacity, float UsedCapacity, float AvailableCapacity, float ReadSpeed, float WriteSpeed, byte StorageId, byte StorageCount, StorageStatus Status, StorageType Type, byte[] Name) {
-    TimeBootMs = TimeBootMs;
-    TotalCapacity = TotalCapacity;
-    UsedCapacity = UsedCapacity;
-    AvailableCapacity = AvailableCapacity;
-    ReadSpeed = ReadSpeed;
-    WriteSpeed = WriteSpeed;
-    StorageId = StorageId;
-    StorageCount = StorageCount;
-    Status = Status;
-    Type = Type;
-    Name = Name;
+    this.TimeBootMs = TimeBootMs;
+    this.TotalCapacity = TotalCapacity;
+    this.UsedCapacity = UsedCapacity;
+    this.AvailableCapacity = AvailableCapacity;
+    this.ReadSpeed = ReadSpeed;
+    this.WriteSpeed = WriteSpeed;
+    this.StorageId = StorageId;
+    this.StorageCount = StorageCount;
+    this.Status = Status;
+    this.Type = Type;
+    this.Name = Name;
   }
 
   public static StorageInformation Parse(ReadOnlySpan<byte> data) {
@@ -30148,13 +30148,13 @@ public sealed class CameraCaptureStatus : MavlinkMessage {
   public int ImageCount { get; init; }
 
   public CameraCaptureStatus(uint TimeBootMs, float ImageInterval, uint RecordingTimeMs, float AvailableCapacity, byte ImageStatus, byte VideoStatus, int ImageCount) {
-    TimeBootMs = TimeBootMs;
-    ImageInterval = ImageInterval;
-    RecordingTimeMs = RecordingTimeMs;
-    AvailableCapacity = AvailableCapacity;
-    ImageStatus = ImageStatus;
-    VideoStatus = VideoStatus;
-    ImageCount = ImageCount;
+    this.TimeBootMs = TimeBootMs;
+    this.ImageInterval = ImageInterval;
+    this.RecordingTimeMs = RecordingTimeMs;
+    this.AvailableCapacity = AvailableCapacity;
+    this.ImageStatus = ImageStatus;
+    this.VideoStatus = VideoStatus;
+    this.ImageCount = ImageCount;
   }
 
   public static CameraCaptureStatus Parse(ReadOnlySpan<byte> data) {
@@ -30290,17 +30290,17 @@ public sealed class CameraImageCaptured : MavlinkMessage {
   public byte[] FileUrl { get; init; }
 
   public CameraImageCaptured(ulong TimeUtc, uint TimeBootMs, int Lat, int Lon, int Alt, int RelativeAlt, float[] Q, int ImageIndex, byte CameraId, sbyte CaptureResult, byte[] FileUrl) {
-    TimeUtc = TimeUtc;
-    TimeBootMs = TimeBootMs;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    RelativeAlt = RelativeAlt;
-    Q = Q;
-    ImageIndex = ImageIndex;
-    CameraId = CameraId;
-    CaptureResult = CaptureResult;
-    FileUrl = FileUrl;
+    this.TimeUtc = TimeUtc;
+    this.TimeBootMs = TimeBootMs;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.RelativeAlt = RelativeAlt;
+    this.Q = Q;
+    this.ImageIndex = ImageIndex;
+    this.CameraId = CameraId;
+    this.CaptureResult = CaptureResult;
+    this.FileUrl = FileUrl;
   }
 
   public static CameraImageCaptured Parse(ReadOnlySpan<byte> data) {
@@ -30396,10 +30396,10 @@ public sealed class FlightInformation : MavlinkMessage {
   public uint TimeBootMs { get; init; }
 
   public FlightInformation(ulong ArmingTimeUtc, ulong TakeoffTimeUtc, ulong FlightUuid, uint TimeBootMs) {
-    ArmingTimeUtc = ArmingTimeUtc;
-    TakeoffTimeUtc = TakeoffTimeUtc;
-    FlightUuid = FlightUuid;
-    TimeBootMs = TimeBootMs;
+    this.ArmingTimeUtc = ArmingTimeUtc;
+    this.TakeoffTimeUtc = TakeoffTimeUtc;
+    this.FlightUuid = FlightUuid;
+    this.TimeBootMs = TimeBootMs;
   }
 
   public static FlightInformation Parse(ReadOnlySpan<byte> data) {
@@ -30484,11 +30484,11 @@ public sealed class MountOrientation : MavlinkMessage {
   public float YawAbsolute { get; init; }
 
   public MountOrientation(uint TimeBootMs, float Roll, float Pitch, float Yaw, float YawAbsolute) {
-    TimeBootMs = TimeBootMs;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    YawAbsolute = YawAbsolute;
+    this.TimeBootMs = TimeBootMs;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.YawAbsolute = YawAbsolute;
   }
 
   public static MountOrientation Parse(ReadOnlySpan<byte> data) {
@@ -30579,12 +30579,12 @@ public sealed class LoggingData : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public LoggingData(ushort Sequence, byte TargetSystem, byte TargetComponent, byte Length, byte FirstMessageOffset, byte[] Data) {
-    Sequence = Sequence;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Length = Length;
-    FirstMessageOffset = FirstMessageOffset;
-    Data = Data;
+    this.Sequence = Sequence;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Length = Length;
+    this.FirstMessageOffset = FirstMessageOffset;
+    this.Data = Data;
   }
 
   public static LoggingData Parse(ReadOnlySpan<byte> data) {
@@ -30678,12 +30678,12 @@ public sealed class LoggingDataAcked : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public LoggingDataAcked(ushort Sequence, byte TargetSystem, byte TargetComponent, byte Length, byte FirstMessageOffset, byte[] Data) {
-    Sequence = Sequence;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Length = Length;
-    FirstMessageOffset = FirstMessageOffset;
-    Data = Data;
+    this.Sequence = Sequence;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Length = Length;
+    this.FirstMessageOffset = FirstMessageOffset;
+    this.Data = Data;
   }
 
   public static LoggingDataAcked Parse(ReadOnlySpan<byte> data) {
@@ -30754,9 +30754,9 @@ public sealed class LoggingAck : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public LoggingAck(ushort Sequence, byte TargetSystem, byte TargetComponent) {
-    Sequence = Sequence;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Sequence = Sequence;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static LoggingAck Parse(ReadOnlySpan<byte> data) {
@@ -30889,18 +30889,18 @@ public sealed class VideoStreamInformation : MavlinkMessage {
   public byte[] Uri { get; init; }
 
   public VideoStreamInformation(float Framerate, uint Bitrate, VideoStreamStatusFlags Flags, ushort ResolutionH, ushort ResolutionV, ushort Rotation, ushort Hfov, byte StreamId, byte Count, VideoStreamType Type, byte[] Name, byte[] Uri) {
-    Framerate = Framerate;
-    Bitrate = Bitrate;
-    Flags = Flags;
-    ResolutionH = ResolutionH;
-    ResolutionV = ResolutionV;
-    Rotation = Rotation;
-    Hfov = Hfov;
-    StreamId = StreamId;
-    Count = Count;
-    Type = Type;
-    Name = Name;
-    Uri = Uri;
+    this.Framerate = Framerate;
+    this.Bitrate = Bitrate;
+    this.Flags = Flags;
+    this.ResolutionH = ResolutionH;
+    this.ResolutionV = ResolutionV;
+    this.Rotation = Rotation;
+    this.Hfov = Hfov;
+    this.StreamId = StreamId;
+    this.Count = Count;
+    this.Type = Type;
+    this.Name = Name;
+    this.Uri = Uri;
   }
 
   public static VideoStreamInformation Parse(ReadOnlySpan<byte> data) {
@@ -31033,14 +31033,14 @@ public sealed class VideoStreamStatus : MavlinkMessage {
   public byte StreamId { get; init; }
 
   public VideoStreamStatus(float Framerate, uint Bitrate, VideoStreamStatusFlags Flags, ushort ResolutionH, ushort ResolutionV, ushort Rotation, ushort Hfov, byte StreamId) {
-    Framerate = Framerate;
-    Bitrate = Bitrate;
-    Flags = Flags;
-    ResolutionH = ResolutionH;
-    ResolutionV = ResolutionV;
-    Rotation = Rotation;
-    Hfov = Hfov;
-    StreamId = StreamId;
+    this.Framerate = Framerate;
+    this.Bitrate = Bitrate;
+    this.Flags = Flags;
+    this.ResolutionH = ResolutionH;
+    this.ResolutionV = ResolutionV;
+    this.Rotation = Rotation;
+    this.Hfov = Hfov;
+    this.StreamId = StreamId;
   }
 
   public static VideoStreamStatus Parse(ReadOnlySpan<byte> data) {
@@ -31176,16 +31176,16 @@ public sealed class CameraFovStatus : MavlinkMessage {
   public float Vfov { get; init; }
 
   public CameraFovStatus(uint TimeBootMs, int LatCamera, int LonCamera, int AltCamera, int LatImage, int LonImage, int AltImage, float[] Q, float Hfov, float Vfov) {
-    TimeBootMs = TimeBootMs;
-    LatCamera = LatCamera;
-    LonCamera = LonCamera;
-    AltCamera = AltCamera;
-    LatImage = LatImage;
-    LonImage = LonImage;
-    AltImage = AltImage;
-    Q = Q;
-    Hfov = Hfov;
-    Vfov = Vfov;
+    this.TimeBootMs = TimeBootMs;
+    this.LatCamera = LatCamera;
+    this.LonCamera = LonCamera;
+    this.AltCamera = AltCamera;
+    this.LatImage = LatImage;
+    this.LonImage = LonImage;
+    this.AltImage = AltImage;
+    this.Q = Q;
+    this.Hfov = Hfov;
+    this.Vfov = Vfov;
   }
 
   public static CameraFovStatus Parse(ReadOnlySpan<byte> data) {
@@ -31320,16 +31320,16 @@ public sealed class CameraTrackingImageStatus : MavlinkMessage {
   public CameraTrackingTargetData TargetData { get; init; }
 
   public CameraTrackingImageStatus(float PointX, float PointY, float Radius, float RecTopX, float RecTopY, float RecBottomX, float RecBottomY, CameraTrackingStatusFlags TrackingStatus, CameraTrackingMode TrackingMode, CameraTrackingTargetData TargetData) {
-    PointX = PointX;
-    PointY = PointY;
-    Radius = Radius;
-    RecTopX = RecTopX;
-    RecTopY = RecTopY;
-    RecBottomX = RecBottomX;
-    RecBottomY = RecBottomY;
-    TrackingStatus = TrackingStatus;
-    TrackingMode = TrackingMode;
-    TargetData = TargetData;
+    this.PointX = PointX;
+    this.PointY = PointY;
+    this.Radius = Radius;
+    this.RecTopX = RecTopX;
+    this.RecTopY = RecTopY;
+    this.RecBottomX = RecBottomX;
+    this.RecBottomY = RecBottomY;
+    this.TrackingStatus = TrackingStatus;
+    this.TrackingMode = TrackingMode;
+    this.TargetData = TargetData;
   }
 
   public static CameraTrackingImageStatus Parse(ReadOnlySpan<byte> data) {
@@ -31498,19 +31498,19 @@ public sealed class CameraTrackingGeoStatus : MavlinkMessage {
   public CameraTrackingStatusFlags TrackingStatus { get; init; }
 
   public CameraTrackingGeoStatus(int Lat, int Lon, float Alt, float HAcc, float VAcc, float VelN, float VelE, float VelD, float VelAcc, float Dist, float Hdg, float HdgAcc, CameraTrackingStatusFlags TrackingStatus) {
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    HAcc = HAcc;
-    VAcc = VAcc;
-    VelN = VelN;
-    VelE = VelE;
-    VelD = VelD;
-    VelAcc = VelAcc;
-    Dist = Dist;
-    Hdg = Hdg;
-    HdgAcc = HdgAcc;
-    TrackingStatus = TrackingStatus;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.HAcc = HAcc;
+    this.VAcc = VAcc;
+    this.VelN = VelN;
+    this.VelE = VelE;
+    this.VelD = VelD;
+    this.VelAcc = VelAcc;
+    this.Dist = Dist;
+    this.Hdg = Hdg;
+    this.HdgAcc = HdgAcc;
+    this.TrackingStatus = TrackingStatus;
   }
 
   public static CameraTrackingGeoStatus Parse(ReadOnlySpan<byte> data) {
@@ -31653,15 +31653,15 @@ public sealed class GimbalManagerInformation : MavlinkMessage {
   public byte GimbalDeviceId { get; init; }
 
   public GimbalManagerInformation(uint TimeBootMs, uint CapFlags, float RollMin, float RollMax, float PitchMin, float PitchMax, float YawMin, float YawMax, byte GimbalDeviceId) {
-    TimeBootMs = TimeBootMs;
-    CapFlags = CapFlags;
-    RollMin = RollMin;
-    RollMax = RollMax;
-    PitchMin = PitchMin;
-    PitchMax = PitchMax;
-    YawMin = YawMin;
-    YawMax = YawMax;
-    GimbalDeviceId = GimbalDeviceId;
+    this.TimeBootMs = TimeBootMs;
+    this.CapFlags = CapFlags;
+    this.RollMin = RollMin;
+    this.RollMax = RollMax;
+    this.PitchMin = PitchMin;
+    this.PitchMax = PitchMax;
+    this.YawMin = YawMin;
+    this.YawMax = YawMax;
+    this.GimbalDeviceId = GimbalDeviceId;
   }
 
   public static GimbalManagerInformation Parse(ReadOnlySpan<byte> data) {
@@ -31771,13 +31771,13 @@ public sealed class GimbalManagerStatus : MavlinkMessage {
   public byte SecondaryControlCompid { get; init; }
 
   public GimbalManagerStatus(uint TimeBootMs, uint Flags, byte GimbalDeviceId, byte PrimaryControlSysid, byte PrimaryControlCompid, byte SecondaryControlSysid, byte SecondaryControlCompid) {
-    TimeBootMs = TimeBootMs;
-    Flags = Flags;
-    GimbalDeviceId = GimbalDeviceId;
-    PrimaryControlSysid = PrimaryControlSysid;
-    PrimaryControlCompid = PrimaryControlCompid;
-    SecondaryControlSysid = SecondaryControlSysid;
-    SecondaryControlCompid = SecondaryControlCompid;
+    this.TimeBootMs = TimeBootMs;
+    this.Flags = Flags;
+    this.GimbalDeviceId = GimbalDeviceId;
+    this.PrimaryControlSysid = PrimaryControlSysid;
+    this.PrimaryControlCompid = PrimaryControlCompid;
+    this.SecondaryControlSysid = SecondaryControlSysid;
+    this.SecondaryControlCompid = SecondaryControlCompid;
   }
 
   public static GimbalManagerStatus Parse(ReadOnlySpan<byte> data) {
@@ -31890,14 +31890,14 @@ public sealed class GimbalManagerSetAttitude : MavlinkMessage {
   public byte GimbalDeviceId { get; init; }
 
   public GimbalManagerSetAttitude(GimbalManagerFlags Flags, float[] Q, float AngularVelocityX, float AngularVelocityY, float AngularVelocityZ, byte TargetSystem, byte TargetComponent, byte GimbalDeviceId) {
-    Flags = Flags;
-    Q = Q;
-    AngularVelocityX = AngularVelocityX;
-    AngularVelocityY = AngularVelocityY;
-    AngularVelocityZ = AngularVelocityZ;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    GimbalDeviceId = GimbalDeviceId;
+    this.Flags = Flags;
+    this.Q = Q;
+    this.AngularVelocityX = AngularVelocityX;
+    this.AngularVelocityY = AngularVelocityY;
+    this.AngularVelocityZ = AngularVelocityZ;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.GimbalDeviceId = GimbalDeviceId;
   }
 
   public static GimbalManagerSetAttitude Parse(ReadOnlySpan<byte> data) {
@@ -32075,22 +32075,22 @@ public sealed class GimbalDeviceInformation : MavlinkMessage {
   public byte GimbalDeviceId { get; init; }
 
   public GimbalDeviceInformation(ulong Uid, uint TimeBootMs, uint FirmwareVersion, uint HardwareVersion, float RollMin, float RollMax, float PitchMin, float PitchMax, float YawMin, float YawMax, ushort CapFlags, ushort CustomCapFlags, byte[] VendorName, byte[] ModelName, byte[] CustomName, byte GimbalDeviceId) {
-    Uid = Uid;
-    TimeBootMs = TimeBootMs;
-    FirmwareVersion = FirmwareVersion;
-    HardwareVersion = HardwareVersion;
-    RollMin = RollMin;
-    RollMax = RollMax;
-    PitchMin = PitchMin;
-    PitchMax = PitchMax;
-    YawMin = YawMin;
-    YawMax = YawMax;
-    CapFlags = CapFlags;
-    CustomCapFlags = CustomCapFlags;
-    VendorName = VendorName;
-    ModelName = ModelName;
-    CustomName = CustomName;
-    GimbalDeviceId = GimbalDeviceId;
+    this.Uid = Uid;
+    this.TimeBootMs = TimeBootMs;
+    this.FirmwareVersion = FirmwareVersion;
+    this.HardwareVersion = HardwareVersion;
+    this.RollMin = RollMin;
+    this.RollMax = RollMax;
+    this.PitchMin = PitchMin;
+    this.PitchMax = PitchMax;
+    this.YawMin = YawMin;
+    this.YawMax = YawMax;
+    this.CapFlags = CapFlags;
+    this.CustomCapFlags = CustomCapFlags;
+    this.VendorName = VendorName;
+    this.ModelName = ModelName;
+    this.CustomName = CustomName;
+    this.GimbalDeviceId = GimbalDeviceId;
   }
 
   public static GimbalDeviceInformation Parse(ReadOnlySpan<byte> data) {
@@ -32234,13 +32234,13 @@ public sealed class GimbalDeviceSetAttitude : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public GimbalDeviceSetAttitude(float[] Q, float AngularVelocityX, float AngularVelocityY, float AngularVelocityZ, ushort Flags, byte TargetSystem, byte TargetComponent) {
-    Q = Q;
-    AngularVelocityX = AngularVelocityX;
-    AngularVelocityY = AngularVelocityY;
-    AngularVelocityZ = AngularVelocityZ;
-    Flags = Flags;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Q = Q;
+    this.AngularVelocityX = AngularVelocityX;
+    this.AngularVelocityY = AngularVelocityY;
+    this.AngularVelocityZ = AngularVelocityZ;
+    this.Flags = Flags;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static GimbalDeviceSetAttitude Parse(ReadOnlySpan<byte> data) {
@@ -32402,18 +32402,18 @@ public sealed class GimbalDeviceAttitudeStatus : MavlinkMessage {
   public byte GimbalDeviceId { get; init; }
 
   public GimbalDeviceAttitudeStatus(uint TimeBootMs, float[] Q, float AngularVelocityX, float AngularVelocityY, float AngularVelocityZ, uint FailureFlags, ushort Flags, byte TargetSystem, byte TargetComponent, float DeltaYaw, float DeltaYawVelocity, byte GimbalDeviceId) {
-    TimeBootMs = TimeBootMs;
-    Q = Q;
-    AngularVelocityX = AngularVelocityX;
-    AngularVelocityY = AngularVelocityY;
-    AngularVelocityZ = AngularVelocityZ;
-    FailureFlags = FailureFlags;
-    Flags = Flags;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    DeltaYaw = DeltaYaw;
-    DeltaYawVelocity = DeltaYawVelocity;
-    GimbalDeviceId = GimbalDeviceId;
+    this.TimeBootMs = TimeBootMs;
+    this.Q = Q;
+    this.AngularVelocityX = AngularVelocityX;
+    this.AngularVelocityY = AngularVelocityY;
+    this.AngularVelocityZ = AngularVelocityZ;
+    this.FailureFlags = FailureFlags;
+    this.Flags = Flags;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.DeltaYaw = DeltaYaw;
+    this.DeltaYawVelocity = DeltaYawVelocity;
+    this.GimbalDeviceId = GimbalDeviceId;
   }
 
   public static GimbalDeviceAttitudeStatus Parse(ReadOnlySpan<byte> data) {
@@ -32583,19 +32583,19 @@ public sealed class AutopilotStateForGimbalDevice : MavlinkMessage {
   public float AngularVelocityZ { get; init; }
 
   public AutopilotStateForGimbalDevice(ulong TimeBootUs, float[] Q, uint QEstimatedDelayUs, float Vx, float Vy, float Vz, uint VEstimatedDelayUs, float FeedForwardAngularVelocityZ, ushort EstimatorStatus, byte TargetSystem, byte TargetComponent, MavLandedState LandedState, float AngularVelocityZ) {
-    TimeBootUs = TimeBootUs;
-    Q = Q;
-    QEstimatedDelayUs = QEstimatedDelayUs;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    VEstimatedDelayUs = VEstimatedDelayUs;
-    FeedForwardAngularVelocityZ = FeedForwardAngularVelocityZ;
-    EstimatorStatus = EstimatorStatus;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    LandedState = LandedState;
-    AngularVelocityZ = AngularVelocityZ;
+    this.TimeBootUs = TimeBootUs;
+    this.Q = Q;
+    this.QEstimatedDelayUs = QEstimatedDelayUs;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.VEstimatedDelayUs = VEstimatedDelayUs;
+    this.FeedForwardAngularVelocityZ = FeedForwardAngularVelocityZ;
+    this.EstimatorStatus = EstimatorStatus;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.LandedState = LandedState;
+    this.AngularVelocityZ = AngularVelocityZ;
   }
 
   public static AutopilotStateForGimbalDevice Parse(ReadOnlySpan<byte> data) {
@@ -32728,14 +32728,14 @@ public sealed class GimbalManagerSetPitchyaw : MavlinkMessage {
   public byte GimbalDeviceId { get; init; }
 
   public GimbalManagerSetPitchyaw(GimbalManagerFlags Flags, float Pitch, float Yaw, float PitchRate, float YawRate, byte TargetSystem, byte TargetComponent, byte GimbalDeviceId) {
-    Flags = Flags;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    PitchRate = PitchRate;
-    YawRate = YawRate;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    GimbalDeviceId = GimbalDeviceId;
+    this.Flags = Flags;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.PitchRate = PitchRate;
+    this.YawRate = YawRate;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.GimbalDeviceId = GimbalDeviceId;
   }
 
   public static GimbalManagerSetPitchyaw Parse(ReadOnlySpan<byte> data) {
@@ -32849,14 +32849,14 @@ public sealed class GimbalManagerSetManualControl : MavlinkMessage {
   public byte GimbalDeviceId { get; init; }
 
   public GimbalManagerSetManualControl(GimbalManagerFlags Flags, float Pitch, float Yaw, float PitchRate, float YawRate, byte TargetSystem, byte TargetComponent, byte GimbalDeviceId) {
-    Flags = Flags;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    PitchRate = PitchRate;
-    YawRate = YawRate;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    GimbalDeviceId = GimbalDeviceId;
+    this.Flags = Flags;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.PitchRate = PitchRate;
+    this.YawRate = YawRate;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.GimbalDeviceId = GimbalDeviceId;
   }
 
   public static GimbalManagerSetManualControl Parse(ReadOnlySpan<byte> data) {
@@ -32927,8 +32927,8 @@ public sealed class WifiConfigAp : MavlinkMessage {
   public byte[] Password { get; init; }
 
   public WifiConfigAp(byte[] Ssid, byte[] Password) {
-    Ssid = Ssid;
-    Password = Password;
+    this.Ssid = Ssid;
+    this.Password = Password;
   }
 
   public static WifiConfigAp Parse(ReadOnlySpan<byte> data) {
@@ -33099,23 +33099,23 @@ public sealed class AisVessel : MavlinkMessage {
   public byte[] Name { get; init; }
 
   public AisVessel(uint Mmsi, int Lat, int Lon, ushort Cog, ushort Heading, ushort Velocity, ushort DimensionBow, ushort DimensionStern, ushort Tslc, ushort Flags, sbyte TurnRate, AisNavStatus NavigationalStatus, AisType Type, byte DimensionPort, byte DimensionStarboard, byte[] Callsign, byte[] Name) {
-    Mmsi = Mmsi;
-    Lat = Lat;
-    Lon = Lon;
-    Cog = Cog;
-    Heading = Heading;
-    Velocity = Velocity;
-    DimensionBow = DimensionBow;
-    DimensionStern = DimensionStern;
-    Tslc = Tslc;
-    Flags = Flags;
-    TurnRate = TurnRate;
-    NavigationalStatus = NavigationalStatus;
-    Type = Type;
-    DimensionPort = DimensionPort;
-    DimensionStarboard = DimensionStarboard;
-    Callsign = Callsign;
-    Name = Name;
+    this.Mmsi = Mmsi;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Cog = Cog;
+    this.Heading = Heading;
+    this.Velocity = Velocity;
+    this.DimensionBow = DimensionBow;
+    this.DimensionStern = DimensionStern;
+    this.Tslc = Tslc;
+    this.Flags = Flags;
+    this.TurnRate = TurnRate;
+    this.NavigationalStatus = NavigationalStatus;
+    this.Type = Type;
+    this.DimensionPort = DimensionPort;
+    this.DimensionStarboard = DimensionStarboard;
+    this.Callsign = Callsign;
+    this.Name = Name;
   }
 
   public static AisVessel Parse(ReadOnlySpan<byte> data) {
@@ -33246,12 +33246,12 @@ public sealed class UavcanNodeStatus : MavlinkMessage {
   public byte SubMode { get; init; }
 
   public UavcanNodeStatus(ulong TimeUsec, uint UptimeSec, ushort VendorSpecificStatusCode, UavcanNodeHealth Health, UavcanNodeMode Mode, byte SubMode) {
-    TimeUsec = TimeUsec;
-    UptimeSec = UptimeSec;
-    VendorSpecificStatusCode = VendorSpecificStatusCode;
-    Health = Health;
-    Mode = Mode;
-    SubMode = SubMode;
+    this.TimeUsec = TimeUsec;
+    this.UptimeSec = UptimeSec;
+    this.VendorSpecificStatusCode = VendorSpecificStatusCode;
+    this.Health = Health;
+    this.Mode = Mode;
+    this.SubMode = SubMode;
   }
 
   public static UavcanNodeStatus Parse(ReadOnlySpan<byte> data) {
@@ -33368,15 +33368,15 @@ public sealed class UavcanNodeInfo : MavlinkMessage {
   public byte SwVersionMinor { get; init; }
 
   public UavcanNodeInfo(ulong TimeUsec, uint UptimeSec, uint SwVcsCommit, byte[] Name, byte HwVersionMajor, byte HwVersionMinor, byte[] HwUniqueId, byte SwVersionMajor, byte SwVersionMinor) {
-    TimeUsec = TimeUsec;
-    UptimeSec = UptimeSec;
-    SwVcsCommit = SwVcsCommit;
-    Name = Name;
-    HwVersionMajor = HwVersionMajor;
-    HwVersionMinor = HwVersionMinor;
-    HwUniqueId = HwUniqueId;
-    SwVersionMajor = SwVersionMajor;
-    SwVersionMinor = SwVersionMinor;
+    this.TimeUsec = TimeUsec;
+    this.UptimeSec = UptimeSec;
+    this.SwVcsCommit = SwVcsCommit;
+    this.Name = Name;
+    this.HwVersionMajor = HwVersionMajor;
+    this.HwVersionMinor = HwVersionMinor;
+    this.HwUniqueId = HwUniqueId;
+    this.SwVersionMajor = SwVersionMajor;
+    this.SwVersionMinor = SwVersionMinor;
   }
 
   public static UavcanNodeInfo Parse(ReadOnlySpan<byte> data) {
@@ -33463,10 +33463,10 @@ public sealed class ParamExtRequestRead : MavlinkMessage {
   public byte[] ParamId { get; init; }
 
   public ParamExtRequestRead(short ParamIndex, byte TargetSystem, byte TargetComponent, byte[] ParamId) {
-    ParamIndex = ParamIndex;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    ParamId = ParamId;
+    this.ParamIndex = ParamIndex;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.ParamId = ParamId;
   }
 
   public static ParamExtRequestRead Parse(ReadOnlySpan<byte> data) {
@@ -33524,8 +33524,8 @@ public sealed class ParamExtRequestList : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public ParamExtRequestList(byte TargetSystem, byte TargetComponent) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static ParamExtRequestList Parse(ReadOnlySpan<byte> data) {
@@ -33599,11 +33599,11 @@ public sealed class ParamExtValue : MavlinkMessage {
   public MavParamExtType ParamType { get; init; }
 
   public ParamExtValue(ushort ParamCount, ushort ParamIndex, byte[] ParamId, byte[] ParamValue, MavParamExtType ParamType) {
-    ParamCount = ParamCount;
-    ParamIndex = ParamIndex;
-    ParamId = ParamId;
-    ParamValue = ParamValue;
-    ParamType = ParamType;
+    this.ParamCount = ParamCount;
+    this.ParamIndex = ParamIndex;
+    this.ParamId = ParamId;
+    this.ParamValue = ParamValue;
+    this.ParamType = ParamType;
   }
 
   public static ParamExtValue Parse(ReadOnlySpan<byte> data) {
@@ -33687,11 +33687,11 @@ public sealed class ParamExtSet : MavlinkMessage {
   public MavParamExtType ParamType { get; init; }
 
   public ParamExtSet(byte TargetSystem, byte TargetComponent, byte[] ParamId, byte[] ParamValue, MavParamExtType ParamType) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    ParamId = ParamId;
-    ParamValue = ParamValue;
-    ParamType = ParamType;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.ParamId = ParamId;
+    this.ParamValue = ParamValue;
+    this.ParamType = ParamType;
   }
 
   public static ParamExtSet Parse(ReadOnlySpan<byte> data) {
@@ -33769,10 +33769,10 @@ public sealed class ParamExtAck : MavlinkMessage {
   public ParamAck ParamResult { get; init; }
 
   public ParamExtAck(byte[] ParamId, byte[] ParamValue, MavParamExtType ParamType, ParamAck ParamResult) {
-    ParamId = ParamId;
-    ParamValue = ParamValue;
-    ParamType = ParamType;
-    ParamResult = ParamResult;
+    this.ParamId = ParamId;
+    this.ParamValue = ParamValue;
+    this.ParamType = ParamType;
+    this.ParamResult = ParamResult;
   }
 
   public static ParamExtAck Parse(ReadOnlySpan<byte> data) {
@@ -33893,15 +33893,15 @@ public sealed class ObstacleDistance : MavlinkMessage {
   public MavFrame Frame { get; init; }
 
   public ObstacleDistance(ulong TimeUsec, ushort[] Distances, ushort MinDistance, ushort MaxDistance, MavDistanceSensor SensorType, byte Increment, float IncrementF, float AngleOffset, MavFrame Frame) {
-    TimeUsec = TimeUsec;
-    Distances = Distances;
-    MinDistance = MinDistance;
-    MaxDistance = MaxDistance;
-    SensorType = SensorType;
-    Increment = Increment;
-    IncrementF = IncrementF;
-    AngleOffset = AngleOffset;
-    Frame = Frame;
+    this.TimeUsec = TimeUsec;
+    this.Distances = Distances;
+    this.MinDistance = MinDistance;
+    this.MaxDistance = MaxDistance;
+    this.SensorType = SensorType;
+    this.Increment = Increment;
+    this.IncrementF = IncrementF;
+    this.AngleOffset = AngleOffset;
+    this.Frame = Frame;
   }
 
   public static ObstacleDistance Parse(ReadOnlySpan<byte> data) {
@@ -34105,24 +34105,24 @@ public sealed class Odometry : MavlinkMessage {
   public sbyte Quality { get; init; }
 
   public Odometry(ulong TimeUsec, float X, float Y, float Z, float[] Q, float Vx, float Vy, float Vz, float Rollspeed, float Pitchspeed, float Yawspeed, float[] PoseCovariance, float[] VelocityCovariance, MavFrame FrameId, MavFrame ChildFrameId, byte ResetCounter, MavEstimatorType EstimatorType, sbyte Quality) {
-    TimeUsec = TimeUsec;
-    X = X;
-    Y = Y;
-    Z = Z;
-    Q = Q;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    Rollspeed = Rollspeed;
-    Pitchspeed = Pitchspeed;
-    Yawspeed = Yawspeed;
-    PoseCovariance = PoseCovariance;
-    VelocityCovariance = VelocityCovariance;
-    FrameId = FrameId;
-    ChildFrameId = ChildFrameId;
-    ResetCounter = ResetCounter;
-    EstimatorType = EstimatorType;
-    Quality = Quality;
+    this.TimeUsec = TimeUsec;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.Q = Q;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.Rollspeed = Rollspeed;
+    this.Pitchspeed = Pitchspeed;
+    this.Yawspeed = Yawspeed;
+    this.PoseCovariance = PoseCovariance;
+    this.VelocityCovariance = VelocityCovariance;
+    this.FrameId = FrameId;
+    this.ChildFrameId = ChildFrameId;
+    this.ResetCounter = ResetCounter;
+    this.EstimatorType = EstimatorType;
+    this.Quality = Quality;
   }
 
   public static Odometry Parse(ReadOnlySpan<byte> data) {
@@ -34269,14 +34269,14 @@ public sealed class IsbdLinkStatus : MavlinkMessage {
   public byte RxSessionPending { get; init; }
 
   public IsbdLinkStatus(ulong Timestamp, ulong LastHeartbeat, ushort FailedSessions, ushort SuccessfulSessions, byte SignalQuality, byte RingPending, byte TxSessionPending, byte RxSessionPending) {
-    Timestamp = Timestamp;
-    LastHeartbeat = LastHeartbeat;
-    FailedSessions = FailedSessions;
-    SuccessfulSessions = SuccessfulSessions;
-    SignalQuality = SignalQuality;
-    RingPending = RingPending;
-    TxSessionPending = TxSessionPending;
-    RxSessionPending = RxSessionPending;
+    this.Timestamp = Timestamp;
+    this.LastHeartbeat = LastHeartbeat;
+    this.FailedSessions = FailedSessions;
+    this.SuccessfulSessions = SuccessfulSessions;
+    this.SignalQuality = SignalQuality;
+    this.RingPending = RingPending;
+    this.TxSessionPending = TxSessionPending;
+    this.RxSessionPending = RxSessionPending;
   }
 
   public static IsbdLinkStatus Parse(ReadOnlySpan<byte> data) {
@@ -34347,8 +34347,8 @@ public sealed class RawRpm : MavlinkMessage {
   public byte Index { get; init; }
 
   public RawRpm(float Frequency, byte Index) {
-    Frequency = Frequency;
-    Index = Index;
+    this.Frequency = Frequency;
+    this.Index = Index;
   }
 
   public static RawRpm Parse(ReadOnlySpan<byte> data) {
@@ -34529,24 +34529,24 @@ public sealed class UtmGlobalPosition : MavlinkMessage {
   public byte Flags { get; init; }
 
   public UtmGlobalPosition(ulong Time, int Lat, int Lon, int Alt, int RelativeAlt, int NextLat, int NextLon, int NextAlt, short Vx, short Vy, short Vz, ushort HAcc, ushort VAcc, ushort VelAcc, ushort UpdateRate, byte[] UasId, UtmFlightState FlightState, byte Flags) {
-    Time = Time;
-    Lat = Lat;
-    Lon = Lon;
-    Alt = Alt;
-    RelativeAlt = RelativeAlt;
-    NextLat = NextLat;
-    NextLon = NextLon;
-    NextAlt = NextAlt;
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    HAcc = HAcc;
-    VAcc = VAcc;
-    VelAcc = VelAcc;
-    UpdateRate = UpdateRate;
-    UasId = UasId;
-    FlightState = FlightState;
-    Flags = Flags;
+    this.Time = Time;
+    this.Lat = Lat;
+    this.Lon = Lon;
+    this.Alt = Alt;
+    this.RelativeAlt = RelativeAlt;
+    this.NextLat = NextLat;
+    this.NextLon = NextLon;
+    this.NextAlt = NextAlt;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.HAcc = HAcc;
+    this.VAcc = VAcc;
+    this.VelAcc = VelAcc;
+    this.UpdateRate = UpdateRate;
+    this.UasId = UasId;
+    this.FlightState = FlightState;
+    this.Flags = Flags;
   }
 
   public static UtmGlobalPosition Parse(ReadOnlySpan<byte> data) {
@@ -34663,10 +34663,10 @@ public sealed class DebugFloatArray : MavlinkMessage {
   public float[] Data { get; init; }
 
   public DebugFloatArray(ulong TimeUsec, ushort ArrayId, byte[] Name, float[] Data) {
-    TimeUsec = TimeUsec;
-    ArrayId = ArrayId;
-    Name = Name;
-    Data = Data;
+    this.TimeUsec = TimeUsec;
+    this.ArrayId = ArrayId;
+    this.Name = Name;
+    this.Data = Data;
   }
 
   public static DebugFloatArray Parse(ReadOnlySpan<byte> data) {
@@ -34845,23 +34845,23 @@ public sealed class SmartBatteryInfo : MavlinkMessage {
   public byte[] ManufactureDate { get; init; }
 
   public SmartBatteryInfo(int CapacityFullSpecification, int CapacityFull, ushort CycleCount, ushort Weight, ushort DischargeMinimumVoltage, ushort ChargingMinimumVoltage, ushort RestingMinimumVoltage, byte Id, MavBatteryFunction BatteryFunction, MavBatteryType Type, byte[] SerialNumber, byte[] DeviceName, ushort ChargingMaximumVoltage, byte CellsInSeries, uint DischargeMaximumCurrent, uint DischargeMaximumBurstCurrent, byte[] ManufactureDate) {
-    CapacityFullSpecification = CapacityFullSpecification;
-    CapacityFull = CapacityFull;
-    CycleCount = CycleCount;
-    Weight = Weight;
-    DischargeMinimumVoltage = DischargeMinimumVoltage;
-    ChargingMinimumVoltage = ChargingMinimumVoltage;
-    RestingMinimumVoltage = RestingMinimumVoltage;
-    Id = Id;
-    BatteryFunction = BatteryFunction;
-    Type = Type;
-    SerialNumber = SerialNumber;
-    DeviceName = DeviceName;
-    ChargingMaximumVoltage = ChargingMaximumVoltage;
-    CellsInSeries = CellsInSeries;
-    DischargeMaximumCurrent = DischargeMaximumCurrent;
-    DischargeMaximumBurstCurrent = DischargeMaximumBurstCurrent;
-    ManufactureDate = ManufactureDate;
+    this.CapacityFullSpecification = CapacityFullSpecification;
+    this.CapacityFull = CapacityFull;
+    this.CycleCount = CycleCount;
+    this.Weight = Weight;
+    this.DischargeMinimumVoltage = DischargeMinimumVoltage;
+    this.ChargingMinimumVoltage = ChargingMinimumVoltage;
+    this.RestingMinimumVoltage = RestingMinimumVoltage;
+    this.Id = Id;
+    this.BatteryFunction = BatteryFunction;
+    this.Type = Type;
+    this.SerialNumber = SerialNumber;
+    this.DeviceName = DeviceName;
+    this.ChargingMaximumVoltage = ChargingMaximumVoltage;
+    this.CellsInSeries = CellsInSeries;
+    this.DischargeMaximumCurrent = DischargeMaximumCurrent;
+    this.DischargeMaximumBurstCurrent = DischargeMaximumBurstCurrent;
+    this.ManufactureDate = ManufactureDate;
   }
 
   public static SmartBatteryInfo Parse(ReadOnlySpan<byte> data) {
@@ -35034,17 +35034,17 @@ public sealed class GeneratorStatus : MavlinkMessage {
   public short GeneratorTemperature { get; init; }
 
   public GeneratorStatus(ulong Status, float BatteryCurrent, float LoadCurrent, float PowerGenerated, float BusVoltage, float BatCurrentSetpoint, uint Runtime, int TimeUntilMaintenance, ushort GeneratorSpeed, short RectifierTemperature, short GeneratorTemperature) {
-    Status = Status;
-    BatteryCurrent = BatteryCurrent;
-    LoadCurrent = LoadCurrent;
-    PowerGenerated = PowerGenerated;
-    BusVoltage = BusVoltage;
-    BatCurrentSetpoint = BatCurrentSetpoint;
-    Runtime = Runtime;
-    TimeUntilMaintenance = TimeUntilMaintenance;
-    GeneratorSpeed = GeneratorSpeed;
-    RectifierTemperature = RectifierTemperature;
-    GeneratorTemperature = GeneratorTemperature;
+    this.Status = Status;
+    this.BatteryCurrent = BatteryCurrent;
+    this.LoadCurrent = LoadCurrent;
+    this.PowerGenerated = PowerGenerated;
+    this.BusVoltage = BusVoltage;
+    this.BatCurrentSetpoint = BatCurrentSetpoint;
+    this.Runtime = Runtime;
+    this.TimeUntilMaintenance = TimeUntilMaintenance;
+    this.GeneratorSpeed = GeneratorSpeed;
+    this.RectifierTemperature = RectifierTemperature;
+    this.GeneratorTemperature = GeneratorTemperature;
   }
 
   public static GeneratorStatus Parse(ReadOnlySpan<byte> data) {
@@ -35131,9 +35131,9 @@ public sealed class ActuatorOutputStatus : MavlinkMessage {
   public float[] Actuator { get; init; }
 
   public ActuatorOutputStatus(ulong TimeUsec, uint Active, float[] Actuator) {
-    TimeUsec = TimeUsec;
-    Active = Active;
-    Actuator = Actuator;
+    this.TimeUsec = TimeUsec;
+    this.Active = Active;
+    this.Actuator = Actuator;
   }
 
   public static ActuatorOutputStatus Parse(ReadOnlySpan<byte> data) {
@@ -35196,9 +35196,9 @@ public sealed class RelayStatus : MavlinkMessage {
   public ushort Present { get; init; }
 
   public RelayStatus(uint TimeBootMs, ushort On, ushort Present) {
-    TimeBootMs = TimeBootMs;
-    On = On;
-    Present = Present;
+    this.TimeBootMs = TimeBootMs;
+    this.On = On;
+    this.Present = Present;
   }
 
   public static RelayStatus Parse(ReadOnlySpan<byte> data) {
@@ -35275,11 +35275,11 @@ public sealed class Tunnel : MavlinkMessage {
   public byte[] Payload { get; init; }
 
   public Tunnel(MavTunnelPayloadType PayloadType, byte TargetSystem, byte TargetComponent, byte PayloadLength, byte[] Payload) {
-    PayloadType = PayloadType;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    PayloadLength = PayloadLength;
-    Payload = Payload;
+    this.PayloadType = PayloadType;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.PayloadLength = PayloadLength;
+    this.Payload = Payload;
   }
 
   public static Tunnel Parse(ReadOnlySpan<byte> data) {
@@ -35369,12 +35369,12 @@ public sealed class CanFrame : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public CanFrame(uint Id, byte TargetSystem, byte TargetComponent, byte Bus, byte Len, byte[] Data) {
-    Id = Id;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Bus = Bus;
-    Len = Len;
-    Data = Data;
+    this.Id = Id;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Bus = Bus;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static CanFrame Parse(ReadOnlySpan<byte> data) {
@@ -35466,12 +35466,12 @@ public sealed class CanfdFrame : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public CanfdFrame(uint Id, byte TargetSystem, byte TargetComponent, byte Bus, byte Len, byte[] Data) {
-    Id = Id;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Bus = Bus;
-    Len = Len;
-    Data = Data;
+    this.Id = Id;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Bus = Bus;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static CanfdFrame Parse(ReadOnlySpan<byte> data) {
@@ -35564,12 +35564,12 @@ public sealed class CanFilterModify : MavlinkMessage {
   public byte NumIds { get; init; }
 
   public CanFilterModify(ushort[] Ids, byte TargetSystem, byte TargetComponent, byte Bus, CanFilterOp Operation, byte NumIds) {
-    Ids = Ids;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Bus = Bus;
-    Operation = Operation;
-    NumIds = NumIds;
+    this.Ids = Ids;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Bus = Bus;
+    this.Operation = Operation;
+    this.NumIds = NumIds;
   }
 
   public static CanFilterModify Parse(ReadOnlySpan<byte> data) {
@@ -35643,9 +35643,9 @@ public sealed class WheelDistance : MavlinkMessage {
   public byte Count { get; init; }
 
   public WheelDistance(ulong TimeUsec, double[] Distance, byte Count) {
-    TimeUsec = TimeUsec;
-    Distance = Distance;
-    Count = Count;
+    this.TimeUsec = TimeUsec;
+    this.Distance = Distance;
+    this.Count = Count;
   }
 
   public static WheelDistance Parse(ReadOnlySpan<byte> data) {
@@ -35750,14 +35750,14 @@ public sealed class WinchStatus : MavlinkMessage {
   public short Temperature { get; init; }
 
   public WinchStatus(ulong TimeUsec, float LineLength, float Speed, float Tension, float Voltage, float Current, uint Status, short Temperature) {
-    TimeUsec = TimeUsec;
-    LineLength = LineLength;
-    Speed = Speed;
-    Tension = Tension;
-    Voltage = Voltage;
-    Current = Current;
-    Status = Status;
-    Temperature = Temperature;
+    this.TimeUsec = TimeUsec;
+    this.LineLength = LineLength;
+    this.Speed = Speed;
+    this.Tension = Tension;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Status = Status;
+    this.Temperature = Temperature;
   }
 
   public static WinchStatus Parse(ReadOnlySpan<byte> data) {
@@ -35857,12 +35857,12 @@ public sealed class OpenDroneIdBasicId : MavlinkMessage {
   public byte[] UasId { get; init; }
 
   public OpenDroneIdBasicId(byte TargetSystem, byte TargetComponent, byte[] IdOrMac, MavOdidIdType IdType, MavOdidUaType UaType, byte[] UasId) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    IdOrMac = IdOrMac;
-    IdType = IdType;
-    UaType = UaType;
-    UasId = UasId;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.IdOrMac = IdOrMac;
+    this.IdType = IdType;
+    this.UaType = UaType;
+    this.UasId = UasId;
   }
 
   public static OpenDroneIdBasicId Parse(ReadOnlySpan<byte> data) {
@@ -36063,25 +36063,25 @@ public sealed class OpenDroneIdLocation : MavlinkMessage {
   public MavOdidTimeAcc TimestampAccuracy { get; init; }
 
   public OpenDroneIdLocation(int Latitude, int Longitude, float AltitudeBarometric, float AltitudeGeodetic, float Height, float Timestamp, ushort Direction, ushort SpeedHorizontal, short SpeedVertical, byte TargetSystem, byte TargetComponent, byte[] IdOrMac, MavOdidStatus Status, MavOdidHeightRef HeightReference, MavOdidHorAcc HorizontalAccuracy, MavOdidVerAcc VerticalAccuracy, MavOdidVerAcc BarometerAccuracy, MavOdidSpeedAcc SpeedAccuracy, MavOdidTimeAcc TimestampAccuracy) {
-    Latitude = Latitude;
-    Longitude = Longitude;
-    AltitudeBarometric = AltitudeBarometric;
-    AltitudeGeodetic = AltitudeGeodetic;
-    Height = Height;
-    Timestamp = Timestamp;
-    Direction = Direction;
-    SpeedHorizontal = SpeedHorizontal;
-    SpeedVertical = SpeedVertical;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    IdOrMac = IdOrMac;
-    Status = Status;
-    HeightReference = HeightReference;
-    HorizontalAccuracy = HorizontalAccuracy;
-    VerticalAccuracy = VerticalAccuracy;
-    BarometerAccuracy = BarometerAccuracy;
-    SpeedAccuracy = SpeedAccuracy;
-    TimestampAccuracy = TimestampAccuracy;
+    this.Latitude = Latitude;
+    this.Longitude = Longitude;
+    this.AltitudeBarometric = AltitudeBarometric;
+    this.AltitudeGeodetic = AltitudeGeodetic;
+    this.Height = Height;
+    this.Timestamp = Timestamp;
+    this.Direction = Direction;
+    this.SpeedHorizontal = SpeedHorizontal;
+    this.SpeedVertical = SpeedVertical;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.IdOrMac = IdOrMac;
+    this.Status = Status;
+    this.HeightReference = HeightReference;
+    this.HorizontalAccuracy = HorizontalAccuracy;
+    this.VerticalAccuracy = VerticalAccuracy;
+    this.BarometerAccuracy = BarometerAccuracy;
+    this.SpeedAccuracy = SpeedAccuracy;
+    this.TimestampAccuracy = TimestampAccuracy;
   }
 
   public static OpenDroneIdLocation Parse(ReadOnlySpan<byte> data) {
@@ -36243,15 +36243,15 @@ public sealed class OpenDroneIdAuthentication : MavlinkMessage {
   public byte[] AuthenticationData { get; init; }
 
   public OpenDroneIdAuthentication(uint Timestamp, byte TargetSystem, byte TargetComponent, byte[] IdOrMac, MavOdidAuthType AuthenticationType, byte DataPage, byte LastPageIndex, byte Length, byte[] AuthenticationData) {
-    Timestamp = Timestamp;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    IdOrMac = IdOrMac;
-    AuthenticationType = AuthenticationType;
-    DataPage = DataPage;
-    LastPageIndex = LastPageIndex;
-    Length = Length;
-    AuthenticationData = AuthenticationData;
+    this.Timestamp = Timestamp;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.IdOrMac = IdOrMac;
+    this.AuthenticationType = AuthenticationType;
+    this.DataPage = DataPage;
+    this.LastPageIndex = LastPageIndex;
+    this.Length = Length;
+    this.AuthenticationData = AuthenticationData;
   }
 
   public static OpenDroneIdAuthentication Parse(ReadOnlySpan<byte> data) {
@@ -36347,11 +36347,11 @@ public sealed class OpenDroneIdSelfId : MavlinkMessage {
   public byte[] Description { get; init; }
 
   public OpenDroneIdSelfId(byte TargetSystem, byte TargetComponent, byte[] IdOrMac, MavOdidDescType DescriptionType, byte[] Description) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    IdOrMac = IdOrMac;
-    DescriptionType = DescriptionType;
-    Description = Description;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.IdOrMac = IdOrMac;
+    this.DescriptionType = DescriptionType;
+    this.Description = Description;
   }
 
   public static OpenDroneIdSelfId Parse(ReadOnlySpan<byte> data) {
@@ -36515,21 +36515,21 @@ public sealed class OpenDroneIdSystem : MavlinkMessage {
   public MavOdidClassEu ClassEu { get; init; }
 
   public OpenDroneIdSystem(int OperatorLatitude, int OperatorLongitude, float AreaCeiling, float AreaFloor, float OperatorAltitudeGeo, uint Timestamp, ushort AreaCount, ushort AreaRadius, byte TargetSystem, byte TargetComponent, byte[] IdOrMac, MavOdidOperatorLocationType OperatorLocationType, MavOdidClassificationType ClassificationType, MavOdidCategoryEu CategoryEu, MavOdidClassEu ClassEu) {
-    OperatorLatitude = OperatorLatitude;
-    OperatorLongitude = OperatorLongitude;
-    AreaCeiling = AreaCeiling;
-    AreaFloor = AreaFloor;
-    OperatorAltitudeGeo = OperatorAltitudeGeo;
-    Timestamp = Timestamp;
-    AreaCount = AreaCount;
-    AreaRadius = AreaRadius;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    IdOrMac = IdOrMac;
-    OperatorLocationType = OperatorLocationType;
-    ClassificationType = ClassificationType;
-    CategoryEu = CategoryEu;
-    ClassEu = ClassEu;
+    this.OperatorLatitude = OperatorLatitude;
+    this.OperatorLongitude = OperatorLongitude;
+    this.AreaCeiling = AreaCeiling;
+    this.AreaFloor = AreaFloor;
+    this.OperatorAltitudeGeo = OperatorAltitudeGeo;
+    this.Timestamp = Timestamp;
+    this.AreaCount = AreaCount;
+    this.AreaRadius = AreaRadius;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.IdOrMac = IdOrMac;
+    this.OperatorLocationType = OperatorLocationType;
+    this.ClassificationType = ClassificationType;
+    this.CategoryEu = CategoryEu;
+    this.ClassEu = ClassEu;
   }
 
   public static OpenDroneIdSystem Parse(ReadOnlySpan<byte> data) {
@@ -36646,11 +36646,11 @@ public sealed class OpenDroneIdOperatorId : MavlinkMessage {
   public byte[] OperatorId { get; init; }
 
   public OpenDroneIdOperatorId(byte TargetSystem, byte TargetComponent, byte[] IdOrMac, MavOdidOperatorIdType OperatorIdType, byte[] OperatorId) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    IdOrMac = IdOrMac;
-    OperatorIdType = OperatorIdType;
-    OperatorId = OperatorId;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.IdOrMac = IdOrMac;
+    this.OperatorIdType = OperatorIdType;
+    this.OperatorId = OperatorId;
   }
 
   public static OpenDroneIdOperatorId Parse(ReadOnlySpan<byte> data) {
@@ -36713,8 +36713,8 @@ public sealed class OpenDroneIdArmStatus : MavlinkMessage {
   public byte[] Error { get; init; }
 
   public OpenDroneIdArmStatus(MavOdidArmStatus Status, byte[] Error) {
-    Status = Status;
-    Error = Error;
+    this.Status = Status;
+    this.Error = Error;
   }
 
   public static OpenDroneIdArmStatus Parse(ReadOnlySpan<byte> data) {
@@ -36796,12 +36796,12 @@ public sealed class OpenDroneIdMessagePack : MavlinkMessage {
   public byte[] Messages { get; init; }
 
   public OpenDroneIdMessagePack(byte TargetSystem, byte TargetComponent, byte[] IdOrMac, byte SingleMessageSize, byte MsgPackSize, byte[] Messages) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    IdOrMac = IdOrMac;
-    SingleMessageSize = SingleMessageSize;
-    MsgPackSize = MsgPackSize;
-    Messages = Messages;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.IdOrMac = IdOrMac;
+    this.SingleMessageSize = SingleMessageSize;
+    this.MsgPackSize = MsgPackSize;
+    this.Messages = Messages;
   }
 
   public static OpenDroneIdMessagePack Parse(ReadOnlySpan<byte> data) {
@@ -36897,12 +36897,12 @@ public sealed class OpenDroneIdSystemUpdate : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public OpenDroneIdSystemUpdate(int OperatorLatitude, int OperatorLongitude, float OperatorAltitudeGeo, uint Timestamp, byte TargetSystem, byte TargetComponent) {
-    OperatorLatitude = OperatorLatitude;
-    OperatorLongitude = OperatorLongitude;
-    OperatorAltitudeGeo = OperatorAltitudeGeo;
-    Timestamp = Timestamp;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.OperatorLatitude = OperatorLatitude;
+    this.OperatorLongitude = OperatorLongitude;
+    this.OperatorAltitudeGeo = OperatorAltitudeGeo;
+    this.Timestamp = Timestamp;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static OpenDroneIdSystemUpdate Parse(ReadOnlySpan<byte> data) {
@@ -36975,9 +36975,9 @@ public sealed class HygrometerSensor : MavlinkMessage {
   public byte Id { get; init; }
 
   public HygrometerSensor(short Temperature, ushort Humidity, byte Id) {
-    Temperature = Temperature;
-    Humidity = Humidity;
-    Id = Id;
+    this.Temperature = Temperature;
+    this.Humidity = Humidity;
+    this.Id = Id;
   }
 
   public static HygrometerSensor Parse(ReadOnlySpan<byte> data) {
@@ -37080,14 +37080,14 @@ public sealed class UavionixAdsbOutCfg : MavlinkMessage {
   public byte Rfselect { get; init; }
 
   public UavionixAdsbOutCfg(uint Icao, ushort Stallspeed, byte[] Callsign, AdsbEmitterType Emittertype, UavionixAdsbOutCfgAircraftSize Aircraftsize, UavionixAdsbOutCfgGpsOffsetLat Gpsoffsetlat, UavionixAdsbOutCfgGpsOffsetLon Gpsoffsetlon, byte Rfselect) {
-    Icao = Icao;
-    Stallspeed = Stallspeed;
-    Callsign = Callsign;
-    Emittertype = Emittertype;
-    Aircraftsize = Aircraftsize;
-    Gpsoffsetlat = Gpsoffsetlat;
-    Gpsoffsetlon = Gpsoffsetlon;
-    Rfselect = Rfselect;
+    this.Icao = Icao;
+    this.Stallspeed = Stallspeed;
+    this.Callsign = Callsign;
+    this.Emittertype = Emittertype;
+    this.Aircraftsize = Aircraftsize;
+    this.Gpsoffsetlat = Gpsoffsetlat;
+    this.Gpsoffsetlon = Gpsoffsetlon;
+    this.Rfselect = Rfselect;
   }
 
   public static UavionixAdsbOutCfg Parse(ReadOnlySpan<byte> data) {
@@ -37273,22 +37273,22 @@ public sealed class UavionixAdsbOutDynamic : MavlinkMessage {
   public UavionixAdsbEmergencyStatus Emergencystatus { get; init; }
 
   public UavionixAdsbOutDynamic(uint Utctime, int Gpslat, int Gpslon, int Gpsalt, int Baroaltmsl, uint Accuracyhor, ushort Accuracyvert, ushort Accuracyvel, short Velvert, short Velns, short Velew, ushort State, ushort Squawk, UavionixAdsbOutDynamicGpsFix Gpsfix, byte Numsats, UavionixAdsbEmergencyStatus Emergencystatus) {
-    Utctime = Utctime;
-    Gpslat = Gpslat;
-    Gpslon = Gpslon;
-    Gpsalt = Gpsalt;
-    Baroaltmsl = Baroaltmsl;
-    Accuracyhor = Accuracyhor;
-    Accuracyvert = Accuracyvert;
-    Accuracyvel = Accuracyvel;
-    Velvert = Velvert;
-    Velns = Velns;
-    Velew = Velew;
-    State = State;
-    Squawk = Squawk;
-    Gpsfix = Gpsfix;
-    Numsats = Numsats;
-    Emergencystatus = Emergencystatus;
+    this.Utctime = Utctime;
+    this.Gpslat = Gpslat;
+    this.Gpslon = Gpslon;
+    this.Gpsalt = Gpsalt;
+    this.Baroaltmsl = Baroaltmsl;
+    this.Accuracyhor = Accuracyhor;
+    this.Accuracyvert = Accuracyvert;
+    this.Accuracyvel = Accuracyvel;
+    this.Velvert = Velvert;
+    this.Velns = Velns;
+    this.Velew = Velew;
+    this.State = State;
+    this.Squawk = Squawk;
+    this.Gpsfix = Gpsfix;
+    this.Numsats = Numsats;
+    this.Emergencystatus = Emergencystatus;
   }
 
   public static UavionixAdsbOutDynamic Parse(ReadOnlySpan<byte> data) {
@@ -37378,7 +37378,7 @@ public sealed class UavionixAdsbTransceiverHealthReport : MavlinkMessage {
   public byte Rfhealth { get; init; }
 
   public UavionixAdsbTransceiverHealthReport(byte Rfhealth) {
-    Rfhealth = Rfhealth;
+    this.Rfhealth = Rfhealth;
   }
 
   public static UavionixAdsbTransceiverHealthReport Parse(ReadOnlySpan<byte> data) {
@@ -37420,7 +37420,7 @@ public sealed class UavionixAdsbOutCfgRegistration : MavlinkMessage {
   public byte[] Registration { get; init; }
 
   public UavionixAdsbOutCfgRegistration(byte[] Registration) {
-    Registration = Registration;
+    this.Registration = Registration;
   }
 
   public static UavionixAdsbOutCfgRegistration Parse(ReadOnlySpan<byte> data) {
@@ -37462,7 +37462,7 @@ public sealed class UavionixAdsbOutCfgFlightid : MavlinkMessage {
   public byte[] FlightId { get; init; }
 
   public UavionixAdsbOutCfgFlightid(byte[] FlightId) {
-    FlightId = FlightId;
+    this.FlightId = FlightId;
   }
 
   public static UavionixAdsbOutCfgFlightid Parse(ReadOnlySpan<byte> data) {
@@ -37504,7 +37504,7 @@ public sealed class UavionixAdsbGet : MavlinkMessage {
   public uint Reqmessageid { get; init; }
 
   public UavionixAdsbGet(uint Reqmessageid) {
-    Reqmessageid = Reqmessageid;
+    this.Reqmessageid = Reqmessageid;
   }
 
   public static UavionixAdsbGet Parse(ReadOnlySpan<byte> data) {
@@ -37585,12 +37585,12 @@ public sealed class UavionixAdsbOutControl : MavlinkMessage {
   public byte XBit { get; init; }
 
   public UavionixAdsbOutControl(int Baroaltmsl, ushort Squawk, byte State, UavionixAdsbEmergencyStatus Emergencystatus, byte[] FlightId, byte XBit) {
-    Baroaltmsl = Baroaltmsl;
-    Squawk = Squawk;
-    State = State;
-    Emergencystatus = Emergencystatus;
-    FlightId = FlightId;
-    XBit = XBit;
+    this.Baroaltmsl = Baroaltmsl;
+    this.Squawk = Squawk;
+    this.State = State;
+    this.Emergencystatus = Emergencystatus;
+    this.FlightId = FlightId;
+    this.XBit = XBit;
   }
 
   public static UavionixAdsbOutControl Parse(ReadOnlySpan<byte> data) {
@@ -37686,12 +37686,12 @@ public sealed class UavionixAdsbOutStatus : MavlinkMessage {
   public byte[] FlightId { get; init; }
 
   public UavionixAdsbOutStatus(ushort Squawk, byte State, UavionixAdsbOutStatusNicNacp NicNacp, byte Boardtemp, byte Fault, byte[] FlightId) {
-    Squawk = Squawk;
-    State = State;
-    NicNacp = NicNacp;
-    Boardtemp = Boardtemp;
-    Fault = Fault;
-    FlightId = FlightId;
+    this.Squawk = Squawk;
+    this.State = State;
+    this.NicNacp = NicNacp;
+    this.Boardtemp = Boardtemp;
+    this.Fault = Fault;
+    this.FlightId = FlightId;
   }
 
   public static UavionixAdsbOutStatus Parse(ReadOnlySpan<byte> data) {
@@ -37750,7 +37750,7 @@ public sealed class IcarousHeartbeat : MavlinkMessage {
   public IcarousFmsState Status { get; init; }
 
   public IcarousHeartbeat(IcarousFmsState Status) {
-    Status = Status;
+    this.Status = Status;
   }
 
   public static IcarousHeartbeat Parse(ReadOnlySpan<byte> data) {
@@ -37913,22 +37913,22 @@ public sealed class IcarousKinematicBands : MavlinkMessage {
   public IcarousTrackBandTypes Type5 { get; init; }
 
   public IcarousKinematicBands(float Min1, float Max1, float Min2, float Max2, float Min3, float Max3, float Min4, float Max4, float Min5, float Max5, sbyte Numbands, IcarousTrackBandTypes Type1, IcarousTrackBandTypes Type2, IcarousTrackBandTypes Type3, IcarousTrackBandTypes Type4, IcarousTrackBandTypes Type5) {
-    Min1 = Min1;
-    Max1 = Max1;
-    Min2 = Min2;
-    Max2 = Max2;
-    Min3 = Min3;
-    Max3 = Max3;
-    Min4 = Min4;
-    Max4 = Max4;
-    Min5 = Min5;
-    Max5 = Max5;
-    Numbands = Numbands;
-    Type1 = Type1;
-    Type2 = Type2;
-    Type3 = Type3;
-    Type4 = Type4;
-    Type5 = Type5;
+    this.Min1 = Min1;
+    this.Max1 = Max1;
+    this.Min2 = Min2;
+    this.Max2 = Max2;
+    this.Min3 = Min3;
+    this.Max3 = Max3;
+    this.Min4 = Min4;
+    this.Max4 = Max4;
+    this.Min5 = Min5;
+    this.Max5 = Max5;
+    this.Numbands = Numbands;
+    this.Type1 = Type1;
+    this.Type2 = Type2;
+    this.Type3 = Type3;
+    this.Type4 = Type4;
+    this.Type5 = Type5;
   }
 
   public static IcarousKinematicBands Parse(ReadOnlySpan<byte> data) {
@@ -38193,29 +38193,29 @@ public sealed class LoweheiserGovEfi : MavlinkMessage {
   public byte EfiIndex { get; init; }
 
   public LoweheiserGovEfi(float VoltBatt, float CurrBatt, float CurrGen, float CurrRot, float FuelLevel, float Throttle, uint Runtime, int UntilMaintenance, float RectifierTemp, float GeneratorTemp, float EfiBatt, float EfiRpm, float EfiPw, float EfiFuelFlow, float EfiFuelConsumed, float EfiBaro, float EfiMat, float EfiClt, float EfiTps, float EfiExhaustGasTemperature, ushort GeneratorStatus, ushort EfiStatus, byte EfiIndex) {
-    VoltBatt = VoltBatt;
-    CurrBatt = CurrBatt;
-    CurrGen = CurrGen;
-    CurrRot = CurrRot;
-    FuelLevel = FuelLevel;
-    Throttle = Throttle;
-    Runtime = Runtime;
-    UntilMaintenance = UntilMaintenance;
-    RectifierTemp = RectifierTemp;
-    GeneratorTemp = GeneratorTemp;
-    EfiBatt = EfiBatt;
-    EfiRpm = EfiRpm;
-    EfiPw = EfiPw;
-    EfiFuelFlow = EfiFuelFlow;
-    EfiFuelConsumed = EfiFuelConsumed;
-    EfiBaro = EfiBaro;
-    EfiMat = EfiMat;
-    EfiClt = EfiClt;
-    EfiTps = EfiTps;
-    EfiExhaustGasTemperature = EfiExhaustGasTemperature;
-    GeneratorStatus = GeneratorStatus;
-    EfiStatus = EfiStatus;
-    EfiIndex = EfiIndex;
+    this.VoltBatt = VoltBatt;
+    this.CurrBatt = CurrBatt;
+    this.CurrGen = CurrGen;
+    this.CurrRot = CurrRot;
+    this.FuelLevel = FuelLevel;
+    this.Throttle = Throttle;
+    this.Runtime = Runtime;
+    this.UntilMaintenance = UntilMaintenance;
+    this.RectifierTemp = RectifierTemp;
+    this.GeneratorTemp = GeneratorTemp;
+    this.EfiBatt = EfiBatt;
+    this.EfiRpm = EfiRpm;
+    this.EfiPw = EfiPw;
+    this.EfiFuelFlow = EfiFuelFlow;
+    this.EfiFuelConsumed = EfiFuelConsumed;
+    this.EfiBaro = EfiBaro;
+    this.EfiMat = EfiMat;
+    this.EfiClt = EfiClt;
+    this.EfiTps = EfiTps;
+    this.EfiExhaustGasTemperature = EfiExhaustGasTemperature;
+    this.GeneratorStatus = GeneratorStatus;
+    this.EfiStatus = EfiStatus;
+    this.EfiIndex = EfiIndex;
   }
 
   public static LoweheiserGovEfi Parse(ReadOnlySpan<byte> data) {
@@ -38320,7 +38320,7 @@ public sealed class CubepilotRawRc : MavlinkMessage {
   public byte[] RcRaw { get; init; }
 
   public CubepilotRawRc(byte[] RcRaw) {
-    RcRaw = RcRaw;
+    this.RcRaw = RcRaw;
   }
 
   public static CubepilotRawRc Parse(ReadOnlySpan<byte> data) {
@@ -38416,14 +38416,14 @@ public sealed class HerelinkVideoStreamInformation : MavlinkMessage {
   public byte[] Uri { get; init; }
 
   public HerelinkVideoStreamInformation(float Framerate, uint Bitrate, ushort ResolutionH, ushort ResolutionV, ushort Rotation, byte CameraId, byte Status, byte[] Uri) {
-    Framerate = Framerate;
-    Bitrate = Bitrate;
-    ResolutionH = ResolutionH;
-    ResolutionV = ResolutionV;
-    Rotation = Rotation;
-    CameraId = CameraId;
-    Status = Status;
-    Uri = Uri;
+    this.Framerate = Framerate;
+    this.Bitrate = Bitrate;
+    this.ResolutionH = ResolutionH;
+    this.ResolutionV = ResolutionV;
+    this.Rotation = Rotation;
+    this.CameraId = CameraId;
+    this.Status = Status;
+    this.Uri = Uri;
   }
 
   public static HerelinkVideoStreamInformation Parse(ReadOnlySpan<byte> data) {
@@ -38507,13 +38507,13 @@ public sealed class HerelinkTelem : MavlinkMessage {
   public byte Rssi { get; init; }
 
   public HerelinkTelem(uint RfFreq, uint LinkBw, uint LinkRate, short Snr, short CpuTemp, short BoardTemp, byte Rssi) {
-    RfFreq = RfFreq;
-    LinkBw = LinkBw;
-    LinkRate = LinkRate;
-    Snr = Snr;
-    CpuTemp = CpuTemp;
-    BoardTemp = BoardTemp;
-    Rssi = Rssi;
+    this.RfFreq = RfFreq;
+    this.LinkBw = LinkBw;
+    this.LinkRate = LinkRate;
+    this.Snr = Snr;
+    this.CpuTemp = CpuTemp;
+    this.BoardTemp = BoardTemp;
+    this.Rssi = Rssi;
   }
 
   public static HerelinkTelem Parse(ReadOnlySpan<byte> data) {
@@ -38595,10 +38595,10 @@ public sealed class CubepilotFirmwareUpdateStart : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public CubepilotFirmwareUpdateStart(uint Size, uint Crc, byte TargetSystem, byte TargetComponent) {
-    Size = Size;
-    Crc = Crc;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Size = Size;
+    this.Crc = Crc;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static CubepilotFirmwareUpdateStart Parse(ReadOnlySpan<byte> data) {
@@ -38664,9 +38664,9 @@ public sealed class CubepilotFirmwareUpdateResp : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public CubepilotFirmwareUpdateResp(uint Offset, byte TargetSystem, byte TargetComponent) {
-    Offset = Offset;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Offset = Offset;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static CubepilotFirmwareUpdateResp Parse(ReadOnlySpan<byte> data) {
@@ -38721,8 +38721,8 @@ public sealed class AirlinkAuth : MavlinkMessage {
   public byte[] Password { get; init; }
 
   public AirlinkAuth(byte[] Login, byte[] Password) {
-    Login = Login;
-    Password = Password;
+    this.Login = Login;
+    this.Password = Password;
   }
 
   public static AirlinkAuth Parse(ReadOnlySpan<byte> data) {
@@ -38768,7 +38768,7 @@ public sealed class AirlinkAuthResponse : MavlinkMessage {
   public AirlinkAuthResponseType RespType { get; init; }
 
   public AirlinkAuthResponse(AirlinkAuthResponseType RespType) {
-    RespType = RespType;
+    this.RespType = RespType;
   }
 
   public static AirlinkAuthResponse Parse(ReadOnlySpan<byte> data) {
@@ -38889,18 +38889,18 @@ public sealed class SensorOffsets : MavlinkMessage {
   public short MagOfsZ { get; init; }
 
   public SensorOffsets(float MagDeclination, int RawPress, int RawTemp, float GyroCalX, float GyroCalY, float GyroCalZ, float AccelCalX, float AccelCalY, float AccelCalZ, short MagOfsX, short MagOfsY, short MagOfsZ) {
-    MagDeclination = MagDeclination;
-    RawPress = RawPress;
-    RawTemp = RawTemp;
-    GyroCalX = GyroCalX;
-    GyroCalY = GyroCalY;
-    GyroCalZ = GyroCalZ;
-    AccelCalX = AccelCalX;
-    AccelCalY = AccelCalY;
-    AccelCalZ = AccelCalZ;
-    MagOfsX = MagOfsX;
-    MagOfsY = MagOfsY;
-    MagOfsZ = MagOfsZ;
+    this.MagDeclination = MagDeclination;
+    this.RawPress = RawPress;
+    this.RawTemp = RawTemp;
+    this.GyroCalX = GyroCalX;
+    this.GyroCalY = GyroCalY;
+    this.GyroCalZ = GyroCalZ;
+    this.AccelCalX = AccelCalX;
+    this.AccelCalY = AccelCalY;
+    this.AccelCalZ = AccelCalZ;
+    this.MagOfsX = MagOfsX;
+    this.MagOfsY = MagOfsY;
+    this.MagOfsZ = MagOfsZ;
   }
 
   public static SensorOffsets Parse(ReadOnlySpan<byte> data) {
@@ -39003,11 +39003,11 @@ public sealed class SetMagOffsets : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public SetMagOffsets(short MagOfsX, short MagOfsY, short MagOfsZ, byte TargetSystem, byte TargetComponent) {
-    MagOfsX = MagOfsX;
-    MagOfsY = MagOfsY;
-    MagOfsZ = MagOfsZ;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.MagOfsX = MagOfsX;
+    this.MagOfsY = MagOfsY;
+    this.MagOfsZ = MagOfsZ;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static SetMagOffsets Parse(ReadOnlySpan<byte> data) {
@@ -39078,9 +39078,9 @@ public sealed class Meminfo : MavlinkMessage {
   public uint Freemem32 { get; init; }
 
   public Meminfo(ushort Brkval, ushort Freemem, uint Freemem32) {
-    Brkval = Brkval;
-    Freemem = Freemem;
-    Freemem32 = Freemem32;
+    this.Brkval = Brkval;
+    this.Freemem = Freemem;
+    this.Freemem32 = Freemem32;
   }
 
   public static Meminfo Parse(ReadOnlySpan<byte> data) {
@@ -39163,12 +39163,12 @@ public sealed class ApAdc : MavlinkMessage {
   public ushort Adc6 { get; init; }
 
   public ApAdc(ushort Adc1, ushort Adc2, ushort Adc3, ushort Adc4, ushort Adc5, ushort Adc6) {
-    Adc1 = Adc1;
-    Adc2 = Adc2;
-    Adc3 = Adc3;
-    Adc4 = Adc4;
-    Adc5 = Adc5;
-    Adc6 = Adc6;
+    this.Adc1 = Adc1;
+    this.Adc2 = Adc2;
+    this.Adc3 = Adc3;
+    this.Adc4 = Adc4;
+    this.Adc5 = Adc5;
+    this.Adc6 = Adc6;
   }
 
   public static ApAdc Parse(ReadOnlySpan<byte> data) {
@@ -39296,17 +39296,17 @@ public sealed class DigicamConfigure : MavlinkMessage {
   public byte ExtraParam { get; init; }
 
   public DigicamConfigure(float ExtraValue, ushort ShutterSpeed, byte TargetSystem, byte TargetComponent, byte Mode, byte Aperture, byte Iso, byte ExposureType, byte CommandId, byte EngineCutOff, byte ExtraParam) {
-    ExtraValue = ExtraValue;
-    ShutterSpeed = ShutterSpeed;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Mode = Mode;
-    Aperture = Aperture;
-    Iso = Iso;
-    ExposureType = ExposureType;
-    CommandId = CommandId;
-    EngineCutOff = EngineCutOff;
-    ExtraParam = ExtraParam;
+    this.ExtraValue = ExtraValue;
+    this.ShutterSpeed = ShutterSpeed;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Mode = Mode;
+    this.Aperture = Aperture;
+    this.Iso = Iso;
+    this.ExposureType = ExposureType;
+    this.CommandId = CommandId;
+    this.EngineCutOff = EngineCutOff;
+    this.ExtraParam = ExtraParam;
   }
 
   public static DigicamConfigure Parse(ReadOnlySpan<byte> data) {
@@ -39441,16 +39441,16 @@ public sealed class DigicamControl : MavlinkMessage {
   public byte ExtraParam { get; init; }
 
   public DigicamControl(float ExtraValue, byte TargetSystem, byte TargetComponent, byte Session, byte ZoomPos, sbyte ZoomStep, byte FocusLock, byte Shot, byte CommandId, byte ExtraParam) {
-    ExtraValue = ExtraValue;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Session = Session;
-    ZoomPos = ZoomPos;
-    ZoomStep = ZoomStep;
-    FocusLock = FocusLock;
-    Shot = Shot;
-    CommandId = CommandId;
-    ExtraParam = ExtraParam;
+    this.ExtraValue = ExtraValue;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Session = Session;
+    this.ZoomPos = ZoomPos;
+    this.ZoomStep = ZoomStep;
+    this.FocusLock = FocusLock;
+    this.Shot = Shot;
+    this.CommandId = CommandId;
+    this.ExtraParam = ExtraParam;
   }
 
   public static DigicamControl Parse(ReadOnlySpan<byte> data) {
@@ -39555,12 +39555,12 @@ public sealed class MountConfigure : MavlinkMessage {
   public byte StabYaw { get; init; }
 
   public MountConfigure(byte TargetSystem, byte TargetComponent, MavMountMode MountMode, byte StabRoll, byte StabPitch, byte StabYaw) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MountMode = MountMode;
-    StabRoll = StabRoll;
-    StabPitch = StabPitch;
-    StabYaw = StabYaw;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MountMode = MountMode;
+    this.StabRoll = StabRoll;
+    this.StabPitch = StabPitch;
+    this.StabYaw = StabYaw;
   }
 
   public static MountConfigure Parse(ReadOnlySpan<byte> data) {
@@ -39653,12 +39653,12 @@ public sealed class MountControl : MavlinkMessage {
   public byte SavePosition { get; init; }
 
   public MountControl(int InputA, int InputB, int InputC, byte TargetSystem, byte TargetComponent, byte SavePosition) {
-    InputA = InputA;
-    InputB = InputB;
-    InputC = InputC;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    SavePosition = SavePosition;
+    this.InputA = InputA;
+    this.InputB = InputB;
+    this.InputC = InputC;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.SavePosition = SavePosition;
   }
 
   public static MountControl Parse(ReadOnlySpan<byte> data) {
@@ -39755,12 +39755,12 @@ public sealed class MountStatus : MavlinkMessage {
   public MavMountMode MountMode { get; init; }
 
   public MountStatus(int PointingA, int PointingB, int PointingC, byte TargetSystem, byte TargetComponent, MavMountMode MountMode) {
-    PointingA = PointingA;
-    PointingB = PointingB;
-    PointingC = PointingC;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    MountMode = MountMode;
+    this.PointingA = PointingA;
+    this.PointingB = PointingB;
+    this.PointingC = PointingC;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.MountMode = MountMode;
   }
 
   public static MountStatus Parse(ReadOnlySpan<byte> data) {
@@ -39855,12 +39855,12 @@ public sealed class FencePoint : MavlinkMessage {
   public byte Count { get; init; }
 
   public FencePoint(float Lat, float Lng, byte TargetSystem, byte TargetComponent, byte Idx, byte Count) {
-    Lat = Lat;
-    Lng = Lng;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Idx = Idx;
-    Count = Count;
+    this.Lat = Lat;
+    this.Lng = Lng;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Idx = Idx;
+    this.Count = Count;
   }
 
   public static FencePoint Parse(ReadOnlySpan<byte> data) {
@@ -39931,9 +39931,9 @@ public sealed class FenceFetchPoint : MavlinkMessage {
   public byte Idx { get; init; }
 
   public FenceFetchPoint(byte TargetSystem, byte TargetComponent, byte Idx) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Idx = Idx;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Idx = Idx;
   }
 
   public static FenceFetchPoint Parse(ReadOnlySpan<byte> data) {
@@ -40026,13 +40026,13 @@ public sealed class Ahrs : MavlinkMessage {
   public float ErrorYaw { get; init; }
 
   public Ahrs(float Omegaix, float Omegaiy, float Omegaiz, float AccelWeight, float RenormVal, float ErrorRp, float ErrorYaw) {
-    Omegaix = Omegaix;
-    Omegaiy = Omegaiy;
-    Omegaiz = Omegaiz;
-    AccelWeight = AccelWeight;
-    RenormVal = RenormVal;
-    ErrorRp = ErrorRp;
-    ErrorYaw = ErrorYaw;
+    this.Omegaix = Omegaix;
+    this.Omegaiy = Omegaiy;
+    this.Omegaiz = Omegaiz;
+    this.AccelWeight = AccelWeight;
+    this.RenormVal = RenormVal;
+    this.ErrorRp = ErrorRp;
+    this.ErrorYaw = ErrorYaw;
   }
 
   public static Ahrs Parse(ReadOnlySpan<byte> data) {
@@ -40173,17 +40173,17 @@ public sealed class Simstate : MavlinkMessage {
   public int Lng { get; init; }
 
   public Simstate(float Roll, float Pitch, float Yaw, float Xacc, float Yacc, float Zacc, float Xgyro, float Ygyro, float Zgyro, int Lat, int Lng) {
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Xacc = Xacc;
-    Yacc = Yacc;
-    Zacc = Zacc;
-    Xgyro = Xgyro;
-    Ygyro = Ygyro;
-    Zgyro = Zgyro;
-    Lat = Lat;
-    Lng = Lng;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Xacc = Xacc;
+    this.Yacc = Yacc;
+    this.Zacc = Zacc;
+    this.Xgyro = Xgyro;
+    this.Ygyro = Ygyro;
+    this.Zgyro = Zgyro;
+    this.Lat = Lat;
+    this.Lng = Lng;
   }
 
   public static Simstate Parse(ReadOnlySpan<byte> data) {
@@ -40263,8 +40263,8 @@ public sealed class Hwstatus : MavlinkMessage {
   public byte I2cerr { get; init; }
 
   public Hwstatus(ushort Vcc, byte I2cerr) {
-    Vcc = Vcc;
-    I2cerr = I2cerr;
+    this.Vcc = Vcc;
+    this.I2cerr = I2cerr;
   }
 
   public static Hwstatus Parse(ReadOnlySpan<byte> data) {
@@ -40352,13 +40352,13 @@ public sealed class Radio : MavlinkMessage {
   public byte Remnoise { get; init; }
 
   public Radio(ushort Rxerrors, ushort Fixed, byte Rssi, byte Remrssi, byte Txbuf, byte Noise, byte Remnoise) {
-    Rxerrors = Rxerrors;
-    Fixed = Fixed;
-    Rssi = Rssi;
-    Remrssi = Remrssi;
-    Txbuf = Txbuf;
-    Noise = Noise;
-    Remnoise = Remnoise;
+    this.Rxerrors = Rxerrors;
+    this.Fixed = Fixed;
+    this.Rssi = Rssi;
+    this.Remrssi = Remrssi;
+    this.Txbuf = Txbuf;
+    this.Noise = Noise;
+    this.Remnoise = Remnoise;
   }
 
   public static Radio Parse(ReadOnlySpan<byte> data) {
@@ -40482,15 +40482,15 @@ public sealed class LimitsStatus : MavlinkMessage {
   public byte ModsTriggered { get; init; }
 
   public LimitsStatus(uint LastTrigger, uint LastAction, uint LastRecovery, uint LastClear, ushort BreachCount, LimitsState LimitsState, byte ModsEnabled, byte ModsRequired, byte ModsTriggered) {
-    LastTrigger = LastTrigger;
-    LastAction = LastAction;
-    LastRecovery = LastRecovery;
-    LastClear = LastClear;
-    BreachCount = BreachCount;
-    LimitsState = LimitsState;
-    ModsEnabled = ModsEnabled;
-    ModsRequired = ModsRequired;
-    ModsTriggered = ModsTriggered;
+    this.LastTrigger = LastTrigger;
+    this.LastAction = LastAction;
+    this.LastRecovery = LastRecovery;
+    this.LastClear = LastClear;
+    this.BreachCount = BreachCount;
+    this.LimitsState = LimitsState;
+    this.ModsEnabled = ModsEnabled;
+    this.ModsRequired = ModsRequired;
+    this.ModsTriggered = ModsTriggered;
   }
 
   public static LimitsStatus Parse(ReadOnlySpan<byte> data) {
@@ -40574,9 +40574,9 @@ public sealed class Wind : MavlinkMessage {
   public float SpeedZ { get; init; }
 
   public Wind(float Direction, float Speed, float SpeedZ) {
-    Direction = Direction;
-    Speed = Speed;
-    SpeedZ = SpeedZ;
+    this.Direction = Direction;
+    this.Speed = Speed;
+    this.SpeedZ = SpeedZ;
   }
 
   public static Wind Parse(ReadOnlySpan<byte> data) {
@@ -40639,9 +40639,9 @@ public sealed class Data16 : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public Data16(byte Type, byte Len, byte[] Data) {
-    Type = Type;
-    Len = Len;
-    Data = Data;
+    this.Type = Type;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static Data16 Parse(ReadOnlySpan<byte> data) {
@@ -40704,9 +40704,9 @@ public sealed class Data32 : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public Data32(byte Type, byte Len, byte[] Data) {
-    Type = Type;
-    Len = Len;
-    Data = Data;
+    this.Type = Type;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static Data32 Parse(ReadOnlySpan<byte> data) {
@@ -40769,9 +40769,9 @@ public sealed class Data64 : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public Data64(byte Type, byte Len, byte[] Data) {
-    Type = Type;
-    Len = Len;
-    Data = Data;
+    this.Type = Type;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static Data64 Parse(ReadOnlySpan<byte> data) {
@@ -40834,9 +40834,9 @@ public sealed class Data96 : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public Data96(byte Type, byte Len, byte[] Data) {
-    Type = Type;
-    Len = Len;
-    Data = Data;
+    this.Type = Type;
+    this.Len = Len;
+    this.Data = Data;
   }
 
   public static Data96 Parse(ReadOnlySpan<byte> data) {
@@ -40893,8 +40893,8 @@ public sealed class Rangefinder : MavlinkMessage {
   public float Voltage { get; init; }
 
   public Rangefinder(float Distance, float Voltage) {
-    Distance = Distance;
-    Voltage = Voltage;
+    this.Distance = Distance;
+    this.Voltage = Voltage;
   }
 
   public static Rangefinder Parse(ReadOnlySpan<byte> data) {
@@ -41020,18 +41020,18 @@ public sealed class AirspeedAutocal : MavlinkMessage {
   public float Pcz { get; init; }
 
   public AirspeedAutocal(float Vx, float Vy, float Vz, float DiffPressure, float Eas2tas, float Ratio, float StateX, float StateY, float StateZ, float Pax, float Pby, float Pcz) {
-    Vx = Vx;
-    Vy = Vy;
-    Vz = Vz;
-    DiffPressure = DiffPressure;
-    Eas2tas = Eas2tas;
-    Ratio = Ratio;
-    StateX = StateX;
-    StateY = StateY;
-    StateZ = StateZ;
-    Pax = Pax;
-    Pby = Pby;
-    Pcz = Pcz;
+    this.Vx = Vx;
+    this.Vy = Vy;
+    this.Vz = Vz;
+    this.DiffPressure = DiffPressure;
+    this.Eas2tas = Eas2tas;
+    this.Ratio = Ratio;
+    this.StateX = StateX;
+    this.StateY = StateY;
+    this.StateZ = StateZ;
+    this.Pax = Pax;
+    this.Pby = Pby;
+    this.Pcz = Pcz;
   }
 
   public static AirspeedAutocal Parse(ReadOnlySpan<byte> data) {
@@ -41175,16 +41175,16 @@ public sealed class RallyPoint : MavlinkMessage {
   public byte Flags { get; init; }
 
   public RallyPoint(int Lat, int Lng, short Alt, short BreakAlt, ushort LandDir, byte TargetSystem, byte TargetComponent, byte Idx, byte Count, byte Flags) {
-    Lat = Lat;
-    Lng = Lng;
-    Alt = Alt;
-    BreakAlt = BreakAlt;
-    LandDir = LandDir;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Idx = Idx;
-    Count = Count;
-    Flags = Flags;
+    this.Lat = Lat;
+    this.Lng = Lng;
+    this.Alt = Alt;
+    this.BreakAlt = BreakAlt;
+    this.LandDir = LandDir;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Idx = Idx;
+    this.Count = Count;
+    this.Flags = Flags;
   }
 
   public static RallyPoint Parse(ReadOnlySpan<byte> data) {
@@ -41267,9 +41267,9 @@ public sealed class RallyFetchPoint : MavlinkMessage {
   public byte Idx { get; init; }
 
   public RallyFetchPoint(byte TargetSystem, byte TargetComponent, byte Idx) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Idx = Idx;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Idx = Idx;
   }
 
   public static RallyFetchPoint Parse(ReadOnlySpan<byte> data) {
@@ -41355,12 +41355,12 @@ public sealed class CompassmotStatus : MavlinkMessage {
   public ushort Interference { get; init; }
 
   public CompassmotStatus(float Current, float Compensationx, float Compensationy, float Compensationz, ushort Throttle, ushort Interference) {
-    Current = Current;
-    Compensationx = Compensationx;
-    Compensationy = Compensationy;
-    Compensationz = Compensationz;
-    Throttle = Throttle;
-    Interference = Interference;
+    this.Current = Current;
+    this.Compensationx = Compensationx;
+    this.Compensationy = Compensationy;
+    this.Compensationz = Compensationz;
+    this.Throttle = Throttle;
+    this.Interference = Interference;
   }
 
   public static CompassmotStatus Parse(ReadOnlySpan<byte> data) {
@@ -41458,12 +41458,12 @@ public sealed class Ahrs2 : MavlinkMessage {
   public int Lng { get; init; }
 
   public Ahrs2(float Roll, float Pitch, float Yaw, float Altitude, int Lat, int Lng) {
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Altitude = Altitude;
-    Lat = Lat;
-    Lng = Lng;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Altitude = Altitude;
+    this.Lat = Lat;
+    this.Lng = Lng;
   }
 
   public static Ahrs2 Parse(ReadOnlySpan<byte> data) {
@@ -41578,15 +41578,15 @@ public sealed class CameraStatus : MavlinkMessage {
   public CameraStatusTypes EventId { get; init; }
 
   public CameraStatus(ulong TimeUsec, float P1, float P2, float P3, float P4, ushort ImgIdx, byte TargetSystem, byte CamIdx, CameraStatusTypes EventId) {
-    TimeUsec = TimeUsec;
-    P1 = P1;
-    P2 = P2;
-    P3 = P3;
-    P4 = P4;
-    ImgIdx = ImgIdx;
-    TargetSystem = TargetSystem;
-    CamIdx = CamIdx;
-    EventId = EventId;
+    this.TimeUsec = TimeUsec;
+    this.P1 = P1;
+    this.P2 = P2;
+    this.P3 = P3;
+    this.P4 = P4;
+    this.ImgIdx = ImgIdx;
+    this.TargetSystem = TargetSystem;
+    this.CamIdx = CamIdx;
+    this.EventId = EventId;
   }
 
   public static CameraStatus Parse(ReadOnlySpan<byte> data) {
@@ -41755,20 +41755,20 @@ public sealed class CameraFeedback : MavlinkMessage {
   public ushort CompletedCaptures { get; init; }
 
   public CameraFeedback(ulong TimeUsec, int Lat, int Lng, float AltMsl, float AltRel, float Roll, float Pitch, float Yaw, float FocLen, ushort ImgIdx, byte TargetSystem, byte CamIdx, CameraFeedbackFlags Flags, ushort CompletedCaptures) {
-    TimeUsec = TimeUsec;
-    Lat = Lat;
-    Lng = Lng;
-    AltMsl = AltMsl;
-    AltRel = AltRel;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    FocLen = FocLen;
-    ImgIdx = ImgIdx;
-    TargetSystem = TargetSystem;
-    CamIdx = CamIdx;
-    Flags = Flags;
-    CompletedCaptures = CompletedCaptures;
+    this.TimeUsec = TimeUsec;
+    this.Lat = Lat;
+    this.Lng = Lng;
+    this.AltMsl = AltMsl;
+    this.AltRel = AltRel;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.FocLen = FocLen;
+    this.ImgIdx = ImgIdx;
+    this.TargetSystem = TargetSystem;
+    this.CamIdx = CamIdx;
+    this.Flags = Flags;
+    this.CompletedCaptures = CompletedCaptures;
   }
 
   public static CameraFeedback Parse(ReadOnlySpan<byte> data) {
@@ -41859,8 +41859,8 @@ public sealed class Battery2 : MavlinkMessage {
   public short CurrentBattery { get; init; }
 
   public Battery2(ushort Voltage, short CurrentBattery) {
-    Voltage = Voltage;
-    CurrentBattery = CurrentBattery;
+    this.Voltage = Voltage;
+    this.CurrentBattery = CurrentBattery;
   }
 
   public static Battery2 Parse(ReadOnlySpan<byte> data) {
@@ -41974,16 +41974,16 @@ public sealed class Ahrs3 : MavlinkMessage {
   public float V4 { get; init; }
 
   public Ahrs3(float Roll, float Pitch, float Yaw, float Altitude, int Lat, int Lng, float V1, float V2, float V3, float V4) {
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Altitude = Altitude;
-    Lat = Lat;
-    Lng = Lng;
-    V1 = V1;
-    V2 = V2;
-    V3 = V3;
-    V4 = V4;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Altitude = Altitude;
+    this.Lat = Lat;
+    this.Lng = Lng;
+    this.V1 = V1;
+    this.V2 = V2;
+    this.V3 = V3;
+    this.V4 = V4;
   }
 
   public static Ahrs3 Parse(ReadOnlySpan<byte> data) {
@@ -42059,8 +42059,8 @@ public sealed class AutopilotVersionRequest : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public AutopilotVersionRequest(byte TargetSystem, byte TargetComponent) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static AutopilotVersionRequest Parse(ReadOnlySpan<byte> data) {
@@ -42127,10 +42127,10 @@ public sealed class RemoteLogDataBlock : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public RemoteLogDataBlock(MavRemoteLogDataBlockCommands Seqno, byte TargetSystem, byte TargetComponent, byte[] Data) {
-    Seqno = Seqno;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Data = Data;
+    this.Seqno = Seqno;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Data = Data;
   }
 
   public static RemoteLogDataBlock Parse(ReadOnlySpan<byte> data) {
@@ -42204,10 +42204,10 @@ public sealed class RemoteLogBlockStatus : MavlinkMessage {
   public MavRemoteLogDataBlockStatuses Status { get; init; }
 
   public RemoteLogBlockStatus(uint Seqno, byte TargetSystem, byte TargetComponent, MavRemoteLogDataBlockStatuses Status) {
-    Seqno = Seqno;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Status = Status;
+    this.Seqno = Seqno;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Status = Status;
   }
 
   public static RemoteLogBlockStatus Parse(ReadOnlySpan<byte> data) {
@@ -42294,12 +42294,12 @@ public sealed class LedControl : MavlinkMessage {
   public byte[] CustomBytes { get; init; }
 
   public LedControl(byte TargetSystem, byte TargetComponent, byte Instance, byte Pattern, byte CustomLen, byte[] CustomBytes) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Instance = Instance;
-    Pattern = Pattern;
-    CustomLen = CustomLen;
-    CustomBytes = CustomBytes;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Instance = Instance;
+    this.Pattern = Pattern;
+    this.CustomLen = CustomLen;
+    this.CustomBytes = CustomBytes;
   }
 
   public static LedControl Parse(ReadOnlySpan<byte> data) {
@@ -42414,15 +42414,15 @@ public sealed class MagCalProgress : MavlinkMessage {
   public byte[] CompletionMask { get; init; }
 
   public MagCalProgress(float DirectionX, float DirectionY, float DirectionZ, byte CompassId, byte CalMask, MagCalStatus CalStatus, byte Attempt, byte CompletionPct, byte[] CompletionMask) {
-    DirectionX = DirectionX;
-    DirectionY = DirectionY;
-    DirectionZ = DirectionZ;
-    CompassId = CompassId;
-    CalMask = CalMask;
-    CalStatus = CalStatus;
-    Attempt = Attempt;
-    CompletionPct = CompletionPct;
-    CompletionMask = CompletionMask;
+    this.DirectionX = DirectionX;
+    this.DirectionY = DirectionY;
+    this.DirectionZ = DirectionZ;
+    this.CompassId = CompassId;
+    this.CalMask = CalMask;
+    this.CalStatus = CalStatus;
+    this.Attempt = Attempt;
+    this.CompletionPct = CompletionPct;
+    this.CompletionMask = CompletionMask;
   }
 
   public static MagCalProgress Parse(ReadOnlySpan<byte> data) {
@@ -42533,13 +42533,13 @@ public sealed class EkfStatusReport : MavlinkMessage {
   public float AirspeedVariance { get; init; }
 
   public EkfStatusReport(float VelocityVariance, float PosHorizVariance, float PosVertVariance, float CompassVariance, float TerrainAltVariance, ushort Flags, float AirspeedVariance) {
-    VelocityVariance = VelocityVariance;
-    PosHorizVariance = PosHorizVariance;
-    PosVertVariance = PosVertVariance;
-    CompassVariance = CompassVariance;
-    TerrainAltVariance = TerrainAltVariance;
-    Flags = Flags;
-    AirspeedVariance = AirspeedVariance;
+    this.VelocityVariance = VelocityVariance;
+    this.PosHorizVariance = PosHorizVariance;
+    this.PosVertVariance = PosVertVariance;
+    this.CompassVariance = CompassVariance;
+    this.TerrainAltVariance = TerrainAltVariance;
+    this.Flags = Flags;
+    this.AirspeedVariance = AirspeedVariance;
   }
 
   public static EkfStatusReport Parse(ReadOnlySpan<byte> data) {
@@ -42658,15 +42658,15 @@ public sealed class PidTuning : MavlinkMessage {
   public float Pdmod { get; init; }
 
   public PidTuning(float Desired, float Achieved, float Ff, float P, float I, float D, PidTuningAxis Axis, float Srate, float Pdmod) {
-    Desired = Desired;
-    Achieved = Achieved;
-    Ff = Ff;
-    P = P;
-    I = I;
-    D = D;
-    Axis = Axis;
-    Srate = Srate;
-    Pdmod = Pdmod;
+    this.Desired = Desired;
+    this.Achieved = Achieved;
+    this.Ff = Ff;
+    this.P = P;
+    this.I = I;
+    this.D = D;
+    this.Axis = Axis;
+    this.Srate = Srate;
+    this.Pdmod = Pdmod;
   }
 
   public static PidTuning Parse(ReadOnlySpan<byte> data) {
@@ -42806,16 +42806,16 @@ public sealed class Deepstall : MavlinkMessage {
   public DeepstallStage Stage { get; init; }
 
   public Deepstall(int LandingLat, int LandingLon, int PathLat, int PathLon, int ArcEntryLat, int ArcEntryLon, float Altitude, float ExpectedTravelDistance, float CrossTrackError, DeepstallStage Stage) {
-    LandingLat = LandingLat;
-    LandingLon = LandingLon;
-    PathLat = PathLat;
-    PathLon = PathLon;
-    ArcEntryLat = ArcEntryLat;
-    ArcEntryLon = ArcEntryLon;
-    Altitude = Altitude;
-    ExpectedTravelDistance = ExpectedTravelDistance;
-    CrossTrackError = CrossTrackError;
-    Stage = Stage;
+    this.LandingLat = LandingLat;
+    this.LandingLon = LandingLon;
+    this.PathLat = PathLat;
+    this.PathLon = PathLon;
+    this.ArcEntryLat = ArcEntryLat;
+    this.ArcEntryLon = ArcEntryLon;
+    this.Altitude = Altitude;
+    this.ExpectedTravelDistance = ExpectedTravelDistance;
+    this.CrossTrackError = CrossTrackError;
+    this.Stage = Stage;
   }
 
   public static Deepstall Parse(ReadOnlySpan<byte> data) {
@@ -42972,18 +42972,18 @@ public sealed class GimbalReport : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public GimbalReport(float DeltaTime, float DeltaAngleX, float DeltaAngleY, float DeltaAngleZ, float DeltaVelocityX, float DeltaVelocityY, float DeltaVelocityZ, float JointRoll, float JointEl, float JointAz, byte TargetSystem, byte TargetComponent) {
-    DeltaTime = DeltaTime;
-    DeltaAngleX = DeltaAngleX;
-    DeltaAngleY = DeltaAngleY;
-    DeltaAngleZ = DeltaAngleZ;
-    DeltaVelocityX = DeltaVelocityX;
-    DeltaVelocityY = DeltaVelocityY;
-    DeltaVelocityZ = DeltaVelocityZ;
-    JointRoll = JointRoll;
-    JointEl = JointEl;
-    JointAz = JointAz;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.DeltaTime = DeltaTime;
+    this.DeltaAngleX = DeltaAngleX;
+    this.DeltaAngleY = DeltaAngleY;
+    this.DeltaAngleZ = DeltaAngleZ;
+    this.DeltaVelocityX = DeltaVelocityX;
+    this.DeltaVelocityY = DeltaVelocityY;
+    this.DeltaVelocityZ = DeltaVelocityZ;
+    this.JointRoll = JointRoll;
+    this.JointEl = JointEl;
+    this.JointAz = JointAz;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static GimbalReport Parse(ReadOnlySpan<byte> data) {
@@ -43089,11 +43089,11 @@ public sealed class GimbalControl : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public GimbalControl(float DemandedRateX, float DemandedRateY, float DemandedRateZ, byte TargetSystem, byte TargetComponent) {
-    DemandedRateX = DemandedRateX;
-    DemandedRateY = DemandedRateY;
-    DemandedRateZ = DemandedRateZ;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.DemandedRateX = DemandedRateX;
+    this.DemandedRateY = DemandedRateY;
+    this.DemandedRateZ = DemandedRateZ;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static GimbalControl Parse(ReadOnlySpan<byte> data) {
@@ -43175,11 +43175,11 @@ public sealed class GimbalTorqueCmdReport : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public GimbalTorqueCmdReport(short RlTorqueCmd, short ElTorqueCmd, short AzTorqueCmd, byte TargetSystem, byte TargetComponent) {
-    RlTorqueCmd = RlTorqueCmd;
-    ElTorqueCmd = ElTorqueCmd;
-    AzTorqueCmd = AzTorqueCmd;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.RlTorqueCmd = RlTorqueCmd;
+    this.ElTorqueCmd = ElTorqueCmd;
+    this.AzTorqueCmd = AzTorqueCmd;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static GimbalTorqueCmdReport Parse(ReadOnlySpan<byte> data) {
@@ -43250,9 +43250,9 @@ public sealed class GoproHeartbeat : MavlinkMessage {
   public byte Flags { get; init; }
 
   public GoproHeartbeat(GoproHeartbeatStatus Status, GoproCaptureMode CaptureMode, byte Flags) {
-    Status = Status;
-    CaptureMode = CaptureMode;
-    Flags = Flags;
+    this.Status = Status;
+    this.CaptureMode = CaptureMode;
+    this.Flags = Flags;
   }
 
   public static GoproHeartbeat Parse(ReadOnlySpan<byte> data) {
@@ -43317,9 +43317,9 @@ public sealed class GoproGetRequest : MavlinkMessage {
   public GoproCommand CmdId { get; init; }
 
   public GoproGetRequest(byte TargetSystem, byte TargetComponent, GoproCommand CmdId) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    CmdId = CmdId;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.CmdId = CmdId;
   }
 
   public static GoproGetRequest Parse(ReadOnlySpan<byte> data) {
@@ -43384,9 +43384,9 @@ public sealed class GoproGetResponse : MavlinkMessage {
   public byte[] Value { get; init; }
 
   public GoproGetResponse(GoproCommand CmdId, GoproRequestStatus Status, byte[] Value) {
-    CmdId = CmdId;
-    Status = Status;
-    Value = Value;
+    this.CmdId = CmdId;
+    this.Status = Status;
+    this.Value = Value;
   }
 
   public static GoproGetResponse Parse(ReadOnlySpan<byte> data) {
@@ -43458,10 +43458,10 @@ public sealed class GoproSetRequest : MavlinkMessage {
   public byte[] Value { get; init; }
 
   public GoproSetRequest(byte TargetSystem, byte TargetComponent, GoproCommand CmdId, byte[] Value) {
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    CmdId = CmdId;
-    Value = Value;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.CmdId = CmdId;
+    this.Value = Value;
   }
 
   public static GoproSetRequest Parse(ReadOnlySpan<byte> data) {
@@ -43522,8 +43522,8 @@ public sealed class GoproSetResponse : MavlinkMessage {
   public GoproRequestStatus Status { get; init; }
 
   public GoproSetResponse(GoproCommand CmdId, GoproRequestStatus Status) {
-    CmdId = CmdId;
-    Status = Status;
+    this.CmdId = CmdId;
+    this.Status = Status;
   }
 
   public static GoproSetResponse Parse(ReadOnlySpan<byte> data) {
@@ -43577,8 +43577,8 @@ public sealed class Rpm : MavlinkMessage {
   public float Rpm2 { get; init; }
 
   public Rpm(float Rpm1, float Rpm2) {
-    Rpm1 = Rpm1;
-    Rpm2 = Rpm2;
+    this.Rpm1 = Rpm1;
+    this.Rpm2 = Rpm2;
   }
 
   public static Rpm Parse(ReadOnlySpan<byte> data) {
@@ -43688,16 +43688,16 @@ public sealed class DeviceOpRead : MavlinkMessage {
   public byte Bank { get; init; }
 
   public DeviceOpRead(uint RequestId, byte TargetSystem, byte TargetComponent, DeviceOpBustype Bustype, byte Bus, byte Address, byte[] Busname, byte Regstart, byte Count, byte Bank) {
-    RequestId = RequestId;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Bustype = Bustype;
-    Bus = Bus;
-    Address = Address;
-    Busname = Busname;
-    Regstart = Regstart;
-    Count = Count;
-    Bank = Bank;
+    this.RequestId = RequestId;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Bustype = Bustype;
+    this.Bus = Bus;
+    this.Address = Address;
+    this.Busname = Busname;
+    this.Regstart = Regstart;
+    this.Count = Count;
+    this.Bank = Bank;
   }
 
   public static DeviceOpRead Parse(ReadOnlySpan<byte> data) {
@@ -43803,12 +43803,12 @@ public sealed class DeviceOpReadReply : MavlinkMessage {
   public byte Bank { get; init; }
 
   public DeviceOpReadReply(uint RequestId, byte Result, byte Regstart, byte Count, byte[] Data, byte Bank) {
-    RequestId = RequestId;
-    Result = Result;
-    Regstart = Regstart;
-    Count = Count;
-    Data = Data;
-    Bank = Bank;
+    this.RequestId = RequestId;
+    this.Result = Result;
+    this.Regstart = Regstart;
+    this.Count = Count;
+    this.Data = Data;
+    this.Bank = Bank;
   }
 
   public static DeviceOpReadReply Parse(ReadOnlySpan<byte> data) {
@@ -43937,17 +43937,17 @@ public sealed class DeviceOpWrite : MavlinkMessage {
   public byte Bank { get; init; }
 
   public DeviceOpWrite(uint RequestId, byte TargetSystem, byte TargetComponent, DeviceOpBustype Bustype, byte Bus, byte Address, byte[] Busname, byte Regstart, byte Count, byte[] Data, byte Bank) {
-    RequestId = RequestId;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    Bustype = Bustype;
-    Bus = Bus;
-    Address = Address;
-    Busname = Busname;
-    Regstart = Regstart;
-    Count = Count;
-    Data = Data;
-    Bank = Bank;
+    this.RequestId = RequestId;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.Bustype = Bustype;
+    this.Bus = Bus;
+    this.Address = Address;
+    this.Busname = Busname;
+    this.Regstart = Regstart;
+    this.Count = Count;
+    this.Data = Data;
+    this.Bank = Bank;
   }
 
   public static DeviceOpWrite Parse(ReadOnlySpan<byte> data) {
@@ -44027,8 +44027,8 @@ public sealed class DeviceOpWriteReply : MavlinkMessage {
   public byte Result { get; init; }
 
   public DeviceOpWriteReply(uint RequestId, byte Result) {
-    RequestId = RequestId;
-    Result = Result;
+    this.RequestId = RequestId;
+    this.Result = Result;
   }
 
   public static DeviceOpWriteReply Parse(ReadOnlySpan<byte> data) {
@@ -44116,13 +44116,13 @@ public sealed class SecureCommand : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public SecureCommand(uint Sequence, SecureCommandOp Operation, byte TargetSystem, byte TargetComponent, byte DataLength, byte SigLength, byte[] Data) {
-    Sequence = Sequence;
-    Operation = Operation;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    DataLength = DataLength;
-    SigLength = SigLength;
-    Data = Data;
+    this.Sequence = Sequence;
+    this.Operation = Operation;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.DataLength = DataLength;
+    this.SigLength = SigLength;
+    this.Data = Data;
   }
 
   public static SecureCommand Parse(ReadOnlySpan<byte> data) {
@@ -44213,11 +44213,11 @@ public sealed class SecureCommandReply : MavlinkMessage {
   public byte[] Data { get; init; }
 
   public SecureCommandReply(uint Sequence, SecureCommandOp Operation, MavResult Result, byte DataLength, byte[] Data) {
-    Sequence = Sequence;
-    Operation = Operation;
-    Result = Result;
-    DataLength = DataLength;
-    Data = Data;
+    this.Sequence = Sequence;
+    this.Operation = Operation;
+    this.Result = Result;
+    this.DataLength = DataLength;
+    this.Data = Data;
   }
 
   public static SecureCommandReply Parse(ReadOnlySpan<byte> data) {
@@ -44360,19 +44360,19 @@ public sealed class AdapTuning : MavlinkMessage {
   public PidTuningAxis Axis { get; init; }
 
   public AdapTuning(float Desired, float Achieved, float Error, float Theta, float Omega, float Sigma, float ThetaDot, float OmegaDot, float SigmaDot, float F, float FDot, float U, PidTuningAxis Axis) {
-    Desired = Desired;
-    Achieved = Achieved;
-    Error = Error;
-    Theta = Theta;
-    Omega = Omega;
-    Sigma = Sigma;
-    ThetaDot = ThetaDot;
-    OmegaDot = OmegaDot;
-    SigmaDot = SigmaDot;
-    F = F;
-    FDot = FDot;
-    U = U;
-    Axis = Axis;
+    this.Desired = Desired;
+    this.Achieved = Achieved;
+    this.Error = Error;
+    this.Theta = Theta;
+    this.Omega = Omega;
+    this.Sigma = Sigma;
+    this.ThetaDot = ThetaDot;
+    this.OmegaDot = OmegaDot;
+    this.SigmaDot = SigmaDot;
+    this.F = F;
+    this.FDot = FDot;
+    this.U = U;
+    this.Axis = Axis;
   }
 
   public static AdapTuning Parse(ReadOnlySpan<byte> data) {
@@ -44484,11 +44484,11 @@ public sealed class VisionPositionDelta : MavlinkMessage {
   public float Confidence { get; init; }
 
   public VisionPositionDelta(ulong TimeUsec, ulong TimeDeltaUsec, float[] AngleDelta, float[] PositionDelta, float Confidence) {
-    TimeUsec = TimeUsec;
-    TimeDeltaUsec = TimeDeltaUsec;
-    AngleDelta = AngleDelta;
-    PositionDelta = PositionDelta;
-    Confidence = Confidence;
+    this.TimeUsec = TimeUsec;
+    this.TimeDeltaUsec = TimeDeltaUsec;
+    this.AngleDelta = AngleDelta;
+    this.PositionDelta = PositionDelta;
+    this.Confidence = Confidence;
   }
 
   public static VisionPositionDelta Parse(ReadOnlySpan<byte> data) {
@@ -44559,9 +44559,9 @@ public sealed class AoaSsa : MavlinkMessage {
   public float Ssa { get; init; }
 
   public AoaSsa(ulong TimeUsec, float Aoa, float Ssa) {
-    TimeUsec = TimeUsec;
-    Aoa = Aoa;
-    Ssa = Ssa;
+    this.TimeUsec = TimeUsec;
+    this.Aoa = Aoa;
+    this.Ssa = Ssa;
   }
 
   public static AoaSsa Parse(ReadOnlySpan<byte> data) {
@@ -44649,12 +44649,12 @@ public sealed class EscTelemetry1To4 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry1To4(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry1To4 Parse(ReadOnlySpan<byte> data) {
@@ -44751,12 +44751,12 @@ public sealed class EscTelemetry5To8 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry5To8(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry5To8 Parse(ReadOnlySpan<byte> data) {
@@ -44853,12 +44853,12 @@ public sealed class EscTelemetry9To12 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry9To12(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry9To12 Parse(ReadOnlySpan<byte> data) {
@@ -44979,16 +44979,16 @@ public sealed class OsdParamConfig : MavlinkMessage {
   public OsdParamConfigType ConfigType { get; init; }
 
   public OsdParamConfig(uint RequestId, float MinValue, float MaxValue, float Increment, byte TargetSystem, byte TargetComponent, byte OsdScreen, byte OsdIndex, byte[] ParamId, OsdParamConfigType ConfigType) {
-    RequestId = RequestId;
-    MinValue = MinValue;
-    MaxValue = MaxValue;
-    Increment = Increment;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    OsdScreen = OsdScreen;
-    OsdIndex = OsdIndex;
-    ParamId = ParamId;
-    ConfigType = ConfigType;
+    this.RequestId = RequestId;
+    this.MinValue = MinValue;
+    this.MaxValue = MaxValue;
+    this.Increment = Increment;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.OsdScreen = OsdScreen;
+    this.OsdIndex = OsdIndex;
+    this.ParamId = ParamId;
+    this.ConfigType = ConfigType;
   }
 
   public static OsdParamConfig Parse(ReadOnlySpan<byte> data) {
@@ -45066,8 +45066,8 @@ public sealed class OsdParamConfigReply : MavlinkMessage {
   public OsdParamConfigError Result { get; init; }
 
   public OsdParamConfigReply(uint RequestId, OsdParamConfigError Result) {
-    RequestId = RequestId;
-    Result = Result;
+    this.RequestId = RequestId;
+    this.Result = Result;
   }
 
   public static OsdParamConfigReply Parse(ReadOnlySpan<byte> data) {
@@ -45141,11 +45141,11 @@ public sealed class OsdParamShowConfig : MavlinkMessage {
   public byte OsdIndex { get; init; }
 
   public OsdParamShowConfig(uint RequestId, byte TargetSystem, byte TargetComponent, byte OsdScreen, byte OsdIndex) {
-    RequestId = RequestId;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
-    OsdScreen = OsdScreen;
-    OsdIndex = OsdIndex;
+    this.RequestId = RequestId;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
+    this.OsdScreen = OsdScreen;
+    this.OsdIndex = OsdIndex;
   }
 
   public static OsdParamShowConfig Parse(ReadOnlySpan<byte> data) {
@@ -45243,13 +45243,13 @@ public sealed class OsdParamShowConfigReply : MavlinkMessage {
   public OsdParamConfigType ConfigType { get; init; }
 
   public OsdParamShowConfigReply(uint RequestId, float MinValue, float MaxValue, float Increment, OsdParamConfigError Result, byte[] ParamId, OsdParamConfigType ConfigType) {
-    RequestId = RequestId;
-    MinValue = MinValue;
-    MaxValue = MaxValue;
-    Increment = Increment;
-    Result = Result;
-    ParamId = ParamId;
-    ConfigType = ConfigType;
+    this.RequestId = RequestId;
+    this.MinValue = MinValue;
+    this.MaxValue = MaxValue;
+    this.Increment = Increment;
+    this.Result = Result;
+    this.ParamId = ParamId;
+    this.ConfigType = ConfigType;
   }
 
   public static OsdParamShowConfigReply Parse(ReadOnlySpan<byte> data) {
@@ -45375,15 +45375,15 @@ public sealed class ObstacleDistance3d : MavlinkMessage {
   public MavFrame Frame { get; init; }
 
   public ObstacleDistance3d(uint TimeBootMs, float X, float Y, float Z, float MinDistance, float MaxDistance, ushort ObstacleId, MavDistanceSensor SensorType, MavFrame Frame) {
-    TimeBootMs = TimeBootMs;
-    X = X;
-    Y = Y;
-    Z = Z;
-    MinDistance = MinDistance;
-    MaxDistance = MaxDistance;
-    ObstacleId = ObstacleId;
-    SensorType = SensorType;
-    Frame = Frame;
+    this.TimeBootMs = TimeBootMs;
+    this.X = X;
+    this.Y = Y;
+    this.Z = Z;
+    this.MinDistance = MinDistance;
+    this.MaxDistance = MaxDistance;
+    this.ObstacleId = ObstacleId;
+    this.SensorType = SensorType;
+    this.Frame = Frame;
   }
 
   public static ObstacleDistance3d Parse(ReadOnlySpan<byte> data) {
@@ -45530,17 +45530,17 @@ public sealed class WaterDepth : MavlinkMessage {
   public byte Healthy { get; init; }
 
   public WaterDepth(uint TimeBootMs, int Lat, int Lng, float Alt, float Roll, float Pitch, float Yaw, float Distance, float Temperature, byte Id, byte Healthy) {
-    TimeBootMs = TimeBootMs;
-    Lat = Lat;
-    Lng = Lng;
-    Alt = Alt;
-    Roll = Roll;
-    Pitch = Pitch;
-    Yaw = Yaw;
-    Distance = Distance;
-    Temperature = Temperature;
-    Id = Id;
-    Healthy = Healthy;
+    this.TimeBootMs = TimeBootMs;
+    this.Lat = Lat;
+    this.Lng = Lng;
+    this.Alt = Alt;
+    this.Roll = Roll;
+    this.Pitch = Pitch;
+    this.Yaw = Yaw;
+    this.Distance = Distance;
+    this.Temperature = Temperature;
+    this.Id = Id;
+    this.Healthy = Healthy;
   }
 
   public static WaterDepth Parse(ReadOnlySpan<byte> data) {
@@ -45644,11 +45644,11 @@ public sealed class McuStatus : MavlinkMessage {
   public byte Id { get; init; }
 
   public McuStatus(short McuTemperature, ushort McuVoltage, ushort McuVoltageMin, ushort McuVoltageMax, byte Id) {
-    McuTemperature = McuTemperature;
-    McuVoltage = McuVoltage;
-    McuVoltageMin = McuVoltageMin;
-    McuVoltageMax = McuVoltageMax;
-    Id = Id;
+    this.McuTemperature = McuTemperature;
+    this.McuVoltage = McuVoltage;
+    this.McuVoltageMin = McuVoltageMin;
+    this.McuVoltageMax = McuVoltageMax;
+    this.Id = Id;
   }
 
   public static McuStatus Parse(ReadOnlySpan<byte> data) {
@@ -45742,12 +45742,12 @@ public sealed class EscTelemetry13To16 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry13To16(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry13To16 Parse(ReadOnlySpan<byte> data) {
@@ -45844,12 +45844,12 @@ public sealed class EscTelemetry17To20 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry17To20(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry17To20 Parse(ReadOnlySpan<byte> data) {
@@ -45946,12 +45946,12 @@ public sealed class EscTelemetry21To24 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry21To24(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry21To24 Parse(ReadOnlySpan<byte> data) {
@@ -46048,12 +46048,12 @@ public sealed class EscTelemetry25To28 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry25To28(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry25To28 Parse(ReadOnlySpan<byte> data) {
@@ -46150,12 +46150,12 @@ public sealed class EscTelemetry29To32 : MavlinkMessage {
   public byte[] Temperature { get; init; }
 
   public EscTelemetry29To32(ushort[] Voltage, ushort[] Current, ushort[] Totalcurrent, ushort[] Rpm, ushort[] Count, byte[] Temperature) {
-    Voltage = Voltage;
-    Current = Current;
-    Totalcurrent = Totalcurrent;
-    Rpm = Rpm;
-    Count = Count;
-    Temperature = Temperature;
+    this.Voltage = Voltage;
+    this.Current = Current;
+    this.Totalcurrent = Totalcurrent;
+    this.Rpm = Rpm;
+    this.Count = Count;
+    this.Temperature = Temperature;
   }
 
   public static EscTelemetry29To32 Parse(ReadOnlySpan<byte> data) {
@@ -46333,22 +46333,22 @@ public sealed class RtRcChannels : MavlinkMessage {
   public ushort Ch16 { get; init; }
 
   public RtRcChannels(ushort Ch1, ushort Ch2, ushort Ch3, ushort Ch4, ushort Ch5, ushort Ch6, ushort Ch7, ushort Ch8, ushort Ch9, ushort Ch10, ushort Ch11, ushort Ch12, ushort Ch13, ushort Ch14, ushort Ch15, ushort Ch16) {
-    Ch1 = Ch1;
-    Ch2 = Ch2;
-    Ch3 = Ch3;
-    Ch4 = Ch4;
-    Ch5 = Ch5;
-    Ch6 = Ch6;
-    Ch7 = Ch7;
-    Ch8 = Ch8;
-    Ch9 = Ch9;
-    Ch10 = Ch10;
-    Ch11 = Ch11;
-    Ch12 = Ch12;
-    Ch13 = Ch13;
-    Ch14 = Ch14;
-    Ch15 = Ch15;
-    Ch16 = Ch16;
+    this.Ch1 = Ch1;
+    this.Ch2 = Ch2;
+    this.Ch3 = Ch3;
+    this.Ch4 = Ch4;
+    this.Ch5 = Ch5;
+    this.Ch6 = Ch6;
+    this.Ch7 = Ch7;
+    this.Ch8 = Ch8;
+    this.Ch9 = Ch9;
+    this.Ch10 = Ch10;
+    this.Ch11 = Ch11;
+    this.Ch12 = Ch12;
+    this.Ch13 = Ch13;
+    this.Ch14 = Ch14;
+    this.Ch15 = Ch15;
+    this.Ch16 = Ch16;
   }
 
   public static RtRcChannels Parse(ReadOnlySpan<byte> data) {
@@ -46477,13 +46477,13 @@ public sealed class RtRcAnalogRaw : MavlinkMessage {
   public ushort SliderRaw { get; init; }
 
   public RtRcAnalogRaw(ushort LeftXRaw, ushort LeftYRaw, ushort RightXRaw, ushort RightYRaw, ushort AuxXRaw, ushort AuxYRaw, ushort SliderRaw) {
-    LeftXRaw = LeftXRaw;
-    LeftYRaw = LeftYRaw;
-    RightXRaw = RightXRaw;
-    RightYRaw = RightYRaw;
-    AuxXRaw = AuxXRaw;
-    AuxYRaw = AuxYRaw;
-    SliderRaw = SliderRaw;
+    this.LeftXRaw = LeftXRaw;
+    this.LeftYRaw = LeftYRaw;
+    this.RightXRaw = RightXRaw;
+    this.RightYRaw = RightYRaw;
+    this.AuxXRaw = AuxXRaw;
+    this.AuxYRaw = AuxYRaw;
+    this.SliderRaw = SliderRaw;
   }
 
   public static RtRcAnalogRaw Parse(ReadOnlySpan<byte> data) {
@@ -46568,10 +46568,10 @@ public sealed class RtRcBatteryStatus : MavlinkMessage {
   public byte BatteryTemperatureRight { get; init; }
 
   public RtRcBatteryStatus(byte BatteryLevel, byte BatteryChargingStatus, byte BatteryTemperatureLeft, byte BatteryTemperatureRight) {
-    BatteryLevel = BatteryLevel;
-    BatteryChargingStatus = BatteryChargingStatus;
-    BatteryTemperatureLeft = BatteryTemperatureLeft;
-    BatteryTemperatureRight = BatteryTemperatureRight;
+    this.BatteryLevel = BatteryLevel;
+    this.BatteryChargingStatus = BatteryChargingStatus;
+    this.BatteryTemperatureLeft = BatteryTemperatureLeft;
+    this.BatteryTemperatureRight = BatteryTemperatureRight;
   }
 
   public static RtRcBatteryStatus Parse(ReadOnlySpan<byte> data) {
@@ -46637,9 +46637,9 @@ public sealed class RtRcCommandCancel : MavlinkMessage {
   public byte TargetComponent { get; init; }
 
   public RtRcCommandCancel(MavCmd Command, byte TargetSystem, byte TargetComponent) {
-    Command = Command;
-    TargetSystem = TargetSystem;
-    TargetComponent = TargetComponent;
+    this.Command = Command;
+    this.TargetSystem = TargetSystem;
+    this.TargetComponent = TargetComponent;
   }
 
   public static RtRcCommandCancel Parse(ReadOnlySpan<byte> data) {

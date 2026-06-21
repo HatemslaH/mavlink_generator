@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Threading.Channels;
 using Mavlink.Dialects;
 
 namespace Mavlink;
@@ -95,71 +96,64 @@ public sealed class ParameterProtocol
     {
         cancel?.ThrowIfCancelled();
 
-        await _session.SendAsync(
-            new ParamRequestList(TargetSystem: TargetSystem, TargetComponent: TargetComponent),
-            cancellationToken).ConfigureAwait(false);
+        var inbox = Channel.CreateUnbounded<ParamValue>();
+        var subscription = _session.ListenMessage<ParamValue>(
+            (message, _) => inbox.Writer.TryWrite(message),
+            fromSystemId: TargetSystem,
+            fromComponentId: TargetComponent);
 
-        var expectedCount = -1;
-        var seenIndices = new HashSet<int>();
-        var retries = 0;
-        const int maxRetries = 5;
-
-        while (true)
+        try
         {
-            cancel?.ThrowIfCancelled();
+            await _session.SendAsync(
+                new ParamRequestList(TargetSystem: TargetSystem, TargetComponent: TargetComponent),
+                cancellationToken).ConfigureAwait(false);
 
-            ParamEntry? entryToYield = null;
+            var expectedCount = -1;
+            var seenIndices = new HashSet<int>();
+            var retryCounts = new Dictionary<int, int>();
+            var isRetrying = false;
 
-            try
+            while (true)
             {
-                var value = await _session.WaitForMessageAsync(
-                    message =>
+                cancel?.ThrowIfCancelled();
+
+                if (!TryTakeNextParam(inbox.Reader, seenIndices, out var paramValue))
+                {
+                    var waitTimeout = expectedCount == -1 || isRetrying ? RequestTimeout : IdleTimeout;
+                    try
                     {
-                        if (message is not ParamValue paramValue)
+                        paramValue = await WaitForNextParamAsync(
+                            inbox.Reader,
+                            seenIndices,
+                            waitTimeout,
+                            cancellationToken,
+                            cancel).ConfigureAwait(false);
+                    }
+                    catch (MavlinkCancelledException)
+                    {
+                        throw;
+                    }
+                    catch (MavlinkTimeoutException)
+                    {
+                        if (expectedCount == -1)
                         {
-                            return false;
+                            throw;
                         }
 
-                        return !seenIndices.Contains(paramValue.ParamIndex);
-                    },
-                    fromSystemId: TargetSystem,
-                    timeout: expectedCount == -1 ? RequestTimeout : IdleTimeout,
-                    cancel: cancel).ConfigureAwait(false);
-
-                var paramValue = (ParamValue)value;
-                seenIndices.Add(paramValue.ParamIndex);
-
-                if (expectedCount == -1)
-                {
-                    expectedCount = paramValue.ParamCount;
-                }
-
-                var entry = ParamEntry.FromParamValue(paramValue);
-                _cache[entry.Id] = entry;
-                entryToYield = entry;
-            }
-            catch (MavlinkTimeoutException)
-            {
-                if (expectedCount != -1)
-                {
-                    retries++;
-                    if (retries > maxRetries)
-                    {
-                        break;
-                    }
-
-                    var missingIndex = -1;
-                    for (var i = 0; i < expectedCount; i++)
-                    {
-                        if (!seenIndices.Contains(i))
+                        var missingIndex = FindMissingIndex(seenIndices, expectedCount);
+                        if (missingIndex < 0)
                         {
-                            missingIndex = i;
                             break;
                         }
-                    }
 
-                    if (missingIndex >= 0)
-                    {
+                        var retries = retryCounts.GetValueOrDefault(missingIndex);
+                        if (retries >= 3)
+                        {
+                            throw;
+                        }
+
+                        retryCounts[missingIndex] = retries + 1;
+                        isRetrying = true;
                         await _session.SendAsync(
                             new ParamRequestRead(
                                 ParamIndex: (short)missingIndex,
@@ -167,21 +161,26 @@ public sealed class ParameterProtocol
                                 TargetComponent: TargetComponent,
                                 ParamId: ParamCodec.ParamIdFromString(string.Empty)),
                             cancellationToken).ConfigureAwait(false);
+                        continue;
                     }
-                    else
+
+                    if (paramValue is null)
                     {
                         break;
                     }
                 }
-                else
-                {
-                    break;
-                }
-            }
 
-            if (entryToYield is not null)
-            {
-                yield return entryToYield;
+                isRetrying = false;
+
+                seenIndices.Add(paramValue.ParamIndex);
+                if (expectedCount == -1)
+                {
+                    expectedCount = paramValue.ParamCount;
+                }
+
+                var entry = ParamEntry.FromParamValue(paramValue);
+                _cache[entry.Id] = entry;
+                yield return entry;
 
                 if (seenIndices.Count >= expectedCount)
                 {
@@ -189,6 +188,85 @@ public sealed class ParameterProtocol
                 }
             }
         }
+        finally
+        {
+            subscription.Cancel();
+            inbox.Writer.TryComplete();
+        }
+    }
+
+    private static bool TryTakeNextParam(
+        ChannelReader<ParamValue> reader,
+        ISet<int> seenIndices,
+        out ParamValue paramValue)
+    {
+        while (reader.TryRead(out var buffered))
+        {
+            if (!seenIndices.Contains(buffered.ParamIndex))
+            {
+                paramValue = buffered;
+                return true;
+            }
+        }
+
+        paramValue = null!;
+        return false;
+    }
+
+    private static async Task<ParamValue?> WaitForNextParamAsync(
+        ChannelReader<ParamValue> reader,
+        ISet<int> seenIndices,
+        TimeSpan timeout,
+        CancellationToken cancellationToken,
+        MavlinkCancellationToken? cancel)
+    {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(timeout);
+        if (cancel is not null)
+        {
+            cancel.OnCancel += () => timeoutCts.Cancel();
+        }
+
+        try
+        {
+            while (await reader.WaitToReadAsync(timeoutCts.Token).ConfigureAwait(false))
+            {
+                while (reader.TryRead(out var next))
+                {
+                    if (!seenIndices.Contains(next.ParamIndex))
+                    {
+                        return next;
+                    }
+                }
+            }
+
+            return null;
+        }
+        catch (OperationCanceledException) when (cancel?.IsCancelled == true)
+        {
+            throw new MavlinkCancelledException();
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            throw new MavlinkTimeoutException("Timed out waiting for parameter", timeout);
+        }
+    }
+
+    private static int FindMissingIndex(ISet<int> seenIndices, int expectedCount)
+    {
+        for (var index = 0; index < expectedCount; index++)
+        {
+            if (!seenIndices.Contains(index))
+            {
+                return index;
+            }
+        }
+
+        return -1;
     }
 
     public Task<ParamEntry> ReadByNameAsync(string name, MavlinkCancellationToken? cancel = null) =>

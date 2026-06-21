@@ -22,19 +22,19 @@ public sealed class MavlinkVehicleClient
             session,
             vehicle.SystemId,
             vehicle.ComponentId,
-            idleTimeout: parameterIdleTimeout,
-            requestTimeout: parameterRequestTimeout);
+            idleTimeout: parameterIdleTimeout ?? TimeSpan.FromSeconds(2),
+            requestTimeout: parameterRequestTimeout ?? TimeSpan.FromSeconds(10));
         Mission = new MissionProtocol(
             session,
             vehicle.SystemId,
             vehicle.ComponentId,
-            itemTimeout: missionItemTimeout,
-            operationTimeout: missionOperationTimeout);
+            itemTimeout: missionItemTimeout ?? TimeSpan.FromSeconds(10),
+            operationTimeout: missionOperationTimeout ?? TimeSpan.FromSeconds(30));
         Command = new CommandProtocol(
             session,
             vehicle.SystemId,
             vehicle.ComponentId,
-            defaultTimeout: commandTimeout);
+            defaultTimeout: commandTimeout ?? TimeSpan.FromSeconds(10));
     }
 
     public MavlinkSession Session { get; }

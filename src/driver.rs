@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+use std::fs;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -159,6 +161,8 @@ where
             });
         }
 
+        prune_stale_dialect_files(&dialects_dir, language, &stems_for_language)?;
+
         if options.runtime {
             generate_runtime_files(&language_dir, language, &stems_for_language)?;
             on_progress(GenerateProgress {
@@ -266,6 +270,37 @@ fn collect_xml_from_dir(dir: &Path, dialect_stem_filter: Option<&str>) -> Result
 
     xml_paths.sort();
     Ok(xml_paths)
+}
+
+fn prune_stale_dialect_files(
+    dialects_dir: &Path,
+    language: TargetLanguage,
+    active_stems: &[String],
+) -> Result<()> {
+    if !dialects_dir.is_dir() {
+        return Ok(());
+    }
+
+    let extension = language.file_extension();
+    let active: HashSet<&str> = active_stems.iter().map(String::as_str).collect();
+
+    for entry in fs::read_dir(dialects_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.extension().and_then(|ext| ext.to_str()) != Some(extension) {
+            continue;
+        }
+
+        let stem = path
+            .file_stem()
+            .and_then(|stem| stem.to_str())
+            .unwrap_or_default();
+        if !active.contains(stem) {
+            fs::remove_file(path)?;
+        }
+    }
+
+    Ok(())
 }
 
 fn dialect_stem(path: &Path) -> Result<String> {

@@ -127,8 +127,14 @@ fn render_mavlink_entry_point(dialect_stems: &[String]) -> String {
     format!("{}\n", lines.join("\n"))
 }
 
-pub fn render_mavlink_csproj() -> String {
-    r#"<Project Sdk="Microsoft.NET.Sdk">
+pub fn render_mavlink_csproj(dialect_stems: &[String]) -> String {
+    let mut dialect_includes = String::new();
+    for stem in dialect_stems {
+        dialect_includes.push_str(&format!("    <Compile Include=\"dialects/{stem}.cs\" />\n"));
+    }
+
+    format!(
+        r#"<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -137,10 +143,13 @@ pub fn render_mavlink_csproj() -> String {
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="examples/**" />
+    <Compile Remove="dialects/**" />
   </ItemGroup>
+  <ItemGroup>
+{dialect_includes}  </ItemGroup>
 </Project>
 "#
-    .to_string()
+    )
 }
 
 pub fn render_example_csproj(stem: &str, suffix: &str) -> String {

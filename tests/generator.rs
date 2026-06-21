@@ -964,6 +964,10 @@ fn generates_csharp_runtime_files() {
     assert!(output_dir.join("mavlink_parser.cs").is_file());
     assert!(output_dir.join("mavlink_protocols.cs").is_file());
     assert!(output_dir.join("Mavlink.csproj").is_file());
+    let csproj = std::fs::read_to_string(output_dir.join("Mavlink.csproj"))
+        .expect("Mavlink.csproj should exist");
+    assert!(csproj.contains(r#"<Compile Include="dialects/rt_rc.cs" />"#));
+    assert!(csproj.contains(r#"<Compile Remove="dialects/**" />"#));
     assert!(output_dir.join("protocols/mission_protocol.cs").is_file());
     assert!(output_dir.join("protocols/parameter_protocol.cs").is_file());
     assert!(output_dir.join("protocols/command_protocol.cs").is_file());
@@ -983,12 +987,19 @@ fn generates_csharp_runtime_files() {
         .expect("mavlink_session.cs should exist");
     assert!(session_source.contains("ListenMessage"));
     assert!(session_source.contains("OnMessage"));
+    assert!(session_source.contains("RemovePendingWait"));
 
     let parameter_source =
         std::fs::read_to_string(output_dir.join("protocols/parameter_protocol.cs"))
             .expect("parameter_protocol.cs should exist");
     assert!(parameter_source.contains("FetchAllStreamAsync"));
     assert!(parameter_source.contains("WriteByNameAsync"));
+    assert!(parameter_source.contains("isRetrying"));
+
+    let vehicle_client_source =
+        std::fs::read_to_string(output_dir.join("protocols/mavlink_vehicle_client.cs"))
+            .expect("mavlink_vehicle_client.cs should exist");
+    assert!(vehicle_client_source.contains("FromSeconds(30)"));
 
     let _ = std::fs::remove_dir_all(&output_dir);
 }

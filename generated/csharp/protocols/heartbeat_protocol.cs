@@ -160,7 +160,7 @@ public sealed class HeartbeatMonitor : IAsyncDisposable
             }
         }
 
-        using var cts = CancellationTokenSource.CreateLinkedTokenSource();
+        using var cts = new CancellationTokenSource();
         cts.CancelAfter(effectiveTimeout);
         if (cancel is not null)
         {

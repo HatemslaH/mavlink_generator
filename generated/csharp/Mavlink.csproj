@@ -7,5 +7,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="examples/**" />
+    <Compile Remove="dialects/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="dialects/rt_rc.cs" />
   </ItemGroup>
 </Project>

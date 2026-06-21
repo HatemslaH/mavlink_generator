@@ -9,7 +9,7 @@ var portName = PortPicker.PickSerialPort();
 Console.WriteLine();
 Console.WriteLine($"Opening {portName} @ {baudRate} baud...");
 
-var dialect = new MavlinkDialectCommon();
+var dialect = new MavlinkDialectRt_rc();
 var link = SerialMavlinkLink.Open(portName, baudRate);
 var gcs = MavlinkGcs.Connect(
     dialect,

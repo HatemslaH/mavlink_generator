@@ -53,7 +53,8 @@ public sealed class MavlinkSession : IAsyncDisposable
     private readonly MavlinkDialect _dialect;
     private readonly MavlinkLink _link;
     private readonly MavlinkParser _parser;
-    private readonly Channel<MavlinkFrame> _frames = Channel.CreateUnbounded<MavlinkFrame>();
+    private readonly object _subscriberLock = new();
+    private readonly List<ChannelWriter<MavlinkFrame>> _frameSubscribers = new();
     private readonly List<PendingFrameWait> _pendingWaits = new();
     private readonly List<MavlinkFrame> _recentFrames = new();
     private readonly CancellationTokenSource _cts = new();
@@ -88,7 +89,34 @@ public sealed class MavlinkSession : IAsyncDisposable
     public MavlinkVersion Version { get; }
 
     /// <summary>All frames parsed from the link (before filtering).</summary>
-    public IAsyncEnumerable<MavlinkFrame> Frames => _frames.Reader.ReadAllAsync();
+    public IAsyncEnumerable<MavlinkFrame> Frames => ReadFramesAsync();
+
+    private async IAsyncEnumerable<MavlinkFrame> ReadFramesAsync(
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var channel = Channel.CreateUnbounded<MavlinkFrame>();
+        lock (_subscriberLock)
+        {
+            _frameSubscribers.Add(channel.Writer);
+        }
+
+        try
+        {
+            await foreach (var frame in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+            {
+                yield return frame;
+            }
+        }
+        finally
+        {
+            lock (_subscriberLock)
+            {
+                _frameSubscribers.Remove(channel.Writer);
+            }
+
+            channel.Writer.TryComplete();
+        }
+    }
 
     /// <summary>Typed message stream filtered by <paramref name="fromSystemId"/> / <paramref name="fromComponentId"/>.</summary>
     public async IAsyncEnumerable<T> OnMessage<T>(
@@ -216,7 +244,9 @@ public sealed class MavlinkSession : IAsyncDisposable
             }
 
             _recentFrames.Remove(frame);
+            RemovePendingWait(wait);
             CompleteWait(wait);
+            wait.DisposeRegistration();
             tcs.TrySetResult(frame);
             return tcs.Task;
         }
@@ -293,7 +323,7 @@ public sealed class MavlinkSession : IAsyncDisposable
         }
 
         _pendingWaits.Clear();
-        _frames.Writer.TryComplete();
+        CompleteAllFrameSubscribers();
 
         try
         {
@@ -332,7 +362,6 @@ public sealed class MavlinkSession : IAsyncDisposable
             return;
         }
 
-        _frames.Writer.TryWrite(frame);
         _recentFrames.Add(frame);
         if (_recentFrames.Count > RecentFrameCapacity)
         {
@@ -341,15 +370,51 @@ public sealed class MavlinkSession : IAsyncDisposable
 
         foreach (var wait in _pendingWaits.ToList())
         {
+            if (wait.Completion.Task.IsCompleted)
+            {
+                _pendingWaits.Remove(wait);
+                continue;
+            }
+
             if (!wait.Predicate(frame))
             {
                 continue;
             }
 
             _recentFrames.Remove(frame);
+            RemovePendingWait(wait);
             CompleteWait(wait);
             wait.Completion.TrySetResult(frame);
             break;
+        }
+
+        PublishFrame(frame);
+    }
+
+    private void PublishFrame(MavlinkFrame frame)
+    {
+        List<ChannelWriter<MavlinkFrame>> subscribers;
+        lock (_subscriberLock)
+        {
+            subscribers = _frameSubscribers.ToList();
+        }
+
+        foreach (var writer in subscribers)
+        {
+            writer.TryWrite(frame);
+        }
+    }
+
+    private void CompleteAllFrameSubscribers()
+    {
+        lock (_subscriberLock)
+        {
+            foreach (var writer in _frameSubscribers)
+            {
+                writer.TryComplete();
+            }
+
+            _frameSubscribers.Clear();
         }
     }
 
@@ -386,11 +451,14 @@ public sealed class MavlinkSession : IAsyncDisposable
         _ = wait.Completion.Task.ContinueWith(
             _ =>
             {
+                RemovePendingWait(wait);
                 CompleteWait(wait);
                 wait.DisposeRegistration();
             },
             TaskScheduler.Default);
     }
+
+    private void RemovePendingWait(PendingFrameWait wait) => _pendingWaits.Remove(wait);
 
     private static void CompleteWait(PendingFrameWait wait)
     {
