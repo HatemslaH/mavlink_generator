@@ -10,9 +10,6 @@
 /ui/dist/
 /ui/dist-ssr/
 
-# Generated code (output of this tool, not source)
-/generated/
-
 # Personal notes (also in .gitignore)
 /private/
 

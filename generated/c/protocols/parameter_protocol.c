@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "../mavlink.h"
 
@@ -119,8 +120,7 @@ mavlink_wait_result_t parameter_protocol_fetch_all(
   }
 
   int expected_count = -1;
-  uint16_t seen_indices[MAVLINK_PARAM_CACHE_MAX];
-  int seen_count = 0;
+  bool seen[MAVLINK_PARAM_CACHE_MAX] = {false};
   size_t received = 0;
 
   while (true) {
@@ -129,8 +129,7 @@ mavlink_wait_result_t parameter_protocol_fetch_all(
     }
 
     typedef struct {
-      uint16_t seen_indices_buf[MAVLINK_PARAM_CACHE_MAX];
-      int seen_count_buf;
+      bool seen_buf[MAVLINK_PARAM_CACHE_MAX];
     } fetch_ctx_t;
     (void)sizeof(fetch_ctx_t);
 
@@ -150,21 +149,39 @@ mavlink_wait_result_t parameter_protocol_fetch_all(
       sizeof(value)
     );
     if (wait != MAVLINK_WAIT_OK) {
+      if (wait == MAVLINK_WAIT_TIMEOUT && expected_count >= 0) {
+        bool requested_any = false;
+        for (int i = 0; i < expected_count; i++) {
+          if (i < MAVLINK_PARAM_CACHE_MAX && !seen[i]) {
+            param_request_read_t request = {0};
+            request.param_index = (int16_t)i;
+            request.target_system = protocol->target_system;
+            request.target_component = protocol->target_component;
+            
+            uint8_t req_payload[param_request_read_ENCODED_LENGTH];
+            param_request_read_serialize(&request, req_payload);
+            mavlink_session_send(
+              protocol->session,
+              param_request_read_MSG_ID,
+              param_request_read_CRC_EXTRA,
+              req_payload,
+              param_request_read_ENCODED_LENGTH
+            );
+            requested_any = true;
+          }
+        }
+        if (requested_any) {
+          continue;
+        }
+      }
       return wait;
     }
 
-    int already_seen = 0;
-    for (int i = 0; i < seen_count; i++) {
-      if (seen_indices[i] == value.param_index) {
-        already_seen = 1;
-        break;
+    if (value.param_index >= 0 && value.param_index < MAVLINK_PARAM_CACHE_MAX) {
+      if (seen[value.param_index]) {
+        continue;
       }
-    }
-    if (already_seen) {
-      continue;
-    }
-    if (seen_count < MAVLINK_PARAM_CACHE_MAX) {
-      seen_indices[seen_count++] = value.param_index;
+      seen[value.param_index] = true;
     }
 
     if (expected_count < 0) {

@@ -8,7 +8,7 @@ import {
 } from '../mavlink';
 import type { MavlinkFrame } from '../mavlink_frame';
 import { MavlinkCancellationToken } from './mavlink_cancellation';
-import { MavlinkSession } from './mavlink_session';
+import { MavlinkSession, MavlinkTimeoutException } from './mavlink_session';
 import { ParamCodec } from './param_codec';
 
 /** Decoded onboard parameter entry. */
@@ -103,22 +103,55 @@ export class ParameterProtocol {
 
     let expectedCount = -1;
     const seenIndices = new Set<number>();
+    let timeoutRetries = 0;
 
     while (true) {
       options.cancel?.throwIfCancelled();
 
-      const value = await this.session.waitForMessage({
-        predicate: (message) => {
-          if (!(message instanceof ParamValue)) {
-            return false;
+      let value;
+      try {
+        value = await this.session.waitForMessage({
+          predicate: (message) => {
+            if (!(message instanceof ParamValue)) {
+              return false;
+            }
+            return !seenIndices.has(message.paramIndex);
+          },
+          fromSystemId: this.targetSystem,
+          timeoutMs:
+            expectedCount === -1 ? this.requestTimeoutMs : this.idleTimeoutMs,
+          cancel: options.cancel,
+        });
+        timeoutRetries = 0;
+      } catch (error) {
+        if (error instanceof MavlinkTimeoutException) {
+          timeoutRetries += 1;
+          if (timeoutRetries > 5) {
+            throw error;
           }
-          return !seenIndices.has(message.paramIndex);
-        },
-        fromSystemId: this.targetSystem,
-        timeoutMs:
-          expectedCount === -1 ? this.requestTimeoutMs : this.idleTimeoutMs,
-        cancel: options.cancel,
-      });
+
+          if (expectedCount === -1) {
+            await this.session.send(
+              new ParamRequestList(this.targetSystem, this.targetComponent),
+            );
+          } else {
+            for (let i = 0; i < expectedCount; i++) {
+              if (!seenIndices.has(i)) {
+                await this.session.send(
+                  new ParamRequestRead(
+                    i,
+                    this.targetSystem,
+                    this.targetComponent,
+                    ParamCodec.paramIdFromString(''),
+                  ),
+                );
+              }
+            }
+          }
+          continue;
+        }
+        throw error;
+      }
 
       const paramValue = value as ParamValue;
       seenIndices.add(paramValue.paramIndex);

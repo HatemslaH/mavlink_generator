@@ -227,7 +227,7 @@ class HeartbeatMonitor {
 /// Periodically sends HEARTBEAT on a [MavlinkSession].
 class HeartbeatPublisher {
   HeartbeatPublisher({required this.session, required Heartbeat heartbeat, this.interval = const Duration(seconds: 1)})
-    : _heartbeat = heartbeat;
+      : _heartbeat = heartbeat;
 
   final MavlinkSession session;
   final Duration interval;
@@ -268,7 +268,11 @@ class HeartbeatPublisher {
 
   /// Send one heartbeat immediately.
   Future<void> sendOnce() async {
-    await session.send(_heartbeat);
+    try {
+      await session.send(_heartbeat);
+    } catch (e) {
+      print('Heartbeat send failed: $e');
+    }
   }
 }
 

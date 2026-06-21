@@ -7,6 +7,7 @@ import {
   ParamValue,
 } from '../mavlink.js';
 import { ParamCodec } from './param_codec.js';
+import { MavlinkTimeoutException } from './mavlink_session.js';
 
 /** Decoded onboard parameter entry. */
 export class ParamEntry {
@@ -80,21 +81,54 @@ export class ParameterProtocol {
 
     let expectedCount = -1;
     const seenIndices = new Set();
+    let timeoutRetries = 0;
 
     while (true) {
       cancel?.throwIfCancelled();
 
-      const value = await this.session.waitForMessage({
-        predicate: (message) => {
-          if (!(message instanceof ParamValue)) {
-            return false;
+      let value;
+      try {
+        value = await this.session.waitForMessage({
+          predicate: (message) => {
+            if (!(message instanceof ParamValue)) {
+              return false;
+            }
+            return !seenIndices.has(message.param_index);
+          },
+          fromSystemId: this.targetSystem,
+          timeoutMs: expectedCount === -1 ? this.requestTimeoutMs : this.idleTimeoutMs,
+          cancel,
+        });
+        timeoutRetries = 0;
+      } catch (error) {
+        if (error instanceof MavlinkTimeoutException) {
+          timeoutRetries += 1;
+          if (timeoutRetries > 5) {
+            throw error;
           }
-          return !seenIndices.has(message.param_index);
-        },
-        fromSystemId: this.targetSystem,
-        timeoutMs: expectedCount === -1 ? this.requestTimeoutMs : this.idleTimeoutMs,
-        cancel,
-      });
+
+          if (expectedCount === -1) {
+            await this.session.send(
+              new ParamRequestList(this.targetSystem, this.targetComponent),
+            );
+          } else {
+            for (let i = 0; i < expectedCount; i++) {
+              if (!seenIndices.has(i)) {
+                await this.session.send(
+                  new ParamRequestRead(
+                    i,
+                    this.targetSystem,
+                    this.targetComponent,
+                    ParamCodec.paramIdFromString(''),
+                  ),
+                );
+              }
+            }
+          }
+          continue;
+        }
+        throw error;
+      }
 
       seenIndices.add(value.param_index);
 

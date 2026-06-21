@@ -278,31 +278,76 @@ impl<'a> ParameterFetchStream<'a> {
         if self.finished {
             return None;
         }
-        if let Some(token) = self.cancel.as_ref() {
-            if token.throw_if_cancelled().is_err() {
-                self.finished = true;
-                return None;
+
+        let mut retries = 0;
+        let max_retries = 5;
+
+        loop {
+            if let Some(token) = self.cancel.as_ref() {
+                if token.throw_if_cancelled().is_err() {
+                    self.finished = true;
+                    return None;
+                }
+            }
+
+            match self
+                .protocol
+                .next_param_value(self.expected_count, &self.seen_indices, self.cancel.as_ref())
+                .await
+            {
+                Ok(value) => {
+                    self.seen_indices.insert(value.param_index);
+                    if self.expected_count.is_none() {
+                        self.expected_count = Some(value.param_count);
+                    }
+                    let entry = ParamEntry::from_param_value(&value);
+                    self.protocol.remember(entry.clone());
+
+                    if let Some(expected) = self.expected_count {
+                        if self.seen_indices.len() >= expected as usize {
+                            self.finished = true;
+                        }
+                    }
+                    return Some(entry);
+                }
+                Err(SessionWaitError::Timeout(_)) => {
+                    if let Some(expected) = self.expected_count {
+                        retries += 1;
+                        if retries > max_retries {
+                            self.finished = true;
+                            return None;
+                        }
+
+                        let mut missing_index = -1;
+                        for i in 0..expected {
+                            if !self.seen_indices.contains(&i) {
+                                missing_index = i as i16;
+                                break;
+                            }
+                        }
+
+                        if missing_index >= 0 {
+                            let _ = self.protocol.session.send(Box::new(ParamRequestRead {
+                                param_index: missing_index,
+                                target_system: self.protocol.target_system,
+                                target_component: self.protocol.target_component,
+                                param_id: ParamCodec::param_id_from_string(""),
+                            })).await;
+                        } else {
+                            self.finished = true;
+                            return None;
+                        }
+                    } else {
+                        self.finished = true;
+                        return None;
+                    }
+                }
+                Err(_) => {
+                    self.finished = true;
+                    return None;
+                }
             }
         }
-
-        let value = self
-            .protocol
-            .next_param_value(self.expected_count, &self.seen_indices, self.cancel.as_ref())
-            .await
-            .ok()?;
-        self.seen_indices.insert(value.param_index);
-        if self.expected_count.is_none() {
-            self.expected_count = Some(value.param_count);
-        }
-        let entry = ParamEntry::from_param_value(&value);
-        self.protocol.remember(entry.clone());
-
-        if let Some(expected) = self.expected_count {
-            if self.seen_indices.len() >= expected as usize {
-                self.finished = true;
-            }
-        }
-        Some(entry)
     }
 }
 

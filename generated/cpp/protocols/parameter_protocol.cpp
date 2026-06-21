@@ -65,7 +65,8 @@ std::vector<ParamEntry> ParameterProtocol::fetch_all(
   );
 
   std::vector<ParamEntry> entries;
-  std::set<uint16_t> seen_indices;
+  std::vector<bool> seen_indices;
+  int seen_count = 0;
   int expected_count = -1;
 
   while (true) {
@@ -74,39 +75,78 @@ std::vector<ParamEntry> ParameterProtocol::fetch_all(
     }
 
     const auto timeout = expected_count == -1 ? request_timeout_ : idle_timeout_;
-    const frame_t frame = session_->wait_for_message(
-      [&](uint32_t message_id, const uint8_t* frame_payload, size_t, uint8_t, uint8_t) {
-        if (message_id != param_value_MSG_ID) {
-          return false;
+    try {
+      const frame_t frame = session_->wait_for_message(
+        [&](uint32_t message_id, const uint8_t* frame_payload, size_t, uint8_t, uint8_t) {
+          if (message_id != param_value_MSG_ID) {
+            return false;
+          }
+          param_value_t value{};
+          param_value_parse(frame_payload, value);
+          if (value.param_index < seen_indices.size() && seen_indices[value.param_index]) {
+            return false;
+          }
+          return true;
+        },
+        target_system_,
+        std::nullopt,
+        timeout,
+        cancel
+      );
+
+      param_value_t param_value{};
+      param_value_parse(frame.payload, param_value);
+      
+      if (param_value.param_index >= seen_indices.size()) {
+        seen_indices.resize(param_value.param_index + 1, false);
+      }
+      if (!seen_indices[param_value.param_index]) {
+        seen_indices[param_value.param_index] = true;
+        seen_count++;
+      }
+
+      if (expected_count == -1) {
+        expected_count = param_value.param_count;
+      }
+
+      const ParamEntry entry = ParamEntry::from_param_value(param_value);
+      remember(entry);
+      entries.push_back(entry);
+
+      if (on_progress) {
+        on_progress(entry, static_cast<int>(entries.size()), entry.count);
+      }
+
+      if (expected_count != -1 && seen_count >= expected_count) {
+        break;
+      }
+    } catch (const MavlinkTimeoutException& e) {
+      if (expected_count != -1) {
+        bool requested_any = false;
+        for (int i = 0; i < expected_count; ++i) {
+          if (i >= static_cast<int>(seen_indices.size()) || !seen_indices[i]) {
+            param_request_read_t req{};
+            req.param_index = static_cast<int16_t>(i);
+            req.target_system = target_system_;
+            req.target_component = target_component_;
+            ParamCodec::param_id_from_string(req.param_id, "");
+            
+            uint8_t payload[param_request_read_ENCODED_LENGTH];
+            param_request_read_serialize(req, payload);
+            session_->send_frame(
+              param_request_read_MSG_ID,
+              param_request_read_CRC_EXTRA,
+              payload,
+              param_request_read_ENCODED_LENGTH
+            );
+            requested_any = true;
+          }
         }
-        param_value_t value{};
-        param_value_parse(frame_payload, value);
-        return seen_indices.count(value.param_index) == 0;
-      },
-      target_system_,
-      std::nullopt,
-      timeout,
-      cancel
-    );
-
-    param_value_t param_value{};
-    param_value_parse(frame.payload, param_value);
-    seen_indices.insert(param_value.param_index);
-
-    if (expected_count == -1) {
-      expected_count = param_value.param_count;
-    }
-
-    const ParamEntry entry = ParamEntry::from_param_value(param_value);
-    remember(entry);
-    entries.push_back(entry);
-
-    if (on_progress) {
-      on_progress(entry, static_cast<int>(entries.size()), entry.count);
-    }
-
-    if (seen_indices.size() >= static_cast<size_t>(expected_count)) {
-      break;
+        if (requested_any) {
+          continue;
+        }
+      }
+      throw;
     }
   }
 

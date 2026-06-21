@@ -17,7 +17,7 @@ from mavlink import (
 from mavlink_frame import MavlinkFrame
 
 from .mavlink_cancellation import MavlinkCancellationToken
-from .mavlink_session import MavlinkSession
+from .mavlink_session import MavlinkSession, MavlinkTimeoutException
 from .param_codec import ParamCodec
 
 
@@ -102,6 +102,7 @@ class ParameterProtocol:
 
         expected_count = -1
         seen_indices: set[int] = set()
+        timeout_retries = 0
 
         while True:
             if cancel is not None:
@@ -110,15 +111,41 @@ class ParameterProtocol:
             timeout = (
                 self.request_timeout if expected_count == -1 else self.idle_timeout
             )
-            value = await self.session.wait_for_message(
-                predicate=lambda message: (
-                    isinstance(message, ParamValue)
-                    and message.param_index not in seen_indices
-                ),
-                from_system_id=self.target_system,
-                timeout=timeout,
-                cancel=cancel,
-            )
+            try:
+                value = await self.session.wait_for_message(
+                    predicate=lambda message: (
+                        isinstance(message, ParamValue)
+                        and message.param_index not in seen_indices
+                    ),
+                    from_system_id=self.target_system,
+                    timeout=timeout,
+                    cancel=cancel,
+                )
+                timeout_retries = 0
+            except MavlinkTimeoutException:
+                timeout_retries += 1
+                if timeout_retries > 5:
+                    raise
+
+                if expected_count == -1:
+                    await self.session.send(
+                        ParamRequestList(
+                            target_system=self.target_system,
+                            target_component=self.target_component,
+                        )
+                    )
+                else:
+                    for i in range(expected_count):
+                        if i not in seen_indices:
+                            await self.session.send(
+                                ParamRequestRead(
+                                    param_index=i,
+                                    target_system=self.target_system,
+                                    target_component=self.target_component,
+                                    param_id=ParamCodec.param_id_from_string(""),
+                                )
+                            )
+                continue
 
             param_value = value
             assert isinstance(param_value, ParamValue)

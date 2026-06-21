@@ -101,40 +101,92 @@ public sealed class ParameterProtocol
 
         var expectedCount = -1;
         var seenIndices = new HashSet<int>();
+        var retries = 0;
+        const int maxRetries = 5;
 
         while (true)
         {
             cancel?.ThrowIfCancelled();
 
-            var value = await _session.WaitForMessageAsync(
-                message =>
-                {
-                    if (message is not ParamValue paramValue)
+            ParamEntry? entryToYield = null;
+
+            try
+            {
+                var value = await _session.WaitForMessageAsync(
+                    message =>
                     {
-                        return false;
+                        if (message is not ParamValue paramValue)
+                        {
+                            return false;
+                        }
+
+                        return !seenIndices.Contains(paramValue.ParamIndex);
+                    },
+                    fromSystemId: TargetSystem,
+                    timeout: expectedCount == -1 ? RequestTimeout : IdleTimeout,
+                    cancel: cancel).ConfigureAwait(false);
+
+                var paramValue = (ParamValue)value;
+                seenIndices.Add(paramValue.ParamIndex);
+
+                if (expectedCount == -1)
+                {
+                    expectedCount = paramValue.ParamCount;
+                }
+
+                var entry = ParamEntry.FromParamValue(paramValue);
+                _cache[entry.Id] = entry;
+                entryToYield = entry;
+            }
+            catch (MavlinkTimeoutException)
+            {
+                if (expectedCount != -1)
+                {
+                    retries++;
+                    if (retries > maxRetries)
+                    {
+                        break;
                     }
 
-                    return !seenIndices.Contains(paramValue.ParamIndex);
-                },
-                fromSystemId: TargetSystem,
-                timeout: expectedCount == -1 ? RequestTimeout : IdleTimeout,
-                cancel: cancel).ConfigureAwait(false);
+                    var missingIndex = -1;
+                    for (var i = 0; i < expectedCount; i++)
+                    {
+                        if (!seenIndices.Contains(i))
+                        {
+                            missingIndex = i;
+                            break;
+                        }
+                    }
 
-            var paramValue = (ParamValue)value;
-            seenIndices.Add(paramValue.ParamIndex);
-
-            if (expectedCount == -1)
-            {
-                expectedCount = paramValue.ParamCount;
+                    if (missingIndex >= 0)
+                    {
+                        await _session.SendAsync(
+                            new ParamRequestRead(
+                                ParamIndex: (short)missingIndex,
+                                TargetSystem: TargetSystem,
+                                TargetComponent: TargetComponent,
+                                ParamId: ParamCodec.ParamIdFromString(string.Empty)),
+                            cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
             }
 
-            var entry = ParamEntry.FromParamValue(paramValue);
-            _cache[entry.Id] = entry;
-            yield return entry;
-
-            if (seenIndices.Count >= expectedCount)
+            if (entryToYield is not null)
             {
-                break;
+                yield return entryToYield;
+
+                if (seenIndices.Count >= expectedCount)
+                {
+                    break;
+                }
             }
         }
     }

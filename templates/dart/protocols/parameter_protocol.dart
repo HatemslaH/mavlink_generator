@@ -89,35 +89,73 @@ class ParameterProtocol {
 
     var expectedCount = -1;
     final seenIndices = <int>{};
+    final retryCounts = <int, int>{};
+    var isRetrying = false;
 
     while (true) {
       cancel?.throwIfCancelled();
 
-      final value = await session.waitForMessage(
-        predicate: (message) {
-          if (message is! ParamValue) {
-            return false;
+      try {
+        final value = await session.waitForMessage(
+          predicate: (message) {
+            if (message is! ParamValue) {
+              return false;
+            }
+            return !seenIndices.contains(message.paramIndex);
+          },
+          fromSystemId: targetSystem,
+          timeout: (expectedCount == -1 || isRetrying) ? requestTimeout : idleTimeout,
+          cancel: cancel,
+        );
+
+        isRetrying = false;
+
+        final paramValue = value as ParamValue;
+        seenIndices.add(paramValue.paramIndex);
+
+        if (expectedCount == -1) {
+          expectedCount = paramValue.paramCount;
+        }
+
+        final entry = ParamEntry.fromParamValue(paramValue);
+        _remember(entry);
+        yield entry;
+
+        if (seenIndices.length >= expectedCount) {
+          break;
+        }
+      } on MavlinkTimeoutException {
+        if (expectedCount == -1) {
+          rethrow;
+        }
+
+        int? missingIndex;
+        for (var i = 0; i < expectedCount; i++) {
+          if (!seenIndices.contains(i)) {
+            missingIndex = i;
+            break;
           }
-          return !seenIndices.contains(message.paramIndex);
-        },
-        fromSystemId: targetSystem,
-        timeout: expectedCount == -1 ? requestTimeout : idleTimeout,
-        cancel: cancel,
-      );
+        }
 
-      final paramValue = value as ParamValue;
-      seenIndices.add(paramValue.paramIndex);
+        if (missingIndex != null) {
+          final retries = retryCounts[missingIndex] ?? 0;
+          if (retries >= 3) {
+            rethrow; // Give up after 3 retries for the same index
+          }
+          retryCounts[missingIndex] = retries + 1;
+          isRetrying = true;
 
-      if (expectedCount == -1) {
-        expectedCount = paramValue.paramCount;
-      }
-
-      final entry = ParamEntry.fromParamValue(paramValue);
-      _remember(entry);
-      yield entry;
-
-      if (seenIndices.length >= expectedCount) {
-        break;
+          await session.send(
+            ParamRequestRead(
+              paramIndex: missingIndex,
+              targetSystem: targetSystem,
+              targetComponent: targetComponent,
+              paramId: ParamCodec.paramIdFromString(''),
+            ),
+          );
+        } else {
+          break;
+        }
       }
     }
   }

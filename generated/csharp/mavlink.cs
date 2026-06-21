@@ -3,7 +3,7 @@
 /// Runtime types live in the <c>Mavlink</c> namespace.
 /// Dialect-specific messages and enums live in <c>Mavlink.Dialects</c>.
 /// Generated dialects:
-/// - common (dialects/common.cs)
+/// - rt_rc (dialects/rt_rc.cs)
 /// </remarks>
 
 namespace Mavlink;

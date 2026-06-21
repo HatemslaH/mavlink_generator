@@ -268,7 +268,12 @@ class HeartbeatPublisher {
 
   /// Send one heartbeat immediately.
   Future<void> sendOnce() async {
-    await session.send(_heartbeat);
+    try {
+      await session.send(_heartbeat);
+    } catch (e) {
+      // Ignore send errors so they do not crash the periodic timer.
+      // E.g., print('Heartbeat send failed: $e');
+    }
   }
 }
 
