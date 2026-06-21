@@ -105,7 +105,7 @@ function main() {{
 
   const parsed = roundTripMessage(dialect, heartbeat);
   if (parsed instanceof Heartbeat) {{
-    console.log(`Parsed HEARTBEAT type=${{parsed.type}} status=${{parsed.system_status}}`);
+    console.log(`Parsed HEARTBEAT type=${{parsed.type}} status=${{parsed.systemStatus}}`);
   }}
 }}
 
@@ -323,7 +323,7 @@ function main() {{
     if (parsed instanceof ParamValue) {{
       console.log(
         `  PARAM_VALUE [${{param.index + 1}}/${{simulatedParams.length}}] ` +
-          `${{paramIdToString(parsed.param_id)}}=${{parsed.param_value}}`,
+          `${{paramIdToString(parsed.paramId)}}=${{parsed.paramValue}}`,
       );
     }}
   }}
@@ -338,7 +338,7 @@ function main() {{
   logFrame('GCS ->', frameFromGcs(readRequest, 50));
   const parsedRead = roundTripMessage(dialect, readRequest);
   if (parsedRead instanceof ParamRequestRead) {{
-    console.log(`  PARAM_REQUEST_READ id=${{paramIdToString(parsedRead.param_id)}}`);
+    console.log(`  PARAM_REQUEST_READ id=${{paramIdToString(parsedRead.paramId)}}`);
   }}
 
   const singleValue = new ParamValue(
@@ -489,7 +489,7 @@ async function main() {{
     }},
   }});
   console.log(
-    `Fetched ${{allParams.length}} parameters (cache size=${{Object.keys(parameterProtocol.cache).length}})`,
+    `Fetched ${{allParams.length}} parameters (cache size=${{parameterProtocol.cache.size}})`,
   );
 
   const single = await parameterProtocol.readByName('SYSID_THISMAV');
@@ -623,7 +623,7 @@ async function main() {{
   const state = gcsMonitor.stateFor(vehicle);
   if (state != null) {{
     console.log(
-      `Drone heartbeat: type=${{state.heartbeat.type}} status=${{state.heartbeat.system_status}}`,
+      `Drone heartbeat: type=${{state.heartbeat.type}} status=${{state.heartbeat.systemStatus}}`,
     );
   }}
 
@@ -754,9 +754,11 @@ async function main() {{
 
   const attitudeSamples = [];
   const subscription = link.gcs.listenMessage(
-    Attitude,
     (message) => attitudeSamples.push(message),
-    {{ fromSystemId: vehicle.systemId }},
+    {{
+      fromSystemId: vehicle.systemId,
+      messageType: Attitude,
+    }},
   );
 
   await link.drone.send(new Attitude(1000, 0.1, -0.05, 1.57, 0, 0, 0));

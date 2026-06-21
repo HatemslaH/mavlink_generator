@@ -26,7 +26,7 @@ async function main() {
   console.log(`Opening ${portName} @ ${baudRate} baud...`);
 
   const dialect = new MavlinkDialectRt_rc();
-  const link = SerialMavlinkLink.open(portName, { baudRate });
+  const link = await SerialMavlinkLink.open(portName, baudRate);
   const gcs = MavlinkGcs.connect({
     dialect,
     link,
@@ -59,7 +59,7 @@ async function main() {
     console.log(
       `  type=${vehicleState.heartbeat.type} ` +
         `autopilot=${vehicleState.heartbeat.autopilot} ` +
-        `status=${vehicleState.heartbeat.system_status}`,
+        `status=${vehicleState.heartbeat.systemStatus}`,
     );
   }
 
@@ -95,7 +95,7 @@ async function fetchAllParameters(ctx) {
     },
   });
   console.log(
-    `[parameters] complete (${entries.length} total, cache=${Object.keys(ctx.parameters.cache).length})`,
+    `[parameters] complete (${entries.length} total, cache=${ctx.parameters.cache.size})`,
   );
 }
 
@@ -228,7 +228,7 @@ function printHeartbeatStatus(ctx) {
   console.log(`[heartbeat] vehicle ${node} online=${online}`);
   if (state != null) {
     console.log(
-      `  last=${state.ageMs}ms ago type=${state.heartbeat.type} status=${state.heartbeat.system_status}`,
+      `  last=${state.ageMs}ms ago type=${state.heartbeat.type} status=${state.heartbeat.systemStatus}`,
     );
   } else {
     console.log('  no heartbeat received yet');
@@ -381,7 +381,6 @@ async function streamAttitude(ctx, parts) {
 
   let count = 0;
   const subscription = ctx.session.listenMessage(
-    Attitude,
     (attitude) => {
       count++;
       console.log(
@@ -389,7 +388,10 @@ async function streamAttitude(ctx, parts) {
           `pitch=${attitude.pitch.toFixed(3)} yaw=${attitude.yaw.toFixed(3)}`,
       );
     },
-    { fromSystemId: ctx.targetSystem },
+    {
+      fromSystemId: ctx.targetSystem,
+      messageType: Attitude,
+    },
   );
 
   await delay(seconds * 1000);

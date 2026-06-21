@@ -14,6 +14,7 @@ import {
   MissionRequestList,
   MissionSetCurrent,
 } from '../mavlink.js';
+import { MavlinkMessage } from '../mavlink_message.js';
 
 /** Helpers for building and converting mission plan items. */
 export class MissionItems {
@@ -64,12 +65,12 @@ export class MissionItems {
       item.z,
       item.seq,
       item.command,
-      item.target_system,
-      item.target_component,
+      item.targetSystem,
+      item.targetComponent,
       item.frame,
       item.current,
       item.autocontinue,
-      item.mission_type,
+      item.missionType,
     );
   }
 
@@ -84,12 +85,12 @@ export class MissionItems {
       item.z,
       item.seq,
       item.command,
-      item.target_system,
-      item.target_component,
+      item.targetSystem,
+      item.targetComponent,
       item.frame,
       item.current,
       item.autocontinue,
-      item.mission_type,
+      item.missionType,
     );
   }
 
@@ -105,12 +106,12 @@ export class MissionItems {
         item.z,
         index,
         item.command,
-        item.target_system,
-        item.target_component,
+        item.targetSystem,
+        item.targetComponent,
         item.frame,
         item.current,
         item.autocontinue,
-        item.mission_type,
+        item.missionType,
       ),
     );
   }
@@ -140,7 +141,11 @@ export class MissionProtocol {
     this.operationTimeoutMs = operationTimeoutMs;
   }
 
-  async upload(items, { missionType = MavMissionType.MAV_MISSION_TYPE_MISSION, onProgress = null, cancel = null } = {}) {
+  async upload(items, {
+    missionType = MavMissionType.MAV_MISSION_TYPE_MISSION,
+    onProgress = null,
+    cancel = null,
+  } = {}) {
     cancel?.throwIfCancelled();
     const plan = MissionItems.withSequentialSeq(items);
 
@@ -152,31 +157,31 @@ export class MissionProtocol {
       cancel?.throwIfCancelled();
 
       const request = await this.session.waitForMessage({
-        predicate: (message) => this._isItemRequest(message, item.seq, missionType),
+        predicate: (message) =>
+          MissionProtocol._isItemRequest(message, item.seq, missionType),
         fromSystemId: this.targetSystem,
         timeoutMs: this.itemTimeoutMs,
         cancel,
       });
 
-      if (request instanceof MissionRequestInt) {
+      if (MavlinkMessage.isMessageOf(request, MissionRequestInt)) {
         await this.session.send(item);
-      } else if (request instanceof MissionRequest) {
+      } else if (MavlinkMessage.isMessageOf(request, MissionRequest)) {
         await this.session.send(MissionItems.toLegacyItem(item));
       }
 
       onProgress?.(item.seq + 1, plan.length, item);
     }
 
-    const ack = await this.session.waitForMessageType(MissionAck, {
-      fromSystemId: this.targetSystem,
-      timeoutMs: this.operationTimeoutMs,
-      cancel,
-    });
-
+    const ack = await this._waitForMissionAck(cancel);
     return ack.type;
   }
 
-  async download({ missionType = MavMissionType.MAV_MISSION_TYPE_MISSION, onProgress = null, cancel = null } = {}) {
+  async download({
+    missionType = MavMissionType.MAV_MISSION_TYPE_MISSION,
+    onProgress = null,
+    cancel = null,
+  } = {}) {
     cancel?.throwIfCancelled();
 
     await this.session.send(
@@ -200,11 +205,11 @@ export class MissionProtocol {
 
       const itemMessage = await this.session.waitForMessage({
         predicate: (message) => {
-          if (message instanceof MissionItemInt) {
-            return message.seq === seq && message.mission_type === missionType;
+          if (MavlinkMessage.isMessageOf(message, MissionItemInt)) {
+            return message.seq === seq && message.missionType === missionType;
           }
-          if (message instanceof MissionItem) {
-            return message.seq === seq && message.mission_type === missionType;
+          if (MavlinkMessage.isMessageOf(message, MissionItem)) {
+            return message.seq === seq && message.missionType === missionType;
           }
           return false;
         },
@@ -213,10 +218,9 @@ export class MissionProtocol {
         cancel,
       });
 
-      const item =
-        itemMessage instanceof MissionItemInt
-          ? itemMessage
-          : MissionItems.fromLegacyItem(itemMessage);
+      const item = MavlinkMessage.isMessageOf(itemMessage, MissionItemInt)
+        ? itemMessage
+        : MissionItems.fromLegacyItem(itemMessage);
 
       items.push(item);
       onProgress?.(items.length, countMessage.count, item);
@@ -239,12 +243,7 @@ export class MissionProtocol {
       new MissionClearAll(this.targetSystem, this.targetComponent, missionType),
     );
 
-    const ack = await this.session.waitForMessageType(MissionAck, {
-      fromSystemId: this.targetSystem,
-      timeoutMs: this.operationTimeoutMs,
-      cancel,
-    });
-
+    const ack = await this._waitForMissionAck(cancel);
     return ack.type;
   }
 
@@ -262,20 +261,38 @@ export class MissionProtocol {
     cancel?.throwIfCancelled();
     await this.setCurrent(seq, { cancel });
 
-    let ack = null;
+    let commandAck = null;
     if (alsoSendCommand && command != null) {
-      ack = await command.setMissionCurrent(seq, { resetMission, cancel });
+      commandAck = await command.setMissionCurrent(seq, { resetMission, cancel });
     }
 
-    return new MissionSetCurrentResult({ sequence: seq, commandAck: ack });
+    return new MissionSetCurrentResult({ sequence: seq, commandAck });
   }
 
-  _isItemRequest(message, seq, missionType) {
-    if (message instanceof MissionRequestInt) {
-      return message.seq === seq && message.mission_type === missionType;
+  async _waitForMissionAck(cancel = null) {
+    return this.session.waitForMessage({
+      predicate: (message) => {
+        if (!MavlinkMessage.isMessageOf(message, MissionAck)) {
+          return false;
+        }
+        return (
+          message.targetSystem === this.session.systemId &&
+          (message.targetComponent === this.session.componentId ||
+            message.targetComponent === MavComponent.MAV_COMP_ID_ALL)
+        );
+      },
+      fromSystemId: this.targetSystem,
+      timeoutMs: this.operationTimeoutMs,
+      cancel,
+    });
+  }
+
+  static _isItemRequest(message, seq, missionType) {
+    if (MavlinkMessage.isMessageOf(message, MissionRequestInt)) {
+      return message.seq === seq && message.missionType === missionType;
     }
-    if (message instanceof MissionRequest) {
-      return message.seq === seq && message.mission_type === missionType;
+    if (MavlinkMessage.isMessageOf(message, MissionRequest)) {
+      return message.seq === seq && message.missionType === missionType;
     }
     return false;
   }
@@ -286,19 +303,21 @@ export class MissionServer {
   constructor({ session, initialMission = null, missionType = MavMissionType.MAV_MISSION_TYPE_MISSION }) {
     this.session = session;
     this.missionType = missionType;
-    this._items = [...(initialMission ?? [])];
+    this._items = initialMission != null ? [...initialMission] : [];
     this._incoming = new Map();
     this._incomingCount = null;
-    this._frameUnsub = this.session.frames.subscribe((frame) => void this._onFrame(frame));
+    const subscription = this.session.listenMessage((message, frame) => {
+      void this._onFrame(frame, message);
+    });
+    this._unsubscribe = () => subscription.cancel();
   }
 
   get items() {
-    return Object.freeze([...this._items]);
+    return this._items;
   }
 
   async close() {
-    this._frameUnsub?.();
-    this._frameUnsub = null;
+    this._unsubscribe();
   }
 
   replaceMission(items) {
@@ -307,11 +326,9 @@ export class MissionServer {
     this._incomingCount = null;
   }
 
-  async _onFrame(frame) {
-    const message = frame.message;
-
-    if (message instanceof MissionCount && this._targetsUs(message)) {
-      if (message.mission_type !== this.missionType) {
+  async _onFrame(frame, message) {
+    if (MavlinkMessage.isMessageOf(message, MissionCount) && this._targetsUs(message)) {
+      if (message.missionType !== this.missionType) {
         return;
       }
       this._incomingCount = message.count;
@@ -324,34 +341,34 @@ export class MissionServer {
       return;
     }
 
-    if (message instanceof MissionItemInt && this._targetsUs(message)) {
-      if (message.mission_type !== this.missionType) {
+    if (MavlinkMessage.isMessageOf(message, MissionItemInt) && this._targetsUs(message)) {
+      if (message.missionType !== this.missionType) {
         return;
       }
       await this._storeIncomingItem(frame, message);
       return;
     }
 
-    if (message instanceof MissionItem && this._targetsUs(message)) {
-      if (message.mission_type !== this.missionType) {
+    if (MavlinkMessage.isMessageOf(message, MissionItem) && this._targetsUs(message)) {
+      if (message.missionType !== this.missionType) {
         return;
       }
       await this._storeIncomingItem(frame, MissionItems.fromLegacyItem(message));
       return;
     }
 
-    if (message instanceof MissionRequestInt && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf(message, MissionRequestInt) && this._targetsUs(message)) {
       await this._sendRequestedItem(frame, message.seq);
       return;
     }
 
-    if (message instanceof MissionRequest && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf(message, MissionRequest) && this._targetsUs(message)) {
       await this._sendRequestedItem(frame, message.seq);
       return;
     }
 
-    if (message instanceof MissionRequestList && this._targetsUs(message)) {
-      if (message.mission_type !== this.missionType) {
+    if (MavlinkMessage.isMessageOf(message, MissionRequestList) && this._targetsUs(message)) {
+      if (message.missionType !== this.missionType) {
         return;
       }
       await this.session.send(
@@ -365,8 +382,8 @@ export class MissionServer {
       return;
     }
 
-    if (message instanceof MissionClearAll && this._targetsUs(message)) {
-      if (message.mission_type !== this.missionType) {
+    if (MavlinkMessage.isMessageOf(message, MissionClearAll) && this._targetsUs(message)) {
+      if (message.missionType !== this.missionType) {
         return;
       }
       this._items = [];
@@ -395,7 +412,13 @@ export class MissionServer {
       return;
     }
 
-    this._items = Array.from({ length: expected }, (_, index) => this._incoming.get(index));
+    this._items = [];
+    for (let index = 0; index < expected; index++) {
+      const stored = this._incoming.get(index);
+      if (stored !== undefined) {
+        this._items.push(stored);
+      }
+    }
     this._incoming.clear();
     this._incomingCount = null;
     await this._sendUploadAck(frame);
@@ -440,9 +463,29 @@ export class MissionServer {
   }
 
   _targetsUs(message) {
-    const targetSystem = message.target_system;
-    const targetComponent = message.target_component;
-    return this._matchesTarget(targetSystem, targetComponent);
+    const target = MissionServer._readTarget(message);
+    if (target == null) {
+      return false;
+    }
+    return this._matchesTarget(target.system, target.component);
+  }
+
+  static _readTarget(message) {
+    if (
+      MavlinkMessage.isMessageOf(message, MissionCount) ||
+      MavlinkMessage.isMessageOf(message, MissionItemInt) ||
+      MavlinkMessage.isMessageOf(message, MissionItem) ||
+      MavlinkMessage.isMessageOf(message, MissionRequestInt) ||
+      MavlinkMessage.isMessageOf(message, MissionRequest) ||
+      MavlinkMessage.isMessageOf(message, MissionRequestList) ||
+      MavlinkMessage.isMessageOf(message, MissionClearAll)
+    ) {
+      return {
+        system: message.targetSystem,
+        component: message.targetComponent,
+      };
+    }
+    return null;
   }
 
   _matchesTarget(targetSystem, targetComponent) {

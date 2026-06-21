@@ -11,6 +11,11 @@ export class MavlinkMessage {
     throw new Error('not implemented');
   }
 
+  /** Message id check that survives duplicate ESM module instances. */
+  static isMessageOf(message, messageClass) {
+    return message.mavlinkMessageId === messageClass.MSG_ID;
+  }
+
   static _view(data, offset = 0) {
     return new DataView(data.buffer, data.byteOffset + offset, data.byteLength - offset);
   }

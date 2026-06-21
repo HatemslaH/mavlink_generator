@@ -5,6 +5,7 @@ import {
   MavCmd,
   MavResult,
 } from '../mavlink.js';
+import { MavlinkMessage } from '../mavlink_message.js';
 
 /** GCS-side MAVLink command protocol client. */
 export class CommandProtocol {
@@ -135,10 +136,12 @@ export class CommandProtocol {
     });
   }
 
-  waitForAck(command, { timeoutMs = null, cancel = null } = {}) {
+  async waitForAck(command, { timeoutMs = null, cancel = null } = {}) {
     return this.session.waitForMessage({
-      predicate: (message) => message instanceof CommandAck && message.command === command,
+      predicate: (message) =>
+        MavlinkMessage.isMessageOf(message, CommandAck) && message.command === command,
       fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
       timeoutMs: timeoutMs ?? this.defaultTimeoutMs,
       cancel,
     });
@@ -151,19 +154,26 @@ export class CommandServer {
     this.session = session;
     this.onCommandLong = onCommandLong;
     this.onCommandInt = onCommandInt;
-    this._frameUnsub = this.session.frames.subscribe((frame) => void this._onFrame(frame));
+    const subscription = this.session.listenMessage((message, frame) => {
+      void this._onFrame(frame, message);
+    });
+    this._unsubscribe = () => subscription.cancel();
   }
 
   async close() {
-    this._frameUnsub?.();
-    this._frameUnsub = null;
+    this._unsubscribe();
   }
 
-  async _onFrame(frame) {
-    const message = frame.message;
+  async _onFrame(frame, message) {
+    if (
+      !MavlinkMessage.isMessageOf(message, CommandLong) &&
+      !MavlinkMessage.isMessageOf(message, CommandInt)
+    ) {
+      return;
+    }
 
-    if (message instanceof CommandLong) {
-      if (message.target_system !== this.session.systemId) {
+    if (MavlinkMessage.isMessageOf(message, CommandLong)) {
+      if (message.targetSystem !== this.session.systemId) {
         return;
       }
       const result = (await this.onCommandLong?.(message)) ?? MavResult.MAV_RESULT_ACCEPTED;
@@ -171,8 +181,8 @@ export class CommandServer {
       return;
     }
 
-    if (message instanceof CommandInt) {
-      if (message.target_system !== this.session.systemId) {
+    if (MavlinkMessage.isMessageOf(message, CommandInt)) {
+      if (message.targetSystem !== this.session.systemId) {
         return;
       }
       const result = (await this.onCommandInt?.(message)) ?? MavResult.MAV_RESULT_ACCEPTED;

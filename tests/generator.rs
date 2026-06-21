@@ -656,6 +656,7 @@ fn generates_rt_rc_javascript_file() {
     assert!(content.contains("export class MavlinkDialectRt_rc extends MavlinkDialect"));
     assert!(content.contains("static CRC_EXTRA = 247"));
     assert!(content.contains("export const RtRcControlId"));
+    assert!(content.contains("this.paramId = paramId"));
 
     let _ = std::fs::remove_file(&output);
 }
@@ -703,6 +704,8 @@ fn generates_javascript_runtime_files() {
             .expect("parameter_protocol.js should exist");
     assert!(parameter_source.contains("fetchAllStream"));
     assert!(parameter_source.contains("writeByName"));
+    assert!(parameter_source.contains("isMessageOf"));
+    assert!(parameter_source.contains("message.paramId"));
 
     let _ = std::fs::remove_dir_all(&output_dir);
 }

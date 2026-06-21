@@ -1,66 +1,111 @@
 import { SerialPort } from 'serialport';
-import { EventStream } from '../../../generated/js/mavlink_protocols.js';
 
 /** [MavlinkLink] implementation over a serial/COM port (serialport). */
 export class SerialMavlinkLink {
   constructor(port) {
-    this._port = port;
-    this._receive = new EventStream();
-    this._closed = false;
+    this.port = port;
+    this.queue = [];
+    this.waiters = [];
+    this.closed = false;
 
-    this._port.on('data', (chunk) => {
-      if (!this._closed) {
-        this._receive.emit(new Uint8Array(chunk));
+    port.on('data', (data) => {
+      const chunk = new Uint8Array(data);
+      const waiter = this.waiters.shift();
+      if (waiter !== undefined) {
+        waiter.resolve({ done: false, value: chunk });
+        return;
+      }
+      this.queue.push(chunk);
+    });
+
+    port.on('error', (error) => {
+      while (this.waiters.length > 0) {
+        this.waiters.shift().reject(error);
       }
     });
+
+    this.receive = {
+      [Symbol.asyncIterator]: () => ({
+        next: () => {
+          if (this.closed && this.queue.length === 0) {
+            return Promise.resolve({ done: true, value: undefined });
+          }
+
+          const queued = this.queue.shift();
+          if (queued !== undefined) {
+            return Promise.resolve({ done: false, value: queued });
+          }
+
+          return new Promise((resolve, reject) => {
+            this.waiters.push({ resolve, reject });
+          });
+        },
+      }),
+    };
   }
 
   /** Open [portName] at [baudRate] (MAVLink SITL commonly uses 57600 or 115200). */
-  static open(portName, { baudRate = 57600 } = {}) {
+  static async open(portName, baudRate = 57600) {
     const port = new SerialPort({
       path: portName,
       baudRate,
       dataBits: 8,
       parity: 'none',
       stopBits: 1,
-      autoOpen: true,
+      autoOpen: false,
     });
+
+    await new Promise((resolve, reject) => {
+      port.open((error) => {
+        if (error != null) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+
+    await new Promise((resolve, reject) => {
+      port.set({ dtr: true, rts: true }, (error) => {
+        if (error != null) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+
     return new SerialMavlinkLink(port);
   }
 
-  get receive() {
-    return this._receive;
-  }
-
   async send(data) {
-    if (this._closed) {
+    if (this.closed) {
       throw new Error('SerialMavlinkLink is closed');
     }
 
     await new Promise((resolve, reject) => {
-      this._port.write(Buffer.from(data), (error) => {
-        if (error) {
+      this.port.write(Buffer.from(data), (error) => {
+        if (error != null) {
           reject(error);
           return;
         }
-        this._port.drain((drainError) => {
-          if (drainError) {
-            reject(drainError);
-          } else {
-            resolve();
-          }
-        });
+        resolve();
       });
     });
   }
 
   async close() {
-    if (this._closed) {
+    if (this.closed) {
       return;
     }
-    this._closed = true;
+    this.closed = true;
+
     await new Promise((resolve) => {
-      this._port.close(() => resolve());
+      this.port.close(() => resolve());
     });
+
+    while (this.waiters.length > 0) {
+      this.waiters.shift().resolve({ done: true, value: undefined });
+    }
   }
 }

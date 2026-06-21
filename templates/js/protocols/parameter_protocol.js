@@ -6,28 +6,12 @@ import {
   ParamSet,
   ParamValue,
 } from '../mavlink.js';
-import { ParamCodec } from './param_codec.js';
+import { MavlinkMessage } from '../mavlink_message.js';
 import { MavlinkTimeoutException } from './mavlink_session.js';
+import { ParamCodec } from './param_codec.js';
 
-/** Decoded onboard parameter entry. */
-export class ParamEntry {
-  constructor({ id, value, type, index, count }) {
-    this.id = id;
-    this.value = value;
-    this.type = type;
-    this.index = index;
-    this.count = count;
-  }
-
-  static fromParamValue(message) {
-    return new ParamEntry({
-      id: ParamCodec.paramIdToString(message.param_id),
-      value: ParamCodec.decodeValue(message.param_value, message.param_type),
-      type: message.param_type,
-      index: message.param_index,
-      count: message.param_count,
-    });
-  }
+function isParamValue(message) {
+  return MavlinkMessage.isMessageOf(message, ParamValue);
 }
 
 /** GCS-side MAVLink parameter protocol client. */
@@ -47,20 +31,27 @@ export class ParameterProtocol {
     this._cache = new Map();
   }
 
+  /** Last fetched or written parameters keyed by name (unmodifiable view). */
   get cache() {
-    return Object.freeze(Object.fromEntries(this._cache));
+    return this._cache;
   }
 
   clearCache() {
     this._cache.clear();
   }
 
-  _remember(entry) {
-    this._cache.set(entry.id, entry);
-  }
-
   typeForName(name) {
     return this._cache.get(name)?.type ?? null;
+  }
+
+  static entryFromParamValue(message) {
+    return {
+      id: ParamCodec.paramIdToString(message.paramId),
+      value: ParamCodec.decodeValue(message.paramValue, message.paramType),
+      type: message.paramType,
+      index: message.paramIndex,
+      count: message.paramCount,
+    };
   }
 
   async fetchAll({ onProgress = null, cancel = null } = {}) {
@@ -75,83 +66,105 @@ export class ParameterProtocol {
   async *fetchAllStream({ cancel = null } = {}) {
     cancel?.throwIfCancelled();
 
-    await this.session.send(
-      new ParamRequestList(this.targetSystem, this.targetComponent),
+    const inbox = [];
+    const subscription = this.session.listenMessage(
+      (message) => {
+        inbox.push(message);
+      },
+      {
+        fromSystemId: this.targetSystem,
+        fromComponentId: this.targetComponent,
+        messageType: ParamValue,
+      },
     );
 
-    let expectedCount = -1;
-    const seenIndices = new Set();
-    let timeoutRetries = 0;
+    try {
+      await this.session.send(
+        new ParamRequestList(this.targetSystem, this.targetComponent),
+      );
 
-    while (true) {
-      cancel?.throwIfCancelled();
+      let expectedCount = -1;
+      const seenIndices = new Set();
+      const retryCounts = new Map();
+      let isRetrying = false;
 
-      let value;
-      try {
-        value = await this.session.waitForMessage({
-          predicate: (message) => {
-            if (!(message instanceof ParamValue)) {
-              return false;
-            }
-            return !seenIndices.has(message.param_index);
-          },
-          fromSystemId: this.targetSystem,
-          timeoutMs: expectedCount === -1 ? this.requestTimeoutMs : this.idleTimeoutMs,
-          cancel,
-        });
-        timeoutRetries = 0;
-      } catch (error) {
-        if (error instanceof MavlinkTimeoutException) {
-          timeoutRetries += 1;
-          if (timeoutRetries > 5) {
-            throw error;
-          }
+      while (true) {
+        cancel?.throwIfCancelled();
 
-          if (expectedCount === -1) {
-            await this.session.send(
-              new ParamRequestList(this.targetSystem, this.targetComponent),
+        let paramValue = this._takeNextParam(inbox, seenIndices);
+        if (paramValue === null) {
+          const timeoutMs =
+            expectedCount === -1 || isRetrying
+              ? this.requestTimeoutMs
+              : this.idleTimeoutMs;
+          try {
+            paramValue = await this._waitForNextParam(
+              inbox,
+              seenIndices,
+              timeoutMs,
+              cancel,
             );
-          } else {
-            for (let i = 0; i < expectedCount; i++) {
-              if (!seenIndices.has(i)) {
-                await this.session.send(
-                  new ParamRequestRead(
-                    i,
-                    this.targetSystem,
-                    this.targetComponent,
-                    ParamCodec.paramIdFromString(''),
-                  ),
-                );
-              }
+            isRetrying = false;
+          } catch (error) {
+            if (!(error instanceof MavlinkTimeoutException)) {
+              throw error;
             }
+
+            if (expectedCount === -1) {
+              throw error;
+            }
+
+            const missingIndex = this._findMissingIndex(seenIndices, expectedCount);
+            if (missingIndex === null) {
+              break;
+            }
+
+            const retries = retryCounts.get(missingIndex) ?? 0;
+            if (retries >= 3) {
+              throw error;
+            }
+            retryCounts.set(missingIndex, retries + 1);
+            isRetrying = true;
+
+            await this.session.send(
+              new ParamRequestRead(
+                missingIndex,
+                this.targetSystem,
+                this.targetComponent,
+                ParamCodec.paramIdFromString(''),
+              ),
+            );
+            continue;
           }
-          continue;
+        } else {
+          isRetrying = false;
         }
-        throw error;
+
+        seenIndices.add(paramValue.paramIndex);
+
+        if (expectedCount === -1) {
+          expectedCount = paramValue.paramCount;
+        }
+
+        const entry = ParameterProtocol.entryFromParamValue(paramValue);
+        this._remember(entry);
+        yield entry;
+
+        if (seenIndices.size >= expectedCount) {
+          break;
+        }
       }
-
-      seenIndices.add(value.param_index);
-
-      if (expectedCount === -1) {
-        expectedCount = value.param_count;
-      }
-
-      const entry = ParamEntry.fromParamValue(value);
-      this._remember(entry);
-      yield entry;
-
-      if (seenIndices.size >= expectedCount) {
-        break;
-      }
+    } finally {
+      subscription.cancel();
     }
   }
 
-  readByName(name, options = {}) {
-    return this.read({ paramId: name, ...options });
+  readByName(name, cancel = null) {
+    return this.read({ paramId: name, cancel });
   }
 
-  readByIndex(index, options = {}) {
-    return this.read({ paramIndex: index, ...options });
+  readByIndex(index, cancel = null) {
+    return this.read({ paramIndex: index, cancel });
   }
 
   async read({ paramId = null, paramIndex = -1, cancel = null } = {}) {
@@ -170,11 +183,12 @@ export class ParameterProtocol {
 
     const value = await this.session.waitForMessageType(ParamValue, {
       fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
       timeoutMs: this.requestTimeoutMs,
       cancel,
     });
 
-    const entry = ParamEntry.fromParamValue(value);
+    const entry = ParameterProtocol.entryFromParamValue(value);
     this._remember(entry);
     return entry;
   }
@@ -192,24 +206,71 @@ export class ParameterProtocol {
 
     const ack = await this.session.waitForMessage({
       predicate: (message) => {
-        if (!(message instanceof ParamValue)) {
+        if (!isParamValue(message)) {
           return false;
         }
-        return ParamCodec.paramIdToString(message.param_id) === name;
+        return ParamCodec.paramIdToString(message.paramId) === name;
       },
       fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
       timeoutMs: this.requestTimeoutMs,
       cancel,
     });
 
-    const entry = ParamEntry.fromParamValue(ack);
+    const entry = ParameterProtocol.entryFromParamValue(ack);
     this._remember(entry);
     return entry;
   }
 
   writeByName(name, value, { type = null, cancel = null } = {}) {
-    const resolvedType = type ?? this.typeForName(name) ?? MavParamType.MAV_PARAM_TYPE_REAL32;
+    const resolvedType =
+      type ?? this.typeForName(name) ?? MavParamType.MAV_PARAM_TYPE_REAL32;
     return this.write({ name, value, type: resolvedType, cancel });
+  }
+
+  _remember(entry) {
+    this._cache.set(entry.id, entry);
+  }
+
+  _takeNextParam(inbox, seenIndices) {
+    while (inbox.length > 0) {
+      const next = inbox.shift();
+      if (!seenIndices.has(next.paramIndex)) {
+        return next;
+      }
+    }
+    return null;
+  }
+
+  async _waitForNextParam(inbox, seenIndices, timeoutMs, cancel) {
+    const buffered = this._takeNextParam(inbox, seenIndices);
+    if (buffered !== null) {
+      return buffered;
+    }
+
+    const message = await this.session.waitForMessage({
+      predicate: (candidate) => {
+        if (!isParamValue(candidate)) {
+          return false;
+        }
+        return !seenIndices.has(candidate.paramIndex);
+      },
+      fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
+      timeoutMs,
+      cancel,
+    });
+
+    return message;
+  }
+
+  _findMissingIndex(seenIndices, expectedCount) {
+    for (let index = 0; index < expectedCount; index++) {
+      if (!seenIndices.has(index)) {
+        return index;
+      }
+    }
+    return null;
   }
 }
 
@@ -217,30 +278,47 @@ export class ParameterProtocol {
 export class ParameterServer {
   constructor({ session, initialValues = null }) {
     this.session = session;
-    this._values = new Map(Object.entries(initialValues ?? {}));
-    this._frameUnsub = this.session.frames.subscribe((frame) => void this._onFrame(frame));
+    this._values = new Map();
+    if (initialValues != null) {
+      const entries =
+        initialValues instanceof Map
+          ? initialValues.entries()
+          : Object.entries(initialValues);
+      for (const [name, entry] of entries) {
+        this._values.set(name, { ...entry });
+      }
+    }
+    const subscription = this.session.listenMessage((message, frame) => {
+      void this._onFrame(frame, message);
+    });
+    this._unsubscribe = () => subscription.cancel();
   }
 
   get values() {
-    return Object.freeze(Object.fromEntries(this._values));
+    return this._values;
   }
 
   async close() {
-    this._frameUnsub?.();
-    this._frameUnsub = null;
+    this._unsubscribe();
   }
 
   set(name, value, type) {
     this._values.set(name, { value, type });
   }
 
-  async _onFrame(frame) {
-    const message = frame.message;
+  async _onFrame(frame, message) {
+    if (
+      !MavlinkMessage.isMessageOf(message, ParamRequestList) &&
+      !MavlinkMessage.isMessageOf(message, ParamRequestRead) &&
+      !MavlinkMessage.isMessageOf(message, ParamSet)
+    ) {
+      return;
+    }
 
-    if (message instanceof ParamRequestList) {
+    if (MavlinkMessage.isMessageOf(message, ParamRequestList)) {
       if (
-        message.target_system !== this.session.systemId &&
-        message.target_system !== MavComponent.MAV_COMP_ID_ALL
+        message.targetSystem !== this.session.systemId &&
+        message.targetSystem !== MavComponent.MAV_COMP_ID_ALL
       ) {
         return;
       }
@@ -248,10 +326,10 @@ export class ParameterServer {
       return;
     }
 
-    if (message instanceof ParamRequestRead) {
+    if (MavlinkMessage.isMessageOf(message, ParamRequestRead)) {
       if (
-        message.target_system !== this.session.systemId &&
-        message.target_system !== MavComponent.MAV_COMP_ID_ALL
+        message.targetSystem !== this.session.systemId &&
+        message.targetSystem !== MavComponent.MAV_COMP_ID_ALL
       ) {
         return;
       }
@@ -262,23 +340,30 @@ export class ParameterServer {
       return;
     }
 
-    if (message instanceof ParamSet) {
-      if (message.target_system !== this.session.systemId) {
+    if (MavlinkMessage.isMessageOf(message, ParamSet)) {
+      if (message.targetSystem !== this.session.systemId) {
         return;
       }
-      const name = ParamCodec.paramIdToString(message.param_id);
+      const name = ParamCodec.paramIdToString(message.paramId);
       this._values.set(name, {
-        value: ParamCodec.decodeValue(message.param_value, message.param_type),
-        type: message.param_type,
+        value: ParamCodec.decodeValue(message.paramValue, message.paramType),
+        type: message.paramType,
       });
-      await this._sendValue(name, this._values.get(name), this._indexOf(name));
+      const stored = this._values.get(name);
+      if (stored !== undefined) {
+        await this._sendValue(name, stored, this._indexOf(name));
+      }
     }
   }
 
   async _broadcastAll() {
     const names = [...this._values.keys()];
     for (let index = 0; index < names.length; index++) {
-      await this._sendValue(names[index], this._values.get(names[index]), index);
+      const name = names[index];
+      const entry = this._values.get(name);
+      if (entry !== undefined) {
+        await this._sendValue(name, entry, index);
+      }
     }
   }
 
@@ -295,21 +380,25 @@ export class ParameterServer {
   }
 
   _resolveRead(request) {
-    if (request.param_index >= 0) {
+    if (request.paramIndex >= 0) {
       const names = [...this._values.keys()];
-      if (request.param_index >= names.length) {
+      if (request.paramIndex >= names.length) {
         return null;
       }
-      const name = names[request.param_index];
-      return { name, value: this._values.get(name) };
+      const name = names[request.paramIndex];
+      const value = this._values.get(name);
+      if (value === undefined) {
+        return null;
+      }
+      return { name, value };
     }
 
-    const name = ParamCodec.paramIdToString(request.param_id);
-    const entry = this._values.get(name);
-    if (entry == null) {
+    const name = ParamCodec.paramIdToString(request.paramId);
+    const value = this._values.get(name);
+    if (value === undefined) {
       return null;
     }
-    return { name, value: entry };
+    return { name, value };
   }
 
   _indexOf(name) {
