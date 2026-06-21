@@ -19,7 +19,7 @@ import {
   type CommandLong,
 } from '../mavlink';
 import type { MavlinkFrame } from '../mavlink_frame';
-import type { MavlinkMessage } from '../mavlink_message';
+import { MavlinkMessage } from '../mavlink_message';
 import type { CommandProtocol } from './command_protocol';
 import { MavlinkCancellationToken } from './mavlink_cancellation';
 import { MavlinkSession } from './mavlink_session';
@@ -205,9 +205,9 @@ export class MissionProtocol {
         cancel: options.cancel,
       });
 
-      if (request instanceof MissionRequestInt) {
+      if (MavlinkMessage.isMessageOf<MissionRequestInt>(request, MissionRequestInt)) {
         await this.session.send(item);
-      } else if (request instanceof MissionRequest) {
+      } else if (MavlinkMessage.isMessageOf<MissionRequest>(request, MissionRequest)) {
         await this.session.send(MissionItems.toLegacyItem(item));
       }
 
@@ -265,12 +265,12 @@ export class MissionProtocol {
 
       const itemMessage = await this.session.waitForMessage({
         predicate: (message) => {
-          if (message instanceof MissionItemInt) {
+          if (MavlinkMessage.isMessageOf<MissionItemInt>(message, MissionItemInt)) {
             return (
               message.seq === seq && message.missionType === missionType
             );
           }
-          if (message instanceof MissionItem) {
+          if (MavlinkMessage.isMessageOf<MissionItem>(message, MissionItem)) {
             return (
               message.seq === seq && message.missionType === missionType
             );
@@ -282,10 +282,12 @@ export class MissionProtocol {
         cancel: options.cancel,
       });
 
-      const item =
-        itemMessage instanceof MissionItemInt
-          ? itemMessage
-          : MissionItems.fromLegacyItem(itemMessage as MissionItem);
+      const item = MavlinkMessage.isMessageOf<MissionItemInt>(
+        itemMessage,
+        MissionItemInt,
+      )
+        ? itemMessage
+        : MissionItems.fromLegacyItem(itemMessage as MissionItem);
 
       items.push(item);
       options.onProgress?.call(undefined, items.length, countMessage.count, item);
@@ -372,10 +374,10 @@ export class MissionProtocol {
     seq: number,
     missionType: MavMissionType,
   ): boolean {
-    if (message instanceof MissionRequestInt) {
+    if (MavlinkMessage.isMessageOf<MissionRequestInt>(message, MissionRequestInt)) {
       return message.seq === seq && message.missionType === missionType;
     }
-    if (message instanceof MissionRequest) {
+    if (MavlinkMessage.isMessageOf<MissionRequest>(message, MissionRequest)) {
       return message.seq === seq && message.missionType === missionType;
     }
     return false;
@@ -428,7 +430,7 @@ export class MissionServer {
     frame: MavlinkFrame,
     message: MavlinkMessage,
   ): Promise<void> {
-    if (message instanceof MissionCount && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf<MissionCount>(message, MissionCount) && this._targetsUs(message)) {
       if (message.missionType !== this.missionType) {
         return;
       }
@@ -442,7 +444,7 @@ export class MissionServer {
       return;
     }
 
-    if (message instanceof MissionItemInt && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf<MissionItemInt>(message, MissionItemInt) && this._targetsUs(message)) {
       if (message.missionType !== this.missionType) {
         return;
       }
@@ -450,7 +452,7 @@ export class MissionServer {
       return;
     }
 
-    if (message instanceof MissionItem && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf<MissionItem>(message, MissionItem) && this._targetsUs(message)) {
       if (message.missionType !== this.missionType) {
         return;
       }
@@ -458,17 +460,17 @@ export class MissionServer {
       return;
     }
 
-    if (message instanceof MissionRequestInt && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf<MissionRequestInt>(message, MissionRequestInt) && this._targetsUs(message)) {
       await this._sendRequestedItem(frame, message.seq);
       return;
     }
 
-    if (message instanceof MissionRequest && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf<MissionRequest>(message, MissionRequest) && this._targetsUs(message)) {
       await this._sendRequestedItem(frame, message.seq);
       return;
     }
 
-    if (message instanceof MissionRequestList && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf<MissionRequestList>(message, MissionRequestList) && this._targetsUs(message)) {
       if (message.missionType !== this.missionType) {
         return;
       }
@@ -483,7 +485,7 @@ export class MissionServer {
       return;
     }
 
-    if (message instanceof MissionClearAll && this._targetsUs(message)) {
+    if (MavlinkMessage.isMessageOf<MissionClearAll>(message, MissionClearAll) && this._targetsUs(message)) {
       if (message.missionType !== this.missionType) {
         return;
       }
@@ -584,17 +586,18 @@ export class MissionServer {
     message: MavlinkMessage,
   ): { system: number; component: number } | null {
     if (
-      message instanceof MissionCount ||
-      message instanceof MissionItemInt ||
-      message instanceof MissionItem ||
-      message instanceof MissionRequestInt ||
-      message instanceof MissionRequest ||
-      message instanceof MissionRequestList ||
-      message instanceof MissionClearAll
+      MavlinkMessage.isMessageOf(message, MissionCount) ||
+      MavlinkMessage.isMessageOf(message, MissionItemInt) ||
+      MavlinkMessage.isMessageOf(message, MissionItem) ||
+      MavlinkMessage.isMessageOf(message, MissionRequestInt) ||
+      MavlinkMessage.isMessageOf(message, MissionRequest) ||
+      MavlinkMessage.isMessageOf(message, MissionRequestList) ||
+      MavlinkMessage.isMessageOf(message, MissionClearAll)
     ) {
+      const targeted = message as MissionCount;
       return {
-        system: message.targetSystem,
-        component: message.targetComponent,
+        system: targeted.targetSystem,
+        component: targeted.targetComponent,
       };
     }
     return null;

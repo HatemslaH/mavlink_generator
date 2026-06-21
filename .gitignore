@@ -3,19 +3,13 @@
 # Personal notes (not committed)
 /private/
 
+# Generator output (regenerate via `cargo run`)
+/generated/
+
 # Desktop UI
 ui/node_modules/
 ui/dist/
 ui/src-tauri/target/
-
-# Build artifacts inside generated output
-generated/**/target/
-generated/**/bin/
-generated/**/obj/
-generated/**/*.exe
-generated/**/__pycache__/
-generated/**/*.pyc
-generated/rust/Cargo.lock
 
 # Language examples — build / dependency artifacts
 examples/**/target/

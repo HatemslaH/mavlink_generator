@@ -51,7 +51,7 @@ export async function pickSerialPort(): Promise<string> {
   }
 }
 
-/** Parse `--baud <rate>` from CLI arguments (default 57600). */
+/** Parse `--baud <rate>` or a bare numeric rate from CLI arguments (default 57600). */
 export function parseBaudRate(
   args: readonly string[],
   defaultBaud = 57600,
@@ -65,5 +65,13 @@ export function parseBaudRate(
       return value;
     }
   }
+
+  if (args.length > 0) {
+    const value = Number.parseInt(args[0]!, 10);
+    if (!Number.isNaN(value) && value > 0) {
+      return value;
+    }
+  }
+
   return defaultBaud;
 }

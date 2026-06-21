@@ -799,6 +799,7 @@ fn generates_rt_rc_typescript_file() {
     let content = std::fs::read_to_string(&output).expect("generated file should exist");
     assert!(content.contains("export class MavlinkDialectRt_rc implements MavlinkDialect"));
     assert!(content.contains("static readonly CRC_EXTRA = 247"));
+    assert!(content.contains("public readonly paramId:"));
     assert!(content.contains("export enum RtRcControlId"));
 
     let _ = std::fs::remove_file(&output);
@@ -846,6 +847,8 @@ fn generates_typescript_runtime_files() {
             .expect("parameter_protocol.ts should exist");
     assert!(parameter_source.contains("fetchAllStream"));
     assert!(parameter_source.contains("writeByName"));
+    assert!(parameter_source.contains("isMessageOf"));
+    assert!(parameter_source.contains("message.paramId"));
 
     let _ = std::fs::remove_dir_all(&output_dir);
 }

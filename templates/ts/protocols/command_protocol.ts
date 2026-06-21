@@ -6,6 +6,7 @@ import {
   MavResult,
 } from '../mavlink';
 import type { MavlinkFrame } from '../mavlink_frame';
+import { MavlinkMessage } from '../mavlink_message';
 import { MavlinkCancellationToken } from './mavlink_cancellation';
 import { MavlinkSession } from './mavlink_session';
 
@@ -236,8 +237,10 @@ export class CommandProtocol {
   ): Promise<CommandAck> {
     const message = await this.session.waitForMessage({
       predicate: (message) =>
-        message instanceof CommandAck && message.command === command,
+        MavlinkMessage.isMessageOf<CommandAck>(message, CommandAck) &&
+        message.command === command,
       fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
       timeoutMs: options.timeoutMs ?? this.defaultTimeoutMs,
       cancel: options.cancel,
     });
@@ -277,12 +280,15 @@ export class CommandServer {
 
   private async _onFrame(
     frame: MavlinkFrame,
-    message: import('../mavlink_message').MavlinkMessage,
+    message: MavlinkMessage,
   ): Promise<void> {
-    if (!(message instanceof CommandLong) && !(message instanceof CommandInt)) {
+    if (
+      !MavlinkMessage.isMessageOf(message, CommandLong) &&
+      !MavlinkMessage.isMessageOf(message, CommandInt)
+    ) {
       return;
     }
-    if (message instanceof CommandLong) {
+    if (MavlinkMessage.isMessageOf<CommandLong>(message, CommandLong)) {
       if (message.targetSystem !== this.session.systemId) {
         return;
       }
@@ -293,7 +299,7 @@ export class CommandServer {
       return;
     }
 
-    if (message instanceof CommandInt) {
+    if (MavlinkMessage.isMessageOf<CommandInt>(message, CommandInt)) {
       if (message.targetSystem !== this.session.systemId) {
         return;
       }

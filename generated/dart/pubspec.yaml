@@ -1,7 +1,0 @@
-name: mavlink
-description: Generated MAVLink bindings (dialects, runtime, and protocol helpers).
-version: 0.0.1
-publish_to: none
-
-environment:
-  sdk: ^3.0.0

@@ -7,6 +7,7 @@ import {
   ParamValue,
 } from '../mavlink';
 import type { MavlinkFrame } from '../mavlink_frame';
+import { MavlinkMessage } from '../mavlink_message';
 import { MavlinkCancellationToken } from './mavlink_cancellation';
 import { MavlinkSession, MavlinkTimeoutException } from './mavlink_session';
 import { ParamCodec } from './param_codec';
@@ -25,6 +26,10 @@ export type ParamProgressCallback = (
   received: number,
   expected: number,
 ) => void;
+
+function isParamValue(message: MavlinkMessage): message is ParamValue {
+  return MavlinkMessage.isMessageOf<ParamValue>(message, ParamValue);
+}
 
 /** GCS-side MAVLink parameter protocol client. */
 export class ParameterProtocol {
@@ -81,12 +86,7 @@ export class ParameterProtocol {
     const entries: ParamEntry[] = [];
     for await (const entry of this.fetchAllStream({ cancel: options.cancel })) {
       entries.push(entry);
-      options.onProgress?.call(
-        undefined,
-        entry,
-        entries.length,
-        entry.count,
-      );
+      options.onProgress?.(entry, entries.length, entry.count);
     }
     return entries;
   }
@@ -97,76 +97,99 @@ export class ParameterProtocol {
   } = {}): AsyncIterable<ParamEntry> {
     options.cancel?.throwIfCancelled();
 
-    await this.session.send(
-      new ParamRequestList(this.targetSystem, this.targetComponent),
+    const inbox: ParamValue[] = [];
+    const subscription = this.session.listenMessage(
+      (message) => {
+        inbox.push(message);
+      },
+      {
+        fromSystemId: this.targetSystem,
+        fromComponentId: this.targetComponent,
+        messageType: ParamValue,
+      },
     );
 
-    let expectedCount = -1;
-    const seenIndices = new Set<number>();
-    let timeoutRetries = 0;
+    try {
+      await this.session.send(
+        new ParamRequestList(this.targetSystem, this.targetComponent),
+      );
 
-    while (true) {
-      options.cancel?.throwIfCancelled();
+      let expectedCount = -1;
+      const seenIndices = new Set<number>();
+      const retryCounts = new Map<number, number>();
+      let isRetrying = false;
 
-      let value;
-      try {
-        value = await this.session.waitForMessage({
-          predicate: (message) => {
-            if (!(message instanceof ParamValue)) {
-              return false;
-            }
-            return !seenIndices.has(message.paramIndex);
-          },
-          fromSystemId: this.targetSystem,
-          timeoutMs:
-            expectedCount === -1 ? this.requestTimeoutMs : this.idleTimeoutMs,
-          cancel: options.cancel,
-        });
-        timeoutRetries = 0;
-      } catch (error) {
-        if (error instanceof MavlinkTimeoutException) {
-          timeoutRetries += 1;
-          if (timeoutRetries > 5) {
-            throw error;
-          }
+      while (true) {
+        options.cancel?.throwIfCancelled();
 
-          if (expectedCount === -1) {
-            await this.session.send(
-              new ParamRequestList(this.targetSystem, this.targetComponent),
+        let paramValue = this._takeNextParam(inbox, seenIndices);
+        if (paramValue === null) {
+          const timeoutMs =
+            expectedCount === -1 || isRetrying
+              ? this.requestTimeoutMs
+              : this.idleTimeoutMs;
+          try {
+            paramValue = await this._waitForNextParam(
+              inbox,
+              seenIndices,
+              timeoutMs,
+              options.cancel,
             );
-          } else {
-            for (let i = 0; i < expectedCount; i++) {
-              if (!seenIndices.has(i)) {
-                await this.session.send(
-                  new ParamRequestRead(
-                    i,
-                    this.targetSystem,
-                    this.targetComponent,
-                    ParamCodec.paramIdFromString(''),
-                  ),
-                );
-              }
+            isRetrying = false;
+          } catch (error) {
+            if (!(error instanceof MavlinkTimeoutException)) {
+              throw error;
             }
+
+            if (expectedCount === -1) {
+              throw error;
+            }
+
+            const missingIndex = this._findMissingIndex(
+              seenIndices,
+              expectedCount,
+            );
+            if (missingIndex === null) {
+              break;
+            }
+
+            const retries = retryCounts.get(missingIndex) ?? 0;
+            if (retries >= 3) {
+              throw error;
+            }
+            retryCounts.set(missingIndex, retries + 1);
+            isRetrying = true;
+
+            await this.session.send(
+              new ParamRequestRead(
+                missingIndex,
+                this.targetSystem,
+                this.targetComponent,
+                ParamCodec.paramIdFromString(''),
+              ),
+            );
+            continue;
           }
-          continue;
+        } else {
+          isRetrying = false;
         }
-        throw error;
+
+        seenIndices.add(paramValue.paramIndex);
+
+        if (expectedCount === -1) {
+          expectedCount = paramValue.paramCount;
+        }
+
+        const entry = ParameterProtocol.entryFromParamValue(paramValue);
+        this._remember(entry);
+        yield entry;
+
+        if (seenIndices.size >= expectedCount) {
+          break;
+        }
       }
-
-      const paramValue = value as ParamValue;
-      seenIndices.add(paramValue.paramIndex);
-
-      if (expectedCount === -1) {
-        expectedCount = paramValue.paramCount;
-      }
-
-      const entry = ParameterProtocol.entryFromParamValue(paramValue);
-      this._remember(entry);
-      yield entry;
-
-      if (seenIndices.size >= expectedCount) {
-        break;
-      }
+    } finally {
+      subscription.cancel();
     }
   }
 
@@ -210,6 +233,7 @@ export class ParameterProtocol {
 
     const value = await this.session.waitForMessageType(ParamValue, {
       fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
       timeoutMs: this.requestTimeoutMs,
       cancel: options.cancel,
     });
@@ -238,12 +262,13 @@ export class ParameterProtocol {
 
     const ack = await this.session.waitForMessage({
       predicate: (message) => {
-        if (!(message instanceof ParamValue)) {
+        if (!isParamValue(message)) {
           return false;
         }
         return ParamCodec.paramIdToString(message.paramId) === options.name;
       },
       fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
       timeoutMs: this.requestTimeoutMs,
       cancel: options.cancel,
     });
@@ -273,6 +298,58 @@ export class ParameterProtocol {
 
   private _remember(entry: ParamEntry): void {
     this._cache.set(entry.id, entry);
+  }
+
+  private _takeNextParam(
+    inbox: ParamValue[],
+    seenIndices: Set<number>,
+  ): ParamValue | null {
+    while (inbox.length > 0) {
+      const next = inbox.shift()!;
+      if (!seenIndices.has(next.paramIndex)) {
+        return next;
+      }
+    }
+    return null;
+  }
+
+  private async _waitForNextParam(
+    inbox: ParamValue[],
+    seenIndices: Set<number>,
+    timeoutMs: number,
+    cancel?: MavlinkCancellationToken,
+  ): Promise<ParamValue> {
+    const buffered = this._takeNextParam(inbox, seenIndices);
+    if (buffered !== null) {
+      return buffered;
+    }
+
+    const message = await this.session.waitForMessage({
+      predicate: (candidate) => {
+        if (!isParamValue(candidate)) {
+          return false;
+        }
+        return !seenIndices.has(candidate.paramIndex);
+      },
+      fromSystemId: this.targetSystem,
+      fromComponentId: this.targetComponent,
+      timeoutMs,
+      cancel,
+    });
+
+    return message as ParamValue;
+  }
+
+  private _findMissingIndex(
+    seenIndices: Set<number>,
+    expectedCount: number,
+  ): number | null {
+    for (let index = 0; index < expectedCount; index++) {
+      if (!seenIndices.has(index)) {
+        return index;
+      }
+    }
+    return null;
   }
 }
 
@@ -315,14 +392,17 @@ export class ParameterServer {
 
   private async _onFrame(
     frame: MavlinkFrame,
-    message: import('../mavlink_message').MavlinkMessage,
+    message: MavlinkMessage,
   ): Promise<void> {
-    if (!(message instanceof ParamRequestList) &&
-      !(message instanceof ParamRequestRead) &&
-      !(message instanceof ParamSet)) {
+    if (
+      !MavlinkMessage.isMessageOf(message, ParamRequestList) &&
+      !MavlinkMessage.isMessageOf(message, ParamRequestRead) &&
+      !MavlinkMessage.isMessageOf(message, ParamSet)
+    ) {
       return;
     }
-    if (message instanceof ParamRequestList) {
+
+    if (MavlinkMessage.isMessageOf<ParamRequestList>(message, ParamRequestList)) {
       if (
         message.targetSystem !== this.session.systemId &&
         message.targetSystem !== MavComponent.MAV_COMP_ID_ALL
@@ -333,7 +413,7 @@ export class ParameterServer {
       return;
     }
 
-    if (message instanceof ParamRequestRead) {
+    if (MavlinkMessage.isMessageOf<ParamRequestRead>(message, ParamRequestRead)) {
       if (
         message.targetSystem !== this.session.systemId &&
         message.targetSystem !== MavComponent.MAV_COMP_ID_ALL
@@ -347,7 +427,7 @@ export class ParameterServer {
       return;
     }
 
-    if (message instanceof ParamSet) {
+    if (MavlinkMessage.isMessageOf<ParamSet>(message, ParamSet)) {
       if (message.targetSystem !== this.session.systemId) {
         return;
       }

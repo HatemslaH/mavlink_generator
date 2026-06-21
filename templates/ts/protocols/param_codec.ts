@@ -1,4 +1,4 @@
-import type { MavParamType } from '../mavlink';
+import { MavParamType } from '../mavlink';
 
 /** Byte-wise parameter value encoding per MAVLink parameter protocol. */
 export class ParamCodec {
