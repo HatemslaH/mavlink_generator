@@ -118,6 +118,8 @@ export class MavlinkSession {
   private readonly _link: MavlinkLink;
   private readonly _parser: MavlinkParser;
   private readonly _frames = new FrameBroadcast();
+  private readonly _recentFrames: MavlinkFrame[] = [];
+  private static readonly _recentFrameCapacity = 64;
   private readonly _pendingWaits: PendingFrameWait[] = [];
   private _sequence = 0;
   private _closed = false;
@@ -323,10 +325,11 @@ export class MavlinkSession {
         wait.cancelUnsub = this._watchCancel(options.cancel, wait);
       }
 
-      for (const frame of this._frames.snapshot()) {
+      for (const frame of [...this._recentFrames]) {
         if (!options.predicate(frame)) {
           continue;
         }
+        this._consumeRecentFrame(frame);
         clearTimeout(wait.timer);
         wait.cancelUnsub?.();
         resolve(frame);
@@ -421,6 +424,10 @@ export class MavlinkSession {
     }
 
     this._frames.emit(frame);
+    this._recentFrames.push(frame);
+    if (this._recentFrames.length > MavlinkSession._recentFrameCapacity) {
+      this._recentFrames.shift();
+    }
 
     for (const wait of [...this._pendingWaits]) {
       if (!wait.predicate(frame)) {
@@ -429,8 +436,16 @@ export class MavlinkSession {
       clearTimeout(wait.timer);
       wait.cancelUnsub?.();
       this._removePendingWait(wait);
+      this._consumeRecentFrame(frame);
       wait.resolve(frame);
       break;
+    }
+  }
+
+  private _consumeRecentFrame(frame: MavlinkFrame): void {
+    const index = this._recentFrames.indexOf(frame);
+    if (index >= 0) {
+      this._recentFrames.splice(index, 1);
     }
   }
 

@@ -214,11 +214,7 @@ export class MissionProtocol {
       options.onProgress?.call(undefined, item.seq + 1, plan.length, item);
     }
 
-    const ack = await this.session.waitForMessageType(MissionAck, {
-      fromSystemId: this.targetSystem,
-      timeoutMs: this.operationTimeoutMs,
-      cancel: options.cancel,
-    });
+    const ack = await this.waitForMissionAck(options.cancel);
 
     return ack.type;
   }
@@ -322,11 +318,7 @@ export class MissionProtocol {
       ),
     );
 
-    const ack = await this.session.waitForMessageType(MissionAck, {
-      fromSystemId: this.targetSystem,
-      timeoutMs: this.operationTimeoutMs,
-      cancel: options.cancel,
-    });
+    const ack = await this.waitForMissionAck(options.cancel);
 
     return ack.type;
   }
@@ -367,6 +359,26 @@ export class MissionProtocol {
     }
 
     return { sequence: seq, commandAck };
+  }
+
+  private async waitForMissionAck(
+    cancel?: MavlinkCancellationToken,
+  ): Promise<MissionAck> {
+    return this.session.waitForMessage({
+      predicate: (message) => {
+        if (!MavlinkMessage.isMessageOf<MissionAck>(message, MissionAck)) {
+          return false;
+        }
+        return (
+          message.targetSystem === this.session.systemId &&
+          (message.targetComponent === this.session.componentId ||
+            message.targetComponent === MavComponent.MAV_COMP_ID_ALL)
+        );
+      },
+      fromSystemId: this.targetSystem,
+      timeoutMs: this.operationTimeoutMs,
+      cancel,
+    }) as Promise<MissionAck>;
   }
 
   private static isItemRequest(
