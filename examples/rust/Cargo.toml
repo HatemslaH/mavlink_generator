@@ -1,0 +1,20 @@
+[package]
+name = "mavlink_sitl_gcs"
+version = "0.0.1"
+edition = "2021"
+publish = false
+
+[lib]
+name = "mavlink_sitl_gcs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sitl_gcs"
+path = "src/main.rs"
+
+[dependencies]
+mavlink = { path = "../../generated/rust" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "io-std"] }
+futures = "0.3"
+async-trait = "0.1"
+serialport = "4.6"

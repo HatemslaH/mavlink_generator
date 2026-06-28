@@ -34,6 +34,50 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "mavlink_parser.js",
         include_str!("../../../templates/js/mavlink_parser.js"),
     ),
+    (
+        "mavlink_protocols.js",
+        include_str!("../../../templates/js/mavlink_protocols.js"),
+    ),
+    (
+        "protocols/mavlink_link.js",
+        include_str!("../../../templates/js/protocols/mavlink_link.js"),
+    ),
+    (
+        "protocols/mavlink_session.js",
+        include_str!("../../../templates/js/protocols/mavlink_session.js"),
+    ),
+    (
+        "protocols/mavlink_cancellation.js",
+        include_str!("../../../templates/js/protocols/mavlink_cancellation.js"),
+    ),
+    (
+        "protocols/mavlink_vehicle_client.js",
+        include_str!("../../../templates/js/protocols/mavlink_vehicle_client.js"),
+    ),
+    (
+        "protocols/param_codec.js",
+        include_str!("../../../templates/js/protocols/param_codec.js"),
+    ),
+    (
+        "protocols/mission_protocol.js",
+        include_str!("../../../templates/js/protocols/mission_protocol.js"),
+    ),
+    (
+        "protocols/parameter_protocol.js",
+        include_str!("../../../templates/js/protocols/parameter_protocol.js"),
+    ),
+    (
+        "protocols/command_protocol.js",
+        include_str!("../../../templates/js/protocols/command_protocol.js"),
+    ),
+    (
+        "protocols/heartbeat_protocol.js",
+        include_str!("../../../templates/js/protocols/heartbeat_protocol.js"),
+    ),
+    (
+        "protocols/protocols.js",
+        include_str!("../../../templates/js/protocols/protocols.js"),
+    ),
 ];
 
 impl LanguageRuntimeGenerator for JavaScriptRuntimeGenerator {

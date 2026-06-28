@@ -160,12 +160,19 @@ fn render_message(writer: &mut DartWriter, msg: &DialectMessage) -> Result<()> {
 
 fn render_constructor(writer: &mut DartWriter, msg: &DialectMessage, class_name: &str) {
     let _ = class_name;
-    let params: Vec<String> = msg.ordered_fields.iter().map(|f| f.name.clone()).collect();
+    let params: Vec<String> = msg
+        .ordered_fields
+        .iter()
+        .map(|f| f.name_for_dart.clone())
+        .collect();
     writer.line(&format!("constructor({}) {{", params.join(", ")));
     writer.indent();
     writer.line("super();");
     for field in &msg.ordered_fields {
-        writer.line(&format!("this.{} = {};", field.name, field.name));
+        writer.line(&format!(
+            "this.{name} = {name};",
+            name = field.name_for_dart
+        ));
     }
     writer.dedent();
     writer.line("}");
@@ -183,8 +190,8 @@ fn render_copy_with(writer: &mut DartWriter, msg: &DialectMessage, class_name: &
             ","
         };
         writer.line(&format!(
-            "overrides.{field} ?? this.{field}{comma}",
-            field = field.name
+            "overrides.{name} ?? this.{name}{comma}",
+            name = field.name_for_dart
         ));
     }
     writer.dedent();
@@ -223,7 +230,7 @@ fn render_parse_factory(
             } else {
                 ","
             };
-            w.line(&format!("{field}{comma}", field = field.name));
+            w.line(&format!("{}{comma}", field.name_for_dart));
         }
         w.dedent();
         w.line(");");
@@ -251,24 +258,24 @@ fn render_parse_field(
                     "const {field}_raw = MavlinkMessage._getInt{}List(wire, {byte_offset}, {});",
                     parsed.bit,
                     parsed.array_length,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Uint => writer.line(&format!(
                     "const {field}_raw = MavlinkMessage._getUint{}List(wire, {byte_offset}, {});",
                     parsed.bit,
                     parsed.array_length,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Float => writer.line(&format!(
                     "const {field}_raw = MavlinkMessage._getFloat{}List(wire, {byte_offset}, {});",
                     parsed.bit,
                     parsed.array_length,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
             }
             writer.line(&format!(
                 "const {field} = {field}_raw.map((v) => {enum_type_name}.fromValue(v));",
-                field = field.name,
+                field = field.name_for_dart,
                 enum_type_name = enum_type_name
             ));
         } else {
@@ -277,19 +284,19 @@ fn render_parse_field(
                     "const {field} = MavlinkMessage._getInt{}List(wire, {byte_offset}, {});",
                     parsed.bit,
                     parsed.array_length,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Uint => writer.line(&format!(
                     "const {field} = MavlinkMessage._getUint{}List(wire, {byte_offset}, {});",
                     parsed.bit,
                     parsed.array_length,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Float => writer.line(&format!(
                     "const {field} = MavlinkMessage._getFloat{}List(wire, {byte_offset}, {});",
                     parsed.bit,
                     parsed.array_length,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
             }
         }
@@ -298,22 +305,22 @@ fn render_parse_field(
             BasicType::Int => writer.line(&format!(
                 "const {field}_raw = MavlinkMessage._getInt{}(wire, {byte_offset});",
                 parsed.bit,
-                field = field.name
+                field = field.name_for_dart
             )),
             BasicType::Uint => writer.line(&format!(
                 "const {field}_raw = MavlinkMessage._getUint{}(wire, {byte_offset});",
                 parsed.bit,
-                field = field.name
+                field = field.name_for_dart
             )),
             BasicType::Float => writer.line(&format!(
                 "const {field}_raw = MavlinkMessage._getFloat{}(wire, {byte_offset});",
                 parsed.bit,
-                field = field.name
+                field = field.name_for_dart
             )),
         }
         writer.line(&format!(
             "const {field} = {enum_type_name}.fromValue({field}_raw);",
-            field = field.name,
+            field = field.name_for_dart,
             enum_type_name = enum_type_name
         ));
     } else {
@@ -321,17 +328,17 @@ fn render_parse_field(
             BasicType::Int => writer.line(&format!(
                 "const {field} = MavlinkMessage._getInt{}(wire, {byte_offset});",
                 parsed.bit,
-                field = field.name
+                field = field.name_for_dart
             )),
             BasicType::Uint => writer.line(&format!(
                 "const {field} = MavlinkMessage._getUint{}(wire, {byte_offset});",
                 parsed.bit,
-                field = field.name
+                field = field.name_for_dart
             )),
             BasicType::Float => writer.line(&format!(
                 "const {field} = MavlinkMessage._getFloat{}(wire, {byte_offset});",
                 parsed.bit,
-                field = field.name
+                field = field.name_for_dart
             )),
         }
     }
@@ -367,23 +374,23 @@ fn render_serialize_field(
         if is_enum {
             writer.line(&format!(
                 "const {field}_serialized = this.{field}.map((v) => v);",
-                field = field.name
+                field = field.name_for_dart
             ));
             match parsed.basic_type {
                 BasicType::Int => writer.line(&format!(
                     "MavlinkMessage._setInt{}List(buffer, {byte_offset}, {field}_serialized);",
                     parsed.bit,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Uint => writer.line(&format!(
                     "MavlinkMessage._setUint{}List(buffer, {byte_offset}, {field}_serialized);",
                     parsed.bit,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Float => writer.line(&format!(
                     "MavlinkMessage._setFloat{}List(buffer, {byte_offset}, {field}_serialized);",
                     parsed.bit,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
             }
         } else {
@@ -391,26 +398,22 @@ fn render_serialize_field(
                 BasicType::Int => writer.line(&format!(
                     "MavlinkMessage._setInt{}List(buffer, {byte_offset}, this.{field});",
                     parsed.bit,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Uint => writer.line(&format!(
                     "MavlinkMessage._setUint{}List(buffer, {byte_offset}, this.{field});",
                     parsed.bit,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
                 BasicType::Float => writer.line(&format!(
                     "MavlinkMessage._setFloat{}List(buffer, {byte_offset}, this.{field});",
                     parsed.bit,
-                    field = field.name
+                    field = field.name_for_dart
                 )),
             }
         }
     } else {
-        let access = if is_enum {
-            format!("this.{}", field.name)
-        } else {
-            format!("this.{}", field.name)
-        };
+        let access = format!("this.{}", field.name_for_dart);
         match parsed.basic_type {
             BasicType::Int => writer.line(&format!(
                 "MavlinkMessage._setInt{}(buffer, {byte_offset}, {access});",

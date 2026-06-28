@@ -1,0 +1,42 @@
+---
+description: Rust conventions for the mavlink_generator crate
+globs: src/**/*.rs,tests/**/*.rs
+alwaysApply: false
+---
+
+# Rust generator crate
+
+## Error handling
+
+Use `crate::error::Result<T>` and `GeneratorError`. Map I/O and XML errors via `From` impls; use `GeneratorError::Format` for domain errors.
+
+```rust
+// ❌ avoid in library code
+let doc = DialectDocument::parse(path).unwrap();
+
+// ✅
+let doc = DialectDocument::parse(path)?;
+```
+
+## Module layout
+
+- `src/xml/` — parsing only; no code generation
+- `src/generate/<lang>/` — dialect rendering, runtime, examples per language
+- `src/driver.rs` — orchestration shared by CLI and UI; keep serde types here
+- Integration tests in `tests/generator.rs`, not `#[cfg(test)]` in lib unless unit-testing a private helper
+
+## Traits
+
+- `LanguageGenerator::render` — dialect file content from `DialectDocument`
+- `LanguageRuntimeGenerator` — runtime files from `templates/<lang>/`
+- `LanguageExampleGenerator` — example files from `templates/<lang>/examples/`
+
+## After edits
+
+```bash
+cargo fmt
+cargo check
+cargo test
+```
+
+Add or update tests in `tests/generator.rs` when generation output changes. Assert on meaningful substrings (class names, CRC values, enum names).

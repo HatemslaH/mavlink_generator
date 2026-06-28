@@ -1,0 +1,12 @@
+name: mavlink_sitl_gcs
+description: Real MAVLink GCS example over serial (SITL) using generated bindings and protocol classes.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  mavlink:
+    path: ../../generated/dart
+  serial_port_win32: ^2.3.0

@@ -3,6 +3,14 @@ export abstract class MavlinkMessage {
   abstract get mavlinkCrcExtra(): number;
   abstract serialize(): Uint8Array;
 
+  /** Message id check that survives duplicate ESM module instances. */
+  static isMessageOf<T extends MavlinkMessage>(
+    message: MavlinkMessage,
+    messageClass: { readonly MSG_ID: number },
+  ): message is T {
+    return message.mavlinkMessageId === messageClass.MSG_ID;
+  }
+
   private static view(data: Uint8Array): DataView {
     return new DataView(data.buffer, data.byteOffset, data.byteLength);
   }

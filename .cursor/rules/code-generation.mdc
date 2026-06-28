@@ -1,0 +1,45 @@
+---
+description: Code generation — templates and per-language generators
+globs: src/generate/**,templates/**
+alwaysApply: false
+---
+
+# Code generation
+
+## Two sources of output
+
+1. **Rust generators** (`src/generate/<lang>/`) — render dialect-specific code from `DialectDocument`
+2. **Static templates** (`templates/<lang>/`) — runtime helpers and examples copied/adapted at generation time
+
+When fixing generated output, decide which layer owns the bug before editing.
+
+## Output layout (per language)
+
+```
+generated/<lang>/
+  dialects/<stem>.<ext>
+  crc.<ext>, mavlink_*.<ext>   # runtime
+  mavlink.<ext> or lib.rs      # entry point
+  examples/
+```
+
+Paths are defined in `src/generate/runtime.rs` and `src/generate/examples.rs`.
+
+## Adding or changing a language
+
+1. `TargetLanguage` variant in `src/generate/mod.rs`
+2. `src/generate/<lang>/` with `mod.rs`, `generator.rs`, `runtime.rs`, `examples.rs`
+3. `templates/<lang>/` and `templates/<lang>/examples/`
+4. Register in `runtime.rs` and `examples.rs`
+5. Tests in `tests/generator.rs`
+
+Mirror an existing language (e.g. `dart` or `rust`) for structure.
+
+## Templates
+
+- Keep templates self-contained; use placeholder substitution consistent with sibling languages
+- Do not hand-edit files under `generated/` — change the template or generator and re-run
+
+## Reference dialect
+
+Use `mavlink/message_definitions/v1.0/rt_rc.xml` for tests and smoke checks. `RT_RC_CHANNELS` (id 45000, crc_extra 247) is a stable assertion target.

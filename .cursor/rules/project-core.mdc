@@ -1,0 +1,37 @@
+---
+description: Core project context for mavlink_generator
+alwaysApply: true
+---
+
+# mavlink_generator — core rules
+
+Rust MAVLink code generator with CLI (`src/`) and Tauri desktop UI (`ui/`). Shared logic lives in `src/driver.rs`.
+
+## Validate changes
+
+```bash
+# Rust core (repo root)
+cargo fmt && cargo check && cargo test
+
+# UI (when touching ui/)
+cd ui && pnpm build
+```
+
+## Do not edit
+
+- `generated/` — regenerate via `cargo run`
+- `mavlink/` — upstream submodule
+- `private/` — gitignored personal notes
+
+## Minimize scope
+
+- One concern per change; match existing patterns in the touched module
+- Adding a language requires changes in `src/generate/mod.rs`, `runtime.rs`, `examples.rs`, `templates/`, and `tests/generator.rs`
+- Version bumps: sync `Cargo.toml`, `ui/package.json`, `ui/src-tauri/tauri.conf.json`
+
+## Key entry points
+
+- CLI: `src/main.rs` → `driver::run_generate`
+- Library API: `src/lib.rs`
+- UI backend: `ui/src-tauri/src/lib.rs` (invokes `mavlink_generator::driver`)
+- UI frontend: `ui/src/api/commands.ts`

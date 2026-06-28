@@ -1,0 +1,19 @@
+{
+  "name": "mavlink-sitl-gcs",
+  "description": "Real MAVLink GCS example over serial (SITL) using generated bindings and protocol classes.",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/sitl_gcs.ts",
+    "sitl_gcs": "tsx src/sitl_gcs.ts"
+  },
+  "dependencies": {
+    "serialport": "^13.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.0"
+  }
+}

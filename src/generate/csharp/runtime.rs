@@ -30,6 +30,50 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "mavlink_parser.cs",
         include_str!("../../../templates/csharp/mavlink_parser.cs"),
     ),
+    (
+        "mavlink_protocols.cs",
+        include_str!("../../../templates/csharp/mavlink_protocols.cs"),
+    ),
+    (
+        "protocols/mavlink_link.cs",
+        include_str!("../../../templates/csharp/protocols/mavlink_link.cs"),
+    ),
+    (
+        "protocols/mavlink_session.cs",
+        include_str!("../../../templates/csharp/protocols/mavlink_session.cs"),
+    ),
+    (
+        "protocols/mavlink_cancellation.cs",
+        include_str!("../../../templates/csharp/protocols/mavlink_cancellation.cs"),
+    ),
+    (
+        "protocols/mavlink_vehicle_client.cs",
+        include_str!("../../../templates/csharp/protocols/mavlink_vehicle_client.cs"),
+    ),
+    (
+        "protocols/param_codec.cs",
+        include_str!("../../../templates/csharp/protocols/param_codec.cs"),
+    ),
+    (
+        "protocols/mission_protocol.cs",
+        include_str!("../../../templates/csharp/protocols/mission_protocol.cs"),
+    ),
+    (
+        "protocols/parameter_protocol.cs",
+        include_str!("../../../templates/csharp/protocols/parameter_protocol.cs"),
+    ),
+    (
+        "protocols/command_protocol.cs",
+        include_str!("../../../templates/csharp/protocols/command_protocol.cs"),
+    ),
+    (
+        "protocols/heartbeat_protocol.cs",
+        include_str!("../../../templates/csharp/protocols/heartbeat_protocol.cs"),
+    ),
+    (
+        "protocols/protocols.cs",
+        include_str!("../../../templates/csharp/protocols/protocols.cs"),
+    ),
 ];
 
 impl LanguageRuntimeGenerator for CSharpRuntimeGenerator {
@@ -83,8 +127,14 @@ fn render_mavlink_entry_point(dialect_stems: &[String]) -> String {
     format!("{}\n", lines.join("\n"))
 }
 
-pub fn render_mavlink_csproj() -> String {
-    r#"<Project Sdk="Microsoft.NET.Sdk">
+pub fn render_mavlink_csproj(dialect_stems: &[String]) -> String {
+    let mut dialect_includes = String::new();
+    for stem in dialect_stems {
+        dialect_includes.push_str(&format!("    <Compile Include=\"dialects/{stem}.cs\" />\n"));
+    }
+
+    format!(
+        r#"<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -93,14 +143,22 @@ pub fn render_mavlink_csproj() -> String {
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="examples/**" />
+    <Compile Remove="dialects/**" />
   </ItemGroup>
+  <ItemGroup>
+{dialect_includes}  </ItemGroup>
 </Project>
 "#
-    .to_string()
+    )
 }
 
 pub fn render_example_csproj(stem: &str, suffix: &str) -> String {
     let source = format!("{stem}_{suffix}.cs");
+    let static_source = if suffix.starts_with("protocol_") {
+        "protocols_common.cs"
+    } else {
+        "common.cs"
+    };
     format!(
         r#"<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -114,7 +172,7 @@ pub fn render_example_csproj(stem: &str, suffix: &str) -> String {
     <ProjectReference Include="..\Mavlink.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="common.cs" />
+    <Compile Include="{static_source}" />
     <Compile Include="{source}" />
   </ItemGroup>
 </Project>

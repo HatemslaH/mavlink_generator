@@ -220,7 +220,7 @@ fn render_constructor(
     writer.indent();
     for field in &msg.ordered_fields {
         let prop = field_property_name_for_message(&field.name, class_name);
-        writer.line(&format!("{prop} = {prop};"));
+        writer.line(&format!("this.{prop} = {prop};"));
     }
     writer.dedent();
     writer.line("}");

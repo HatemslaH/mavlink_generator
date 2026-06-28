@@ -14,14 +14,50 @@ const STATIC_TEMPLATES: &[(&str, &str)] = &[
         "common.py",
         include_str!("../../../templates/py/examples/common.py"),
     ),
+    (
+        "protocols_common.py",
+        include_str!("../../../templates/py/examples/protocols_common.py"),
+    ),
 ];
 
-const GENERATED_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+const LOW_LEVEL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
     ("heartbeat", render_heartbeat_example),
     ("mission_upload", render_mission_upload_example),
     ("request_telemetry", render_request_telemetry_example),
     ("request_parameters", render_request_parameters_example),
 ];
+
+const PROTOCOL_EXAMPLES: &[(&str, fn(&str) -> String)] = &[
+    ("protocol_mission", render_protocol_mission_example),
+    ("protocol_parameters", render_protocol_parameters_example),
+    ("protocol_command", render_protocol_command_example),
+    ("protocol_heartbeat", render_protocol_heartbeat_example),
+    ("protocol_vehicle", render_protocol_vehicle_example),
+    ("protocol_subscribe", render_protocol_subscribe_example),
+];
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::generate::examples::{
+        ALL_EXAMPLE_SUFFIXES, LOW_LEVEL_EXAMPLE_SUFFIXES, PROTOCOL_EXAMPLE_SUFFIXES,
+    };
+
+    #[test]
+    fn example_suffixes_match_shared_constants() {
+        let low_level: Vec<_> = LOW_LEVEL_EXAMPLES.iter().map(|(s, _)| *s).collect();
+        let protocol: Vec<_> = PROTOCOL_EXAMPLES.iter().map(|(s, _)| *s).collect();
+        let all: Vec<_> = LOW_LEVEL_EXAMPLES
+            .iter()
+            .chain(PROTOCOL_EXAMPLES.iter())
+            .map(|(s, _)| *s)
+            .collect();
+
+        assert_eq!(low_level, LOW_LEVEL_EXAMPLE_SUFFIXES);
+        assert_eq!(protocol, PROTOCOL_EXAMPLE_SUFFIXES);
+        assert_eq!(all, ALL_EXAMPLE_SUFFIXES);
+    }
+}
 
 impl LanguageExampleGenerator for PythonExampleGenerator {
     fn static_files(&self) -> Vec<ExampleFile> {
@@ -39,8 +75,9 @@ impl LanguageExampleGenerator for PythonExampleGenerator {
             .iter()
             .flat_map(|stem| {
                 let stem = stem.clone();
-                GENERATED_EXAMPLES
+                LOW_LEVEL_EXAMPLES
                     .iter()
+                    .chain(PROTOCOL_EXAMPLES.iter())
                     .map(move |(suffix, render)| ExampleFile {
                         relative_path: PathBuf::from(format!("{stem}_{suffix}.py")),
                         content: render(&stem),
@@ -373,6 +410,402 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+"#
+    )
+}
+
+fn render_protocol_mission_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"#!/usr/bin/env python3
+"""Mission protocol example for the `{dialect_stem}` dialect.
+
+Uses MissionProtocol on the GCS side and MissionServer on the vehicle side
+over a transport-agnostic in-memory VirtualMavlinkBus.
+"""
+
+import asyncio
+
+from protocols_common import *
+
+
+async def main() -> None:
+    dialect = {dialect_class}()
+    link = create_virtual_link(dialect)
+
+    mission_server = MissionServer(session=link.drone)
+    command_server = CommandServer(session=link.drone)
+    mission_protocol = MissionProtocol(
+        session=link.gcs,
+        target_system=drone_system_id,
+        target_component=drone_component_id,
+    )
+
+    plan = [
+        MissionItems.waypoint(
+            seq=0,
+            latitude=47.397742,
+            longitude=8.545594,
+            altitude=50,
+            target_system=drone_system_id,
+            target_component=drone_component_id,
+        ),
+        MissionItems.waypoint(
+            seq=1,
+            latitude=47.398000,
+            longitude=8.546000,
+            altitude=50,
+            target_system=drone_system_id,
+            target_component=drone_component_id,
+        ),
+    ]
+
+    upload_result = await mission_protocol.upload(
+        plan,
+        on_progress=lambda sent, total, item: print(
+            f"Upload progress {{sent}}/{{total}} seq={{item.seq}} cmd={{item.command}}"
+        ),
+    )
+    print(f"Mission upload result: {{upload_result}}")
+    print(f"Vehicle stored {{len(mission_server.items)}} items")
+
+    downloaded = await mission_protocol.download(
+        on_progress=lambda received, total, item: print(
+            f"Download progress {{received}}/{{total}} seq={{item.seq}}"
+        ),
+    )
+    print(f"Downloaded {{len(downloaded)}} mission items")
+
+    command_protocol = CommandProtocol(
+        session=link.gcs,
+        target_system=drone_system_id,
+        target_component=drone_component_id,
+    )
+    set_current = await mission_protocol.set_current_with_command(
+        0,
+        command=command_protocol,
+    )
+    ack_result = set_current.command_ack.result if set_current.command_ack else None
+    print(f"Set current seq={{set_current.sequence}} ack={{ack_result}}")
+
+    clear_result = await mission_protocol.clear()
+    print(f"Mission clear result: {{clear_result}}")
+
+    await mission_server.close()
+    await command_server.close()
+    await close_virtual_link(bus=link.bus, gcs=link.gcs, drone=link.drone)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+"#
+    )
+}
+
+fn render_protocol_parameters_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"#!/usr/bin/env python3
+"""Parameter protocol example for the `{dialect_stem}` dialect."""
+
+import asyncio
+
+from mavlink import MavParamType
+from protocols_common import *
+
+
+async def main() -> None:
+    dialect = {dialect_class}()
+    link = create_virtual_link(dialect)
+
+    parameter_server = ParameterServer(
+        session=link.drone,
+        initial_values={{
+            "SYSID_THISMAV": (1, MavParamType.MAV_PARAM_TYPE_INT32),
+            "SYSID_MYGCS": (255, MavParamType.MAV_PARAM_TYPE_INT32),
+            "COMPASS_ENABLE": (1, MavParamType.MAV_PARAM_TYPE_INT32),
+        }},
+    )
+
+    parameter_protocol = ParameterProtocol(
+        session=link.gcs,
+        target_system=drone_system_id,
+        target_component=drone_component_id,
+    )
+
+    all_params = await parameter_protocol.fetch_all(
+        on_progress=lambda entry, received, expected: print(
+            f"  [{{received}}/{{expected}}] {{entry.id}}={{entry.value}}"
+        ),
+    )
+    print(
+        f"Fetched {{len(all_params)}} parameters "
+        f"(cache size={{len(parameter_protocol.cache)}})"
+    )
+
+    single = await parameter_protocol.read_by_name("SYSID_THISMAV")
+    print(f"Read SYSID_THISMAV={{single.value}}")
+
+    updated = await parameter_protocol.write_by_name("COMPASS_ENABLE", 0)
+    print(f"Wrote COMPASS_ENABLE={{updated.value}} ({{updated.type}})")
+
+    await parameter_server.close()
+    await close_virtual_link(bus=link.bus, gcs=link.gcs, drone=link.drone)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+"#
+    )
+}
+
+fn render_protocol_command_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"#!/usr/bin/env python3
+"""Command protocol example for the `{dialect_stem}` dialect."""
+
+import asyncio
+
+from mavlink import Attitude, CommandLong, MavResult
+from protocols_common import *
+
+
+async def on_command_long(command: CommandLong) -> MavResult:
+    print(
+        f"Vehicle received COMMAND_LONG: {{command.command}} "
+        f"p1={{command.param1}} p2={{command.param2}}"
+    )
+    return MavResult.MAV_RESULT_ACCEPTED
+
+
+async def main() -> None:
+    dialect = {dialect_class}()
+    link = create_virtual_link(dialect)
+
+    command_server = CommandServer(session=link.drone, on_command_long=on_command_long)
+
+    command_protocol = CommandProtocol(
+        session=link.gcs,
+        target_system=drone_system_id,
+        target_component=drone_component_id,
+    )
+
+    interval_ack = await command_protocol.set_message_interval(Attitude.MSG_ID, 100000)
+    print(f"SET_MESSAGE_INTERVAL ack: {{interval_ack.result}}")
+
+    request_ack = await command_protocol.request_message(Attitude.MSG_ID)
+    print(f"REQUEST_MESSAGE ack: {{request_ack.result}}")
+
+    arm_ack = await command_protocol.arm()
+    print(f"ARM ack: {{arm_ack.result}}")
+
+    disarm_ack = await command_protocol.disarm()
+    print(f"DISARM ack: {{disarm_ack.result}}")
+
+    await command_server.close()
+    await close_virtual_link(bus=link.bus, gcs=link.gcs, drone=link.drone)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+"#
+    )
+}
+
+fn render_protocol_heartbeat_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"#!/usr/bin/env python3
+"""Heartbeat protocol example for the `{dialect_stem}` dialect."""
+
+import asyncio
+from datetime import timedelta
+
+from protocols_common import *
+
+
+async def main() -> None:
+    dialect = {dialect_class}()
+    link = create_virtual_link(dialect)
+
+    gcs_publisher = HeartbeatPublisher(
+        session=link.gcs,
+        heartbeat=HeartbeatTemplates.gcs(mavlink_version=dialect.version),
+        interval=timedelta(milliseconds=500),
+    )
+
+    drone_publisher = HeartbeatPublisher(
+        session=link.drone,
+        heartbeat=HeartbeatTemplates.autopilot(mavlink_version=dialect.version),
+        interval=timedelta(milliseconds=500),
+    )
+
+    gcs_monitor = HeartbeatMonitor(
+        session=link.gcs,
+        timeout=timedelta(seconds=2),
+    )
+
+    gcs_monitor.start()
+    gcs_publisher.start()
+    drone_publisher.start()
+
+    vehicle = await gcs_monitor.wait_for_vehicle(
+        exclude_system_ids={{gcs_system_id}},
+        timeout=timedelta(seconds=5),
+    )
+    print(f"Vehicle discovered: {{vehicle}}")
+    print(f"Drone online: {{gcs_monitor.is_online(vehicle)}}")
+    state = gcs_monitor.state_for(vehicle)
+    if state is not None:
+        print(
+            f"Drone heartbeat: type={{state.heartbeat.type}} "
+            f"status={{state.heartbeat.system_status}}"
+        )
+
+    drone_publisher.stop()
+    await asyncio.sleep(2.5)
+    print(f"Drone online after stop: {{gcs_monitor.is_online(vehicle)}}")
+
+    await gcs_monitor.stop()
+    gcs_publisher.stop()
+
+    await close_virtual_link(bus=link.bus, gcs=link.gcs, drone=link.drone)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+"#
+    )
+}
+
+fn render_protocol_vehicle_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"#!/usr/bin/env python3
+"""MavlinkGcs / MavlinkVehicleClient facade example for `{dialect_stem}`."""
+
+import asyncio
+from datetime import timedelta
+
+from mavlink import Heartbeat, MavParamType
+from protocols_common import *
+
+
+async def main() -> None:
+    dialect = {dialect_class}()
+    bus = VirtualMavlinkBus()
+    gcs_link = bus.create_endpoint()
+    drone_link = bus.create_endpoint()
+
+    gcs = MavlinkGcs.connect(
+        dialect=dialect,
+        link=gcs_link,
+        system_id=gcs_system_id,
+        component_id=gcs_component_id,
+    )
+
+    drone_session = MavlinkSession(
+        dialect=dialect,
+        link=drone_link,
+        system_id=drone_system_id,
+        component_id=drone_component_id,
+    )
+
+    drone_publisher = HeartbeatPublisher(
+        session=drone_session,
+        heartbeat=HeartbeatTemplates.autopilot(mavlink_version=dialect.version),
+        interval=timedelta(milliseconds=500),
+    )
+
+    parameter_server = ParameterServer(
+        session=drone_session,
+        initial_values={{"SYSID_THISMAV": (1, MavParamType.MAV_PARAM_TYPE_INT32)}},
+    )
+
+    command_server = CommandServer(session=drone_session)
+
+    gcs.start()
+    drone_publisher.start()
+
+    client = await gcs.wait_for_vehicle(exclude_system_ids={{gcs_system_id}})
+    print(f"Connected to vehicle {{client.vehicle}}")
+
+    params = await client.parameters.fetch_all()
+    print(f"Vehicle has {{len(params)}} parameters")
+
+    ack = await client.command.request_message(Heartbeat.MSG_ID)
+    print(f"REQUEST_MESSAGE ack: {{ack.result}}")
+
+    await parameter_server.close()
+    await command_server.close()
+    drone_publisher.stop()
+    await drone_session.close()
+    await gcs.close()
+    await bus.close_all()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+"#
+    )
+}
+
+fn render_protocol_subscribe_example(dialect_stem: &str) -> String {
+    let dialect_class = dialect_class_name(dialect_stem);
+
+    format!(
+        r#"#!/usr/bin/env python3
+"""Typed message subscription example for the `{dialect_stem}` dialect."""
+
+import asyncio
+
+from mavlink import Attitude
+from protocols_common import *
+
+
+async def main() -> None:
+    dialect = {dialect_class}()
+    link = create_virtual_link(dialect)
+    vehicle = MavlinkNode(drone_system_id, drone_component_id)
+
+    attitude_samples: list[Attitude] = []
+    subscription = link.gcs.listen_message(
+        Attitude,
+        lambda message, frame: attitude_samples.append(message),
+        from_system_id=vehicle.system_id,
+    )
+
+    await link.drone.send(
+        Attitude(
+            time_boot_ms=1000,
+            roll=0.1,
+            pitch=-0.05,
+            yaw=1.57,
+            rollspeed=0,
+            pitchspeed=0,
+            yawspeed=0,
+        )
+    )
+
+    await asyncio.sleep(0.05)
+    subscription.cancel()
+
+    print(f"Received {{len(attitude_samples)}} ATTITUDE samples via listen_message")
+    if attitude_samples:
+        sample = attitude_samples[0]
+        print(f"  roll={{sample.roll}} pitch={{sample.pitch}} yaw={{sample.yaw}}")
+
+    await close_virtual_link(bus=link.bus, gcs=link.gcs, drone=link.drone)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 "#
     )
 }

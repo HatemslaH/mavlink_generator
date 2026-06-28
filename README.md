@@ -12,8 +12,8 @@ Code generator for [MAVLink](https://mavlink.io/) dialects. Reads MAVLink XML de
 The generator has three outputs per target language:
 
 1. **Dialect files** — message classes, enums, and a dialect registry derived from XML.
-2. **Runtime files** — shared helpers (CRC, framing, parsing) that dialect code depends on.
-3. **Examples** — runnable sample code showing how to use the generated bindings.
+2. **Runtime files** — shared helpers (CRC, framing, parsing) plus a transport-agnostic **protocol layer** (session, heartbeat, parameters, mission, commands).
+3. **Examples** — runnable sample code showing how to use the generated bindings (ten per dialect; see [Run examples](#run-examples)).
 
 All outputs are written under a common layout so multiple languages and dialects can coexist:
 
@@ -113,6 +113,12 @@ generated/
 
 Input definitions live in `mavlink/message_definitions/`. Static runtime templates live in `templates/<language>/`.
 
+## Protocol layer
+
+Transport-agnostic MAVLink APIs (`MavlinkLink`, `MavlinkSession`, `ParameterProtocol`, `MissionProtocol`, `CommandProtocol`, `MavlinkGcs`, and related types) are generated with the runtime for every target language. They sit above raw framing so application code can swap a virtual in-memory bus for serial, UDP, or TCP without changing protocol logic.
+
+Cross-language contract and semantics: **[docs/protocol-layer.md](docs/protocol-layer.md)**.
+
 ## Requirements
 
 - Rust 1.85+ (edition 2024)
@@ -189,7 +195,14 @@ mavlink-generator --help
 
 ### Run examples
 
-Each language ships four virtual examples per dialect (heartbeat, mission upload, telemetry request, parameter request). See `generated/<language>/examples/README.md` for details.
+Each dialect generates **ten** examples under `generated/<language>/examples/`:
+
+| Category | Files (per dialect `{stem}`) | Description |
+|----------|------------------------------|-------------|
+| Low-level (4) | `{stem}_heartbeat`, `{stem}_mission_upload`, `{stem}_request_telemetry`, `{stem}_request_parameters` | Virtual round-trip: serialize and parse MAVLink frames locally |
+| Protocol (6) | `{stem}_protocol_mission`, `{stem}_protocol_parameters`, `{stem}_protocol_command`, `{stem}_protocol_heartbeat`, `{stem}_protocol_vehicle`, `{stem}_protocol_subscribe` | Same flows via transport-agnostic protocol classes over a virtual in-memory link |
+
+See `generated/<language>/examples/README.md` for the full list and all run commands. Quick start (heartbeat):
 
 **Dart** (from `generated/dart`):
 
@@ -240,6 +253,30 @@ cargo run --example rt_rc_heartbeat
 ```bash
 node examples/rt_rc_heartbeat.js
 ```
+
+### Real SITL GCS examples
+
+Interactive ground-station samples that talk to SITL or hardware over serial live under `examples/` at the repository root (not in `generated/`). They use the generated protocol layer with a real `MavlinkLink` implementation.
+
+| Language | Folder | Generate bindings |
+|----------|--------|-------------------|
+| Dart | [examples/dart](examples/dart) | `--lang dart` |
+| Python | [examples/python](examples/python) | `--lang python` |
+| TypeScript | [examples/typescript](examples/typescript) | `--lang type-script` |
+| JavaScript | [examples/javascript](examples/javascript) | `--lang java-script` |
+| C# | [examples/csharp](examples/csharp) | `--lang c-sharp` |
+| Rust | [examples/rust](examples/rust) | `--lang rust` |
+| C | [examples/c](examples/c) | `--lang c` |
+| C++ | [examples/cpp](examples/cpp) | `--lang cpp` |
+
+Example:
+
+```bash
+cargo run -- --input mavlink/message_definitions/v1.0/rt_rc.xml --lang python
+cd examples/python && pip install -r requirements.txt && python sitl_gcs.py
+```
+
+Each folder has its own `README.md` with build steps and CLI usage.
 
 ### Library
 
