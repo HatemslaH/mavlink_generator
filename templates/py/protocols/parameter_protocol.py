@@ -75,6 +75,49 @@ class ParameterProtocol:
     def _remember(self, entry: ParamEntry) -> None:
         self._cache[entry.id] = entry
 
+    @staticmethod
+    def _take_next_param(
+        inbox: list[ParamValue], seen_indices: set[int]
+    ) -> ParamValue | None:
+        while inbox:
+            next_value = inbox.pop(0)
+            if next_value.param_index not in seen_indices:
+                return next_value
+        return None
+
+    async def _wait_for_next_param(
+        self,
+        inbox: list[ParamValue],
+        seen_indices: set[int],
+        timeout: timedelta,
+        cancel: MavlinkCancellationToken | None,
+    ) -> ParamValue:
+        buffered = self._take_next_param(inbox, seen_indices)
+        if buffered is not None:
+            return buffered
+
+        message = await self.session.wait_for_message(
+            predicate=lambda message: (
+                isinstance(message, ParamValue)
+                and message.param_index not in seen_indices
+            ),
+            from_system_id=self.target_system,
+            from_component_id=self.target_component,
+            timeout=timeout,
+            cancel=cancel,
+        )
+        assert isinstance(message, ParamValue)
+        return message
+
+    @staticmethod
+    def _find_missing_index(
+        seen_indices: set[int], expected_count: int
+    ) -> int | None:
+        for index in range(expected_count):
+            if index not in seen_indices:
+                return index
+        return None
+
     async def fetch_all(
         self,
         on_progress: ParamProgressCallback | None = None,
@@ -93,73 +136,91 @@ class ParameterProtocol:
         if cancel is not None:
             cancel.throw_if_cancelled()
 
-        await self.session.send(
-            ParamRequestList(
-                target_system=self.target_system,
-                target_component=self.target_component,
-            )
+        inbox: list[ParamValue] = []
+        subscription = self.session.listen_message(
+            ParamValue,
+            lambda message, _frame: inbox.append(message),
+            from_system_id=self.target_system,
+            from_component_id=self.target_component,
         )
 
-        expected_count = -1
-        seen_indices: set[int] = set()
-        timeout_retries = 0
-
-        while True:
-            if cancel is not None:
-                cancel.throw_if_cancelled()
-
-            timeout = (
-                self.request_timeout if expected_count == -1 else self.idle_timeout
-            )
-            try:
-                value = await self.session.wait_for_message(
-                    predicate=lambda message: (
-                        isinstance(message, ParamValue)
-                        and message.param_index not in seen_indices
-                    ),
-                    from_system_id=self.target_system,
-                    timeout=timeout,
-                    cancel=cancel,
+        try:
+            await self.session.send(
+                ParamRequestList(
+                    target_system=self.target_system,
+                    target_component=self.target_component,
                 )
-                timeout_retries = 0
-            except MavlinkTimeoutException:
-                timeout_retries += 1
-                if timeout_retries > 5:
-                    raise
+            )
+
+            expected_count = -1
+            seen_indices: set[int] = set()
+            retry_counts: dict[int, int] = {}
+            is_retrying = False
+
+            while True:
+                if cancel is not None:
+                    cancel.throw_if_cancelled()
+
+                param_value = self._take_next_param(inbox, seen_indices)
+                if param_value is None:
+                    timeout = (
+                        self.request_timeout
+                        if expected_count == -1 or is_retrying
+                        else self.idle_timeout
+                    )
+                    try:
+                        param_value = await self._wait_for_next_param(
+                            inbox,
+                            seen_indices,
+                            timeout,
+                            cancel,
+                        )
+                        is_retrying = False
+                    except MavlinkTimeoutException:
+                        if expected_count == -1:
+                            raise
+
+                        missing_index = self._find_missing_index(
+                            seen_indices, expected_count
+                        )
+                        if missing_index is None:
+                            break
+
+                        retries = retry_counts.get(missing_index, 0)
+                        if retries >= 3:
+                            raise
+
+                        retry_counts[missing_index] = retries + 1
+                        is_retrying = True
+
+                        await self.session.send(
+                            ParamRequestRead(
+                                param_index=missing_index,
+                                target_system=self.target_system,
+                                target_component=self.target_component,
+                                param_id=ParamCodec.param_id_from_string(""),
+                            )
+                        )
+                        continue
+                else:
+                    is_retrying = False
+
+                if param_value.param_index in seen_indices:
+                    continue
+
+                seen_indices.add(param_value.param_index)
 
                 if expected_count == -1:
-                    await self.session.send(
-                        ParamRequestList(
-                            target_system=self.target_system,
-                            target_component=self.target_component,
-                        )
-                    )
-                else:
-                    for i in range(expected_count):
-                        if i not in seen_indices:
-                            await self.session.send(
-                                ParamRequestRead(
-                                    param_index=i,
-                                    target_system=self.target_system,
-                                    target_component=self.target_component,
-                                    param_id=ParamCodec.param_id_from_string(""),
-                                )
-                            )
-                continue
+                    expected_count = param_value.param_count
 
-            param_value = value
-            assert isinstance(param_value, ParamValue)
-            seen_indices.add(param_value.param_index)
+                entry = ParamEntry.from_param_value(param_value)
+                self._remember(entry)
+                yield entry
 
-            if expected_count == -1:
-                expected_count = param_value.param_count
-
-            entry = ParamEntry.from_param_value(param_value)
-            self._remember(entry)
-            yield entry
-
-            if len(seen_indices) >= expected_count:
-                break
+                if len(seen_indices) >= expected_count:
+                    break
+        finally:
+            subscription.cancel()
 
     async def read_by_name(self, name: str) -> ParamEntry:
         return await self.read(param_id=name)
@@ -188,6 +249,7 @@ class ParameterProtocol:
         value = await self.session.wait_for_message_type(
             ParamValue,
             from_system_id=self.target_system,
+            from_component_id=self.target_component,
             timeout=self.request_timeout,
             cancel=cancel,
         )
@@ -218,6 +280,7 @@ class ParameterProtocol:
                 and ParamCodec.param_id_to_string(message.param_id) == name
             ),
             from_system_id=self.target_system,
+            from_component_id=self.target_component,
             timeout=self.request_timeout,
             cancel=cancel,
         )

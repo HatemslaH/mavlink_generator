@@ -264,6 +264,12 @@ fn generates_c_runtime_files() {
             .expect("parameter_protocol.h should exist");
     assert!(parameter_source.contains("parameter_protocol_fetch_all"));
     assert!(parameter_source.contains("parameter_protocol_write_by_name"));
+    assert!(parameter_source.contains("MAVLINK_PARAM_INDEX_MAX"));
+
+    let parameter_impl = std::fs::read_to_string(output_dir.join("protocols/parameter_protocol.c"))
+        .expect("parameter_protocol.c should exist");
+    assert!(parameter_impl.contains("param_fetch_inbox_on_message"));
+    assert!(parameter_impl.contains("param_fetch_find_missing_index"));
 
     let _ = std::fs::remove_dir_all(&output_dir);
 }
@@ -416,6 +422,13 @@ fn generates_cpp_runtime_files() {
     assert!(parameter_source.contains("fetch_all"));
     assert!(parameter_source.contains("write_by_name"));
 
+    let parameter_impl =
+        std::fs::read_to_string(output_dir.join("protocols/parameter_protocol.cpp"))
+            .expect("parameter_protocol.cpp should exist");
+    assert!(parameter_impl.contains("take_next_param"));
+    assert!(parameter_impl.contains("listen_message"));
+    assert!(parameter_impl.contains("find_missing_index"));
+
     let _ = std::fs::remove_dir_all(&output_dir);
 }
 
@@ -559,6 +572,10 @@ fn generates_python_runtime_files() {
             .expect("parameter_protocol.py should exist");
     assert!(parameter_source.contains("fetch_all_stream"));
     assert!(parameter_source.contains("write_by_name"));
+    assert!(parameter_source.contains("retry_counts"));
+    assert!(parameter_source.contains("is_retrying"));
+    assert!(parameter_source.contains("listen_message"));
+    assert!(parameter_source.contains("_take_next_param"));
 
     let _ = std::fs::remove_dir_all(&output_dir);
 }

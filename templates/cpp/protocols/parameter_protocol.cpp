@@ -2,8 +2,94 @@
 
 #include <set>
 #include <stdexcept>
+#include <unordered_map>
 
 namespace mavlink {
+
+namespace {
+
+bool take_next_param(
+  std::vector<param_value_t>& inbox,
+  const std::set<uint16_t>& seen_indices,
+  param_value_t& out
+) {
+  while (!inbox.empty()) {
+    param_value_t next = inbox.front();
+    inbox.erase(inbox.begin());
+    if (seen_indices.find(next.param_index) == seen_indices.end()) {
+      out = next;
+      return true;
+    }
+  }
+  return false;
+}
+
+std::optional<int> find_missing_index(const std::set<uint16_t>& seen_indices, int expected_count) {
+  for (int index = 0; index < expected_count; ++index) {
+    if (seen_indices.find(static_cast<uint16_t>(index)) == seen_indices.end()) {
+      return index;
+    }
+  }
+  return std::nullopt;
+}
+
+void send_param_request_read(
+  MavlinkSession* session,
+  uint8_t target_system,
+  uint8_t target_component,
+  int index
+) {
+  param_request_read_t req{};
+  req.param_index = static_cast<int16_t>(index);
+  req.target_system = target_system;
+  req.target_component = target_component;
+  ParamCodec::param_id_from_string(req.param_id, "");
+
+  uint8_t payload[param_request_read_ENCODED_LENGTH];
+  param_request_read_serialize(req, payload);
+  session->send_frame(
+    param_request_read_MSG_ID,
+    param_request_read_CRC_EXTRA,
+    payload,
+    param_request_read_ENCODED_LENGTH
+  );
+}
+
+param_value_t wait_for_next_param(
+  MavlinkSession* session,
+  std::vector<param_value_t>& inbox,
+  const std::set<uint16_t>& seen_indices,
+  uint8_t target_system,
+  uint8_t target_component,
+  std::chrono::milliseconds timeout,
+  MavlinkCancellationToken* cancel
+) {
+  param_value_t buffered{};
+  if (take_next_param(inbox, seen_indices, buffered)) {
+    return buffered;
+  }
+
+  const frame_t frame = session->wait_for_message(
+    [&](uint32_t message_id, const uint8_t* frame_payload, size_t, uint8_t, uint8_t) {
+      if (message_id != param_value_MSG_ID) {
+        return false;
+      }
+      param_value_t value{};
+      param_value_parse(frame_payload, value);
+      return seen_indices.find(value.param_index) == seen_indices.end();
+    },
+    target_system,
+    target_component,
+    timeout,
+    cancel
+  );
+
+  param_value_t param_value{};
+  param_value_parse(frame.payload, param_value);
+  return param_value;
+}
+
+}  // namespace
 
 ParamEntry ParamEntry::from_param_value(const param_value_t& message) {
   char id_buf[17];
@@ -52,6 +138,18 @@ std::vector<ParamEntry> ParameterProtocol::fetch_all(
     cancel->throw_if_cancelled();
   }
 
+  std::vector<param_value_t> inbox;
+  auto subscription = session_->listen_message(
+    param_value_MSG_ID,
+    [&](const uint8_t* payload, size_t, const frame_t&) {
+      param_value_t value{};
+      param_value_parse(payload, value);
+      inbox.push_back(value);
+    },
+    target_system_,
+    target_component_
+  );
+
   param_request_list_t list_request{};
   list_request.target_system = target_system_;
   list_request.target_component = target_component_;
@@ -65,45 +163,63 @@ std::vector<ParamEntry> ParameterProtocol::fetch_all(
   );
 
   std::vector<ParamEntry> entries;
-  std::vector<bool> seen_indices;
-  int seen_count = 0;
+  std::set<uint16_t> seen_indices;
+  std::unordered_map<int, uint8_t> retry_counts;
   int expected_count = -1;
+  bool is_retrying = false;
 
-  while (true) {
-    if (cancel != nullptr) {
-      cancel->throw_if_cancelled();
-    }
-
-    const auto timeout = expected_count == -1 ? request_timeout_ : idle_timeout_;
-    try {
-      const frame_t frame = session_->wait_for_message(
-        [&](uint32_t message_id, const uint8_t* frame_payload, size_t, uint8_t, uint8_t) {
-          if (message_id != param_value_MSG_ID) {
-            return false;
-          }
-          param_value_t value{};
-          param_value_parse(frame_payload, value);
-          if (value.param_index < seen_indices.size() && seen_indices[value.param_index]) {
-            return false;
-          }
-          return true;
-        },
-        target_system_,
-        std::nullopt,
-        timeout,
-        cancel
-      );
+  try {
+    while (true) {
+      if (cancel != nullptr) {
+        cancel->throw_if_cancelled();
+      }
 
       param_value_t param_value{};
-      param_value_parse(frame.payload, param_value);
-      
-      if (param_value.param_index >= seen_indices.size()) {
-        seen_indices.resize(param_value.param_index + 1, false);
+      const bool have_buffered = take_next_param(inbox, seen_indices, param_value);
+      if (!have_buffered) {
+        const auto timeout =
+          expected_count == -1 || is_retrying ? request_timeout_ : idle_timeout_;
+        try {
+          param_value = wait_for_next_param(
+            session_,
+            inbox,
+            seen_indices,
+            target_system_,
+            target_component_,
+            timeout,
+            cancel
+          );
+          is_retrying = false;
+        } catch (const MavlinkTimeoutException&) {
+          if (expected_count == -1) {
+            throw;
+          }
+
+          const auto missing_index = find_missing_index(seen_indices, expected_count);
+          if (!missing_index.has_value()) {
+            break;
+          }
+
+          const int index = missing_index.value();
+          const uint8_t retries = retry_counts[index];
+          if (retries >= 3) {
+            throw;
+          }
+          retry_counts[index] = retries + 1;
+          is_retrying = true;
+
+          send_param_request_read(session_, target_system_, target_component_, index);
+          continue;
+        }
+      } else {
+        is_retrying = false;
       }
-      if (!seen_indices[param_value.param_index]) {
-        seen_indices[param_value.param_index] = true;
-        seen_count++;
+
+      if (seen_indices.find(param_value.param_index) != seen_indices.end()) {
+        continue;
       }
+
+      seen_indices.insert(param_value.param_index);
 
       if (expected_count == -1) {
         expected_count = param_value.param_count;
@@ -114,42 +230,19 @@ std::vector<ParamEntry> ParameterProtocol::fetch_all(
       entries.push_back(entry);
 
       if (on_progress) {
-        on_progress(entry, static_cast<int>(entries.size()), entry.count);
+        on_progress(entry, static_cast<int>(seen_indices.size()), entry.count);
       }
 
-      if (expected_count != -1 && seen_count >= expected_count) {
+      if (expected_count != -1 && static_cast<int>(seen_indices.size()) >= expected_count) {
         break;
       }
-    } catch (const MavlinkTimeoutException& e) {
-      if (expected_count != -1) {
-        bool requested_any = false;
-        for (int i = 0; i < expected_count; ++i) {
-          if (i >= static_cast<int>(seen_indices.size()) || !seen_indices[i]) {
-            param_request_read_t req{};
-            req.param_index = static_cast<int16_t>(i);
-            req.target_system = target_system_;
-            req.target_component = target_component_;
-            ParamCodec::param_id_from_string(req.param_id, "");
-            
-            uint8_t payload[param_request_read_ENCODED_LENGTH];
-            param_request_read_serialize(req, payload);
-            session_->send_frame(
-              param_request_read_MSG_ID,
-              param_request_read_CRC_EXTRA,
-              payload,
-              param_request_read_ENCODED_LENGTH
-            );
-            requested_any = true;
-          }
-        }
-        if (requested_any) {
-          continue;
-        }
-      }
-      throw;
     }
+  } catch (...) {
+    subscription.cancel();
+    throw;
   }
 
+  subscription.cancel();
   return entries;
 }
 
@@ -185,7 +278,7 @@ ParamEntry ParameterProtocol::read(const char* param_id, int param_index, Mavlin
     param_value_MSG_ID,
     param_value_parse,
     target_system_,
-    std::nullopt,
+    target_component_,
     request_timeout_,
     cancel
   );
@@ -224,7 +317,7 @@ ParamEntry ParameterProtocol::write(
       return name == id_buf;
     },
     target_system_,
-    std::nullopt,
+    target_component_,
     request_timeout_,
     cancel
   );

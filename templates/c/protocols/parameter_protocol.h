@@ -9,6 +9,9 @@
 #include "param_codec.h"
 
 #define MAVLINK_PARAM_CACHE_MAX 128
+/// Max parameter index tracked during fetch (ArduPilot stacks often exceed 1000).
+#define MAVLINK_PARAM_INDEX_MAX 2048
+#define MAVLINK_PARAM_INBOX_MAX 2048
 
 typedef struct param_entry {
   char id[17];

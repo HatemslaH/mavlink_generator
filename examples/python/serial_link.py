@@ -24,6 +24,7 @@ class SerialMavlinkLink:
             parity=serial.PARITY_NONE,
             stopbits=serial.STOPBITS_ONE,
             timeout=0.05,
+            write_timeout=None,
         )
         port.dtr = True
         port.rts = True

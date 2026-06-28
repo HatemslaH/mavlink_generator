@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#if defined(__STDC_LIB_EXT1__) || defined(_MSC_VER)
+#if defined(__STDC_LIB_EXT1__) && !defined(_MSC_VER)
 
 static inline void mavlink_memcpy_s(
   void *dest,

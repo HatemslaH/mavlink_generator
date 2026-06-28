@@ -51,6 +51,125 @@ static param_entry_t parameter_entry_from_value(const param_value_t *value) {
   return entry;
 }
 
+typedef struct {
+  param_value_t items[MAVLINK_PARAM_INBOX_MAX];
+  int count;
+} param_fetch_inbox_t;
+
+typedef struct {
+  bool *seen;
+} param_unseen_wait_ctx_t;
+
+static void param_fetch_inbox_on_message(
+  mavlink_session_t *session,
+  const mavlink_frame_t *frame,
+  void *parsed_message,
+  void *user_data
+) {
+  (void)session;
+  (void)frame;
+  param_fetch_inbox_t *inbox = (param_fetch_inbox_t *)user_data;
+  if (parsed_message == NULL) {
+    return;
+  }
+  if (inbox->count >= MAVLINK_PARAM_INBOX_MAX) {
+    memmove(
+      inbox->items,
+      inbox->items + 1,
+      (size_t)(MAVLINK_PARAM_INBOX_MAX - 1) * sizeof(param_value_t)
+    );
+    inbox->count = MAVLINK_PARAM_INBOX_MAX - 1;
+  }
+  inbox->items[inbox->count++] = *(const param_value_t *)parsed_message;
+}
+
+static int param_fetch_take_next(
+  param_fetch_inbox_t *inbox,
+  const bool *seen,
+  param_value_t *out
+) {
+  int i = 0;
+  while (i < inbox->count) {
+    const uint16_t idx = inbox->items[i].param_index;
+    if (idx >= MAVLINK_PARAM_INDEX_MAX || seen[idx]) {
+      if (i < inbox->count - 1) {
+        memmove(
+          &inbox->items[i],
+          &inbox->items[i + 1],
+          (size_t)(inbox->count - i - 1) * sizeof(param_value_t)
+        );
+      }
+      inbox->count--;
+      continue;
+    }
+    *out = inbox->items[i];
+    if (i < inbox->count - 1) {
+      memmove(
+        &inbox->items[i],
+        &inbox->items[i + 1],
+        (size_t)(inbox->count - i - 1) * sizeof(param_value_t)
+      );
+    }
+    inbox->count--;
+    return 1;
+  }
+  return 0;
+}
+
+static bool param_fetch_unseen_predicate(const mavlink_frame_t *frame, void *user_data) {
+  param_unseen_wait_ctx_t *ctx = (param_unseen_wait_ctx_t *)user_data;
+  if (frame->message_id != param_value_MSG_ID) {
+    return false;
+  }
+  param_value_t value;
+  param_value_parse(frame->payload, &value);
+  if (value.param_index >= MAVLINK_PARAM_INDEX_MAX || ctx->seen[value.param_index]) {
+    return false;
+  }
+  return true;
+}
+
+static int param_fetch_find_missing_index(const bool *seen, int expected_count) {
+  for (int i = 0; i < expected_count && i < MAVLINK_PARAM_INDEX_MAX; i++) {
+    if (!seen[i]) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+static mavlink_wait_result_t param_fetch_wait_for_next(
+  parameter_protocol_t *protocol,
+  param_fetch_inbox_t *inbox,
+  bool *seen,
+  int timeout_ms,
+  mavlink_cancellation_token_t *cancel,
+  param_value_t *out_value
+) {
+  if (param_fetch_take_next(inbox, seen, out_value)) {
+    return MAVLINK_WAIT_OK;
+  }
+
+  param_unseen_wait_ctx_t ctx = { .seen = seen };
+  mavlink_frame_t frame;
+  mavlink_wait_result_t wait = mavlink_session_wait_for_message(
+    protocol->session,
+    param_fetch_unseen_predicate,
+    &ctx,
+    protocol->target_system,
+    protocol->target_component,
+    timeout_ms,
+    cancel,
+    &frame,
+    out_value,
+    sizeof(*out_value)
+  );
+  if (wait == MAVLINK_WAIT_OK) {
+    return MAVLINK_WAIT_OK;
+  }
+  return wait;
+}
+
 parameter_protocol_t *parameter_protocol_create(
   mavlink_session_t *session,
   uint8_t target_system,
@@ -104,6 +223,19 @@ mavlink_wait_result_t parameter_protocol_fetch_all(
     return MAVLINK_WAIT_CANCELLED;
   }
 
+  param_fetch_inbox_t inbox = { .count = 0 };
+  mavlink_message_subscription_t *subscription = mavlink_session_listen_message(
+    protocol->session,
+    param_value_MSG_ID,
+    protocol->target_system,
+    protocol->target_component,
+    param_fetch_inbox_on_message,
+    &inbox
+  );
+  if (subscription == NULL) {
+    return MAVLINK_WAIT_ERROR;
+  }
+
   param_request_list_t request = {
     .target_system = protocol->target_system,
     .target_component = protocol->target_component,
@@ -116,76 +248,92 @@ mavlink_wait_result_t parameter_protocol_fetch_all(
         param_request_list_CRC_EXTRA,
         payload,
         param_request_list_ENCODED_LENGTH) != 0) {
+    mavlink_message_subscription_cancel(subscription);
     return MAVLINK_WAIT_ERROR;
   }
 
   int expected_count = -1;
-  bool seen[MAVLINK_PARAM_CACHE_MAX] = {false};
+  bool seen[MAVLINK_PARAM_INDEX_MAX] = {false};
+  uint8_t retry_counts[MAVLINK_PARAM_INDEX_MAX] = {0};
+  int seen_count = 0;
+  int is_retrying = 0;
   size_t received = 0;
 
   while (true) {
     if (mavlink_cancellation_token_throw_if_cancelled(cancel) != 0) {
+      mavlink_message_subscription_cancel(subscription);
       return MAVLINK_WAIT_CANCELLED;
     }
 
-    typedef struct {
-      bool seen_buf[MAVLINK_PARAM_CACHE_MAX];
-    } fetch_ctx_t;
-    (void)sizeof(fetch_ctx_t);
-
-    mavlink_frame_t frame;
     param_value_t value;
-    int timeout = expected_count < 0 ? protocol->request_timeout_ms : protocol->idle_timeout_ms;
+    int have_value = param_fetch_take_next(&inbox, seen, &value);
+    if (!have_value) {
+      const int timeout =
+        expected_count < 0 || is_retrying != 0
+          ? protocol->request_timeout_ms
+          : protocol->idle_timeout_ms;
 
-    mavlink_wait_result_t wait = mavlink_session_wait_for_message_id(
-      protocol->session,
-      param_value_MSG_ID,
-      protocol->target_system,
-      0,
-      timeout,
-      cancel,
-      &frame,
-      &value,
-      sizeof(value)
-    );
-    if (wait != MAVLINK_WAIT_OK) {
-      if (wait == MAVLINK_WAIT_TIMEOUT && expected_count >= 0) {
-        bool requested_any = false;
-        for (int i = 0; i < expected_count; i++) {
-          if (i < MAVLINK_PARAM_CACHE_MAX && !seen[i]) {
-            param_request_read_t request = {0};
-            request.param_index = (int16_t)i;
-            request.target_system = protocol->target_system;
-            request.target_component = protocol->target_component;
-            
-            uint8_t req_payload[param_request_read_ENCODED_LENGTH];
-            param_request_read_serialize(&request, req_payload);
-            mavlink_session_send(
-              protocol->session,
-              param_request_read_MSG_ID,
-              param_request_read_CRC_EXTRA,
-              req_payload,
-              param_request_read_ENCODED_LENGTH
-            );
-            requested_any = true;
+      mavlink_wait_result_t wait = param_fetch_wait_for_next(
+        protocol,
+        &inbox,
+        seen,
+        timeout,
+        cancel,
+        &value
+      );
+      if (wait != MAVLINK_WAIT_OK) {
+        if (wait == MAVLINK_WAIT_TIMEOUT && expected_count >= 0) {
+          const int missing_index = param_fetch_find_missing_index(seen, expected_count);
+          if (missing_index < 0) {
+            break;
           }
-        }
-        if (requested_any) {
+
+          if (missing_index < MAVLINK_PARAM_INDEX_MAX &&
+              retry_counts[missing_index] >= 3) {
+            mavlink_message_subscription_cancel(subscription);
+            return MAVLINK_WAIT_TIMEOUT;
+          }
+
+          if (missing_index < MAVLINK_PARAM_INDEX_MAX) {
+            retry_counts[missing_index]++;
+          }
+          is_retrying = 1;
+
+          param_request_read_t read_request = {0};
+          read_request.param_index = (int16_t)missing_index;
+          read_request.target_system = protocol->target_system;
+          read_request.target_component = protocol->target_component;
+
+          uint8_t req_payload[param_request_read_ENCODED_LENGTH];
+          param_request_read_serialize(&read_request, req_payload);
+          mavlink_session_send(
+            protocol->session,
+            param_request_read_MSG_ID,
+            param_request_read_CRC_EXTRA,
+            req_payload,
+            param_request_read_ENCODED_LENGTH
+          );
           continue;
         }
+
+        mavlink_message_subscription_cancel(subscription);
+        return wait;
       }
-      return wait;
+      is_retrying = 0;
+    } else {
+      is_retrying = 0;
     }
 
-    if (value.param_index >= 0 && value.param_index < MAVLINK_PARAM_CACHE_MAX) {
-      if (seen[value.param_index]) {
-        continue;
-      }
-      seen[value.param_index] = true;
+    const uint16_t idx = value.param_index;
+    if (idx >= MAVLINK_PARAM_INDEX_MAX || seen[idx]) {
+      continue;
     }
+
+    seen[idx] = true;
+    seen_count++;
 
     if (expected_count < 0) {
-      expected_count = value.param_count;
+      expected_count = (int)value.param_count;
     }
 
     param_entry_t entry = parameter_entry_from_value(&value);
@@ -195,13 +343,15 @@ mavlink_wait_result_t parameter_protocol_fetch_all(
     }
     received++;
     if (on_progress != NULL) {
-      on_progress(&entry, (int)received, expected_count, progress_ctx);
+      on_progress(&entry, seen_count, expected_count, progress_ctx);
     }
 
-    if ((int)received >= expected_count) {
+    if (expected_count >= 0 && seen_count >= expected_count) {
       break;
     }
   }
+
+  mavlink_message_subscription_cancel(subscription);
 
   if (out_count != NULL) {
     *out_count = received;
@@ -242,7 +392,7 @@ static mavlink_wait_result_t parameter_protocol_read_impl(
     protocol->session,
     param_value_MSG_ID,
     protocol->target_system,
-    0,
+    protocol->target_component,
     protocol->request_timeout_ms,
     cancel,
     &frame,
@@ -328,7 +478,7 @@ mavlink_wait_result_t parameter_protocol_write(
     protocol->session,
     param_value_MSG_ID,
     protocol->target_system,
-    0,
+    protocol->target_component,
     protocol->request_timeout_ms,
     cancel,
     &frame,
