@@ -112,9 +112,7 @@ impl MavlinkLink for SerialMavlinkLink {
 
     fn receive(&self) -> Pin<Box<dyn Stream<Item = Vec<u8>> + Send>> {
         let mut guard = self.incoming_rx.lock().unwrap();
-        let rx = guard
-            .take()
-            .unwrap_or_else(|| mpsc::unbounded_channel().1);
+        let rx = guard.take().unwrap_or_else(|| mpsc::unbounded_channel().1);
         Box::pin(LinkRecvStream(rx))
     }
 

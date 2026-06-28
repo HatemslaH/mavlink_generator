@@ -137,7 +137,7 @@ pub struct MavlinkSession {
 }
 
 impl MavlinkSession {
-    const RECENT_FRAME_CAPACITY: usize = 64;
+    const RECENT_FRAME_CAPACITY: usize = 2048;
 
     pub fn new(
         dialect: Arc<dyn MavlinkDialect + Send + Sync>,
@@ -146,7 +146,7 @@ impl MavlinkSession {
         component_id: u8,
         version: MavlinkVersion,
     ) -> Self {
-        let (frames_tx, _) = broadcast::channel(256);
+        let (frames_tx, _) = broadcast::channel(4096);
         let inner = Arc::new(SessionInner {
             dialect: Arc::clone(&dialect),
             system_id,
@@ -483,8 +483,6 @@ fn dispatch_frame(inner: &SessionInner, frame: Arc<MavlinkFrame>) {
         return;
     }
 
-    let _ = inner.frames_tx.send(Arc::clone(&frame));
-
     {
         let mut recent = inner.recent_frames.lock().unwrap();
         recent.push_back(Arc::clone(&frame));
@@ -496,10 +494,14 @@ fn dispatch_frame(inner: &SessionInner, frame: Arc<MavlinkFrame>) {
     let mut waits = inner.pending_waits.lock().unwrap();
     if let Some(index) = waits.iter().position(|wait| (wait.predicate)(&frame)) {
         let wait = waits.remove(index);
-        if let Some(cloned) = clone_frame_owned(inner.dialect.as_ref(), frame.as_ref()) {
-            let _ = wait.respond.send(Ok(cloned));
-        }
+        let result = clone_frame_owned(inner.dialect.as_ref(), frame.as_ref())
+            .map(Ok)
+            .unwrap_or(Err(SessionWaitError::Closed));
+        let _ = wait.respond.send(result);
     }
+    drop(waits);
+
+    let _ = inner.frames_tx.send(Arc::clone(&frame));
 }
 
 fn poll_timeouts(inner: &SessionInner) {

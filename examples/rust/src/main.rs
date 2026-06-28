@@ -7,30 +7,25 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use mavlink::{
+    protocols::{MavlinkCancellationToken, MavlinkGcs, SessionWaitError},
     Attitude, MavMissionType, MavParamType, MavlinkDialectRtRc,
-    protocols::{
-        MavlinkCancellationToken, MavlinkGcs, SessionWaitError,
-    },
 };
 use mavlink_sitl_gcs::{
-    build_sample_mission, describe_mission_item, parse_baud_rate, pick_serial_port,
-    GcsContext, SerialMavlinkLink, GCS_COMPONENT_ID, GCS_SYSTEM_ID,
+    build_sample_mission, describe_mission_item, parse_baud_rate, pick_serial_port, GcsContext,
+    SerialMavlinkLink, GCS_COMPONENT_ID, GCS_SYSTEM_ID,
 };
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
-    let baud_rate = parse_baud_rate(&args, 57_600).map_err(|error| io::Error::new(
-        io::ErrorKind::InvalidInput,
-        error,
-    ))?;
+    let baud_rate = parse_baud_rate(&args, 57_600)
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error))?;
     let port_name = pick_serial_port()?;
 
     println!();
     println!("Opening {port_name} @ {baud_rate} baud...");
 
-    let dialect: Arc<dyn mavlink::MavlinkDialect + Send + Sync> =
-        Arc::new(MavlinkDialectRtRc);
+    let dialect: Arc<dyn mavlink::MavlinkDialect + Send + Sync> = Arc::new(MavlinkDialectRtRc);
     let link = SerialMavlinkLink::open(&port_name, baud_rate)?;
     let gcs = MavlinkGcs::connect(
         dialect,
@@ -66,9 +61,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Vehicle online: {vehicle}");
         println!(
             "  type={:?} autopilot={:?} status={:?}",
-            state.heartbeat.r#type,
-            state.heartbeat.autopilot,
-            state.heartbeat.system_status
+            state.heartbeat.r#type, state.heartbeat.autopilot, state.heartbeat.system_status
         );
     } else {
         println!("Vehicle online: {vehicle}");
@@ -283,12 +276,17 @@ fn parse_param_value(raw: &str, param_type: MavParamType) -> Result<f64, String>
         MavParamType::MAV_PARAM_TYPE_INT8
         | MavParamType::MAV_PARAM_TYPE_INT16
         | MavParamType::MAV_PARAM_TYPE_INT32
-        | MavParamType::MAV_PARAM_TYPE_UINT8
-        | MavParamType::MAV_PARAM_TYPE_UINT16
-        | MavParamType::MAV_PARAM_TYPE_UINT32 => raw
+        | MavParamType::MAV_PARAM_TYPE_INT64 => raw
             .parse::<i64>()
             .map(|value| value as f64)
-            .map_err(|_| format!("invalid integer parameter value: {raw}")),
+            .map_err(|_| format!("invalid signed integer parameter value: {raw}")),
+        MavParamType::MAV_PARAM_TYPE_UINT8
+        | MavParamType::MAV_PARAM_TYPE_UINT16
+        | MavParamType::MAV_PARAM_TYPE_UINT32
+        | MavParamType::MAV_PARAM_TYPE_UINT64 => raw
+            .parse::<u64>()
+            .map(|value| value as f64)
+            .map_err(|_| format!("invalid unsigned integer parameter value: {raw}")),
         _ => raw
             .parse::<f64>()
             .map_err(|_| format!("invalid float parameter value: {raw}")),
@@ -301,14 +299,13 @@ async fn upload_mission(ctx: &mut GcsContext) -> Result<(), SessionWaitError> {
     ctx.operation_cancel = Some(cancel.clone());
 
     println!("[mission] uploading {} hardcoded items...", plan.len());
-    let on_progress =
-        |sent: usize, total: usize, item: &mavlink::MissionItemInt| {
-            println!(
-                "[mission upload] {sent}/{total} seq={} {}",
-                item.seq,
-                describe_mission_item(item)
-            );
-        };
+    let on_progress = |sent: usize, total: usize, item: &mavlink::MissionItemInt| {
+        println!(
+            "[mission upload] {sent}/{total} seq={} {}",
+            item.seq,
+            describe_mission_item(item)
+        );
+    };
 
     let result = ctx
         .mission()
@@ -327,13 +324,12 @@ async fn download_mission(ctx: &mut GcsContext) -> Result<(), SessionWaitError> 
     let cancel = MavlinkCancellationToken::new();
     ctx.operation_cancel = Some(cancel.clone());
 
-    let on_progress =
-        |received: usize, total: u16, item: &mavlink::MissionItemInt| {
-            println!(
-                "[mission download] {received}/{total} {}",
-                describe_mission_item(item)
-            );
-        };
+    let on_progress = |received: usize, total: u16, item: &mavlink::MissionItemInt| {
+        println!(
+            "[mission download] {received}/{total} {}",
+            describe_mission_item(item)
+        );
+    };
 
     let items = ctx
         .mission()
@@ -366,9 +362,7 @@ async fn set_mission_current(ctx: &GcsContext, parts: &[&str]) -> Result<(), Ses
         return Ok(());
     }
 
-    let seq: u16 = parts[1]
-        .parse()
-        .map_err(|_| SessionWaitError::Closed)?;
+    let seq: u16 = parts[1].parse().map_err(|_| SessionWaitError::Closed)?;
     println!("[mission] set current seq={seq} (mission + command)...");
     let result = ctx
         .mission()
@@ -392,11 +386,12 @@ async fn request_message(ctx: &GcsContext, parts: &[&str]) -> Result<(), Session
         return Ok(());
     }
 
-    let msg_id: u32 = parts[1]
-        .parse()
-        .map_err(|_| SessionWaitError::Closed)?;
+    let msg_id: u32 = parts[1].parse().map_err(|_| SessionWaitError::Closed)?;
     println!("[command] REQUEST_MESSAGE id={msg_id}");
-    let ack = ctx.command().request_message(msg_id, 0.0, None, None).await?;
+    let ack = ctx
+        .command()
+        .request_message(msg_id, 0.0, None, None)
+        .await?;
     println!("[command] ack: {:?}", ack.result);
 
     if msg_id == Attitude::MSG_ID {
@@ -424,12 +419,8 @@ async fn set_message_interval(ctx: &GcsContext, parts: &[&str]) -> Result<(), Se
         return Ok(());
     }
 
-    let msg_id: u32 = parts[1]
-        .parse()
-        .map_err(|_| SessionWaitError::Closed)?;
-    let interval_us: u32 = parts[2]
-        .parse()
-        .map_err(|_| SessionWaitError::Closed)?;
+    let msg_id: u32 = parts[1].parse().map_err(|_| SessionWaitError::Closed)?;
+    let interval_us: u32 = parts[2].parse().map_err(|_| SessionWaitError::Closed)?;
     println!("[command] SET_MESSAGE_INTERVAL id={msg_id} interval={interval_us} us");
     let ack = if interval_us == 0 {
         ctx.command()
@@ -450,9 +441,7 @@ async fn stream_attitude(ctx: &GcsContext, parts: &[&str]) -> Result<(), Session
     } else {
         5
     };
-    println!(
-        "[telemetry] streaming ATTITUDE for {seconds}s (subscribe + interval)..."
-    );
+    println!("[telemetry] streaming ATTITUDE for {seconds}s (subscribe + interval)...");
 
     ctx.command()
         .set_message_interval(Attitude::MSG_ID, 100_000, None, None)
@@ -495,10 +484,7 @@ async fn arm(ctx: &GcsContext, parts: &[&str]) -> Result<(), SessionWaitError> {
 
 async fn disarm(ctx: &GcsContext, parts: &[&str]) -> Result<(), SessionWaitError> {
     let force = parts.len() >= 2 && parts[1].eq_ignore_ascii_case("force");
-    println!(
-        "[command] DISARM{}...",
-        if force { " (force)" } else { "" }
-    );
+    println!("[command] DISARM{}...", if force { " (force)" } else { "" });
     let ack = ctx.command().disarm(force, None, None).await?;
     println!("[command] ack: {:?}", ack.result);
     Ok(())

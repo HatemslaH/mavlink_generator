@@ -1156,6 +1156,7 @@ fn generates_rust_runtime_files() {
             .expect("parameter_protocol.rs should exist");
     assert!(parameter_source.contains("fetch_all_stream"));
     assert!(parameter_source.contains("write_by_name"));
+    assert!(parameter_source.contains("is_retrying"));
 
     let cargo =
         std::fs::read_to_string(output_dir.join("Cargo.toml")).expect("Cargo.toml should exist");

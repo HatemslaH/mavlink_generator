@@ -1,5 +1,6 @@
 //! MAVLink parameter protocol client and server.
 
+use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
@@ -89,7 +90,7 @@ impl ParameterProtocol {
         cancel: Option<&MavlinkCancellationToken>,
     ) -> Result<Vec<ParamEntry>, SessionWaitError> {
         let mut entries = Vec::new();
-        let mut stream = self.fetch_all_stream(cancel).await;
+        let mut stream = self.fetch_all_stream(cancel).await?;
         while let Some(entry) = stream.fetch_next().await {
             entries.push(entry.clone());
             if let Some(callback) = on_progress {
@@ -102,26 +103,27 @@ impl ParameterProtocol {
     pub async fn fetch_all_stream(
         &self,
         cancel: Option<&MavlinkCancellationToken>,
-    ) -> ParameterFetchStream<'_> {
+    ) -> Result<ParameterFetchStream<'_>, SessionWaitError> {
         if let Some(token) = cancel {
             let _ = token.throw_if_cancelled();
         }
 
-        let _ = self
-            .session
+        self.session
             .send(Box::new(ParamRequestList {
                 target_system: self.target_system,
                 target_component: self.target_component,
             }))
-            .await;
+            .await?;
 
-        ParameterFetchStream {
+        Ok(ParameterFetchStream {
             protocol: self,
             cancel: cancel.cloned(),
             expected_count: None,
             seen_indices: HashSet::new(),
+            retry_counts: HashMap::new(),
+            is_retrying: false,
             finished: false,
-        }
+        })
     }
 
     pub async fn read_by_name(
@@ -231,21 +233,15 @@ impl ParameterProtocol {
 
     async fn next_param_value(
         &self,
-        expected_count: Option<u16>,
         seen_indices: &HashSet<u16>,
+        timeout: Duration,
         cancel: Option<&MavlinkCancellationToken>,
     ) -> Result<ParamValue, SessionWaitError> {
-        let timeout = if expected_count.is_none() {
-            self.request_timeout
-        } else {
-            self.idle_timeout
-        };
-
         let seen = seen_indices.clone();
         self.session
             .wait_for_message(
                 move |message| {
-                    if let Some(param) = (message as &dyn std::any::Any).downcast_ref::<ParamValue>() {
+                    if let Some(param) = (message as &dyn Any).downcast_ref::<ParamValue>() {
                         return !seen.contains(&param.param_index);
                     }
                     false
@@ -257,7 +253,7 @@ impl ParameterProtocol {
             )
             .await
             .and_then(|message| {
-                (message.as_ref() as &dyn std::any::Any)
+                (message.as_ref() as &dyn Any)
                     .downcast_ref::<ParamValue>()
                     .cloned()
                     .ok_or(SessionWaitError::Closed)
@@ -270,6 +266,8 @@ pub struct ParameterFetchStream<'a> {
     cancel: Option<MavlinkCancellationToken>,
     expected_count: Option<u16>,
     seen_indices: HashSet<u16>,
+    retry_counts: HashMap<u16, u8>,
+    is_retrying: bool,
     finished: bool,
 }
 
@@ -279,9 +277,6 @@ impl<'a> ParameterFetchStream<'a> {
             return None;
         }
 
-        let mut retries = 0;
-        let max_retries = 5;
-
         loop {
             if let Some(token) = self.cancel.as_ref() {
                 if token.throw_if_cancelled().is_err() {
@@ -290,12 +285,19 @@ impl<'a> ParameterFetchStream<'a> {
                 }
             }
 
+            let timeout = if self.expected_count.is_none() || self.is_retrying {
+                self.protocol.request_timeout
+            } else {
+                self.protocol.idle_timeout
+            };
+
             match self
                 .protocol
-                .next_param_value(self.expected_count, &self.seen_indices, self.cancel.as_ref())
+                .next_param_value(&self.seen_indices, timeout, self.cancel.as_ref())
                 .await
             {
                 Ok(value) => {
+                    self.is_retrying = false;
                     self.seen_indices.insert(value.param_index);
                     if self.expected_count.is_none() {
                         self.expected_count = Some(value.param_count);
@@ -311,32 +313,33 @@ impl<'a> ParameterFetchStream<'a> {
                     return Some(entry);
                 }
                 Err(SessionWaitError::Timeout(_)) => {
-                    if let Some(expected) = self.expected_count {
-                        retries += 1;
-                        if retries > max_retries {
+                    if self.expected_count.is_none() {
+                        self.finished = true;
+                        return None;
+                    }
+
+                    let expected = self.expected_count.unwrap();
+                    let missing_index =
+                        (0..expected).find(|index| !self.seen_indices.contains(index));
+                    if let Some(index) = missing_index {
+                        let retries = self.retry_counts.entry(index).or_insert(0);
+                        if *retries >= 3 {
                             self.finished = true;
                             return None;
                         }
+                        *retries += 1;
+                        self.is_retrying = true;
 
-                        let mut missing_index = -1;
-                        for i in 0..expected {
-                            if !self.seen_indices.contains(&i) {
-                                missing_index = i as i16;
-                                break;
-                            }
-                        }
-
-                        if missing_index >= 0 {
-                            let _ = self.protocol.session.send(Box::new(ParamRequestRead {
-                                param_index: missing_index,
+                        let _ = self
+                            .protocol
+                            .session
+                            .send(Box::new(ParamRequestRead {
+                                param_index: index as i16,
                                 target_system: self.protocol.target_system,
                                 target_component: self.protocol.target_component,
                                 param_id: ParamCodec::param_id_from_string(""),
-                            })).await;
-                        } else {
-                            self.finished = true;
-                            return None;
-                        }
+                            }))
+                            .await;
                     } else {
                         self.finished = true;
                         return None;

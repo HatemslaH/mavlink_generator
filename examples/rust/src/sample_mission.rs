@@ -1,9 +1,6 @@
 //! Hardcoded sample mission (Zurich area coordinates, same as generated virtual examples).
 
-use mavlink::{
-    MavCmd, MavFrame, MavMissionType, MissionItemInt,
-    protocols::MissionItems,
-};
+use mavlink::{protocols::MissionItems, MavCmd, MavFrame, MavMissionType, MissionItemInt};
 
 /// Hardcoded sample mission (Zurich area coordinates, same as generated virtual examples).
 pub fn build_sample_mission(target_system: u8, target_component: u8) -> Vec<MissionItemInt> {

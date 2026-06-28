@@ -1,9 +1,8 @@
 //! Shared MAVLink GCS state for the interactive SITL example.
 
 use mavlink::protocols::{
-    CommandProtocol, HeartbeatMonitor, HeartbeatPublisher, MavlinkCancellationToken,
-    MavlinkGcs, MavlinkNode, MavlinkSession, MavlinkVehicleClient, MissionProtocol,
-    ParameterProtocol,
+    CommandProtocol, HeartbeatMonitor, HeartbeatPublisher, MavlinkCancellationToken, MavlinkGcs,
+    MavlinkNode, MavlinkSession, MavlinkVehicleClient, MissionProtocol, ParameterProtocol,
 };
 
 /// Ground control station identity (MAVLink convention).
